@@ -10,7 +10,7 @@ Class Form1
     
     Private Sub Form_Load()
         
-        Me.Caption = "tBHelper (0.8.5)"
+        Me.Caption = "tBHelper (0.8.6)"
         SetupFlexGrid
         Me.Show
         
