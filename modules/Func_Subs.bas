@@ -57,7 +57,7 @@ Public Function GetCurrentTBVersion(tBFolder As String) As String
     Dim tempString As String
     
     If Not fso.FileExists(fileWithVersionInfo) Then
-        GetCurrentTBVersion = "Version file," & fileWithVersionInfo & ", is missing"
+        GetCurrentTBVersion = "Not found"
         Exit Function
     End If
         
@@ -198,11 +198,17 @@ Public Function fsoFileRead(filePath As String) As String
     
     If Not fso.FileExists(filePath) Then Return "Failed fsoFileRead"
     
+    On Error GoTo readError
+    
     Dim fso As New Scripting.FileSystemObject
         Dim fileToRead As TextStream
         
         Set fileToRead = fso.OpenTextFile(filePath, ForReading)
             fsoFileRead = fileToRead.ReadAll()
+readError:
+        If fsoFileRead = vbNullString Then
+            MsgBox("Unable to read " & filePath, vbExclamation, "FileRead")
+        End If
         fileToRead.Close()
     Set fso = Nothing
     

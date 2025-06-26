@@ -47,6 +47,9 @@ Class frmRevert
     
     Private Sub btnRevert_Click()
         
+        If MsgBox("Are you sure you want to revert the current version of twinBASIC (" & tbHelperClass.InstalledtBVersion & ") to version " & _ 
+            revertToVersion & "?", vbYesNo, "Reverting twinBASIC") = vbNo Then Exit Sub
+        
         Form1.ShowStatusMessage("Selected to revert from version " & tbHelperClass.InstalledtBVersion & " to " & revertToVersion)
         
         ' check that the IDE is closed before attempting to revert
@@ -94,7 +97,7 @@ Class frmRevert
     Private Sub drpAvailableZips_Click()
         
         ' the user has picked a version to revert to, display that version's change log 
-        If ignoreClickEvent Then Exit Sub
+        If ignoreClickEvent Or drpAvailableZips.ListIndex = 0 Then Exit Sub
         
         ' pull the version number from the zip file name
         Dim selectedVersion As Integer
@@ -107,7 +110,7 @@ Class frmRevert
         
         revertToVersion = CInt(selectedVersion)
         
-        lblChangeLogTitle.Caption = lblChangeLogTitle.Caption & " for version " & selectedVersion
+        lblChangeLogTitle.Caption = "ChangeLog for version " & selectedVersion
         FillChangeLogGrid()
         
         btnRevert.Enabled = True
@@ -273,6 +276,7 @@ Class frmRevert
         Dim colNum As Integer
                 
         For Each revertToCL In revertToCLs
+
             If revertToCL.tBVersion = revertToVersion Then
                 ' write each change log item for this version in the grid
                 With flgLog
@@ -292,13 +296,16 @@ Class frmRevert
                 End With
                                         
             End If
+
         Next
         
         ' tell the grid to resize the row for the wordwrap function on 2nd column
-        flgLog.AutoSize(1, flgLog.Rows - 1, FlexAutoSizeModeRowHeight)
-        
-        UpdateStatusPanel "Loaded " & flgLog.Rows - 1 & " items"
-        Set revertToCL = Nothing
+        If flgLog.Rows > 1 Then
+            flgLog.AutoSize(1, flgLog.Rows - 1, FlexAutoSizeModeRowHeight)
+            
+            UpdateStatusPanel "Loaded " & flgLog.Rows - 1 & " items"
+            Set revertToCL = Nothing
+        End If
     End Sub
     
     Private Sub GetChangeLogsFromGitHub()

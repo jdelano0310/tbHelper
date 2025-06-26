@@ -190,10 +190,7 @@ Public Function GetNewerReleasedVersions(Optional isDuringFormLoad As Boolean = 
     
     GetNewerReleasedVersions = False
     
-    If tbHelperClass.InstalledtBVersion = 0 Then
-        MsgBox "Attempt to use GetNewerReleasedVersions without first setting installed version", vbCritical, "Get Released Versions"
-        Exit Function
-    End If
+    If tbHelperClass.InstalledtBVersion = 0 Then Exit Function
     
     If fso.FileExists(App.Path & "\GitHubReleasesPage.html") Then
         ' if this exists, debugging is happening

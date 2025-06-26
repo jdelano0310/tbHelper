@@ -38,6 +38,7 @@ Class Form1
         If FoldersAreValid Then
             ' get the version of twinBASIC that is current in the folder
             lblVersion.Caption = "version: " & GetCurrentTBVersion(txttBLocation.Text)
+            If tbHelperClass.InstalledtBVersion = 0 Then txttBLocation.BackColor = vbRed
         End If
         
         ' enable or disable view log button
@@ -47,27 +48,9 @@ Class Form1
         
         ' this contiues to check for version info if the folders are valid
         If tbHelperSettings.SettingsFileLoaded And FoldersAreValid Then
-            
-            If chkLookForUpdateOnLaunch.Value Then
-                ShowStatusMessage "Auto check for new version"
-                chgLogs.GetNewerReleasedVersions(True)
-                
-                If chgLogs.tBVersionGap > 0 Then
-                    ' there is at least 1 new version available
-                    btnDownLoadZip.Caption = "Download version " & chgLogs.LatestVersion
-                    FilltBChangeLog()
-                    ShowStatusMessage "Newest version available is " & chgLogs.LatestVersion
-                Else
-                    ShowStatusMessage "No newer version available"
-                End If
-            Else
-                btnDownLoadZip.Caption = "Check for new version"
-            End If
-            
-            EnableDownloadZipButton
+            CheckForNewVersion
             
         End If
-     
         
     End Sub
     
@@ -255,7 +238,7 @@ Class Form1
         
     End Sub
     
-    Private Sub txtDownloadTo_Change()
+    Private Sub txtDownloadTo_LostFocus()
         
         ' check to ensure the download folder is 
         If fso.FolderExists(txtDownloadTo.Text) Then
@@ -272,42 +255,11 @@ Class Form1
         
     End Sub
     
-    Private Sub txttBLocation_Change()
-        
-        ' is the form reaf to download the zip file
-        If fso.FolderExists(txttBLocation.Text) Then
-            ' set the color to the normal background if the folders are valid
-            txttBLocation.BackColor = "&HE8C59F"
-            
-            ' complete the path
-            If Right(txttBLocation.Text, 1) <> "\" Then txttBLocation.Text += "\"
-            
-            ' retrieve the current version from the selected folder
-            Dim temp As String = GetCurrentTBVersion(txttBLocation.Text)
-            
-            If Val(temp) = 0 Then
-                ' indicate an invalid selection
-                lblVersion.Caption = ""
-                tbHelperClass.InstalledtBVersion = 0
-                txttBLocation.BackColor = vbRed
-                
-                MsgBox(temp, vbOKOnly, "twinBASIC installed version check")
-            Else
-                lblVersion.Caption = "version: " & tbHelperClass.InstalledtBVersion
-            End If
-        Else
-            ' indicate an invalid selection
-            tbHelperClass.InstalledtBVersion = 0
-            txttBLocation.BackColor = vbRed
-            lblVersion.Caption = ""
-        End If
-              
-        tbHelperSettings.twinBASICFolder = txttBLocation.Text
-    End Sub
-    
     Private Sub txttBLocation_LostFocus()
-            
-        ' if there is a folder name in tehe textbox and folder doesn't exist, create it?
+        
+        Dim newtBLocationFolder As Boolean = False
+        
+        ' if there is a folder name in the textbox and folder doesn't exist, create it?
         If Not fso.FolderExists(txttBLocation.Text) And Not Trim(txttBLocation.Text) = "" Then
             ' ask the user if the folder should be created (like a first time setup)
             If MsgBox("This folder doesn't exist. Should it be created?", vbYesNo, "twinBASIC Location") = vbYes Then
@@ -316,9 +268,11 @@ Class Form1
                 If Not fso.FolderExists(txttBLocation.Text) Then
                     ShowStatusMessage("Unable to create the twinBASIC folder " & txttBLocation.Text & " as requested")()
                     MsgBox("Unable to create the folder. Try another folder name.", vbCritical, "Creation Error")
+                    txttBLocation.BackColor = vbRed
                     txttBLocation.SetFocus()
                 Else
                     txttBLocation.BackColor = "&HE8C59F"
+                    newtBLocationFolder = True
                     ShowStatusMessage("The twinBASIC folder " & txttBLocation.Text & " was created")
                     EnableDownloadZipButton
                 End If
@@ -326,10 +280,74 @@ Class Form1
             End If
         End If
         
+        ' is the folder to install twinBASIC to valid?
+        If Not newtBLocationFolder Then
+            ' the user didn't create a new tBFolder
+            If fso.FolderExists(txttBLocation.Text) Then
+                ' set the color to the normal background if the folders are valid
+                txttBLocation.BackColor = "&HE8C59F"
+            
+                ' complete the path
+                If Right(txttBLocation.Text, 1) <> "\" Then txttBLocation.Text += "\"
+            
+                Dim prevInstalledVersion As Integer = tbHelperClass.InstalledtBVersion
+                    
+                ' retrieve the current version from the selected folder
+                Dim temp As String = GetCurrentTBVersion(txttBLocation.Text)
+            
+                If Val(temp) = 0 Then
+                    ' indicate an invalid selection
+                    lblVersion.Caption = ""
+                    tbHelperClass.InstalledtBVersion = 0
+                    txttBLocation.BackColor = vbRed
+                
+                    MsgBox(temp, vbOKOnly, "twinBASIC installed version check")
+                Else
+                    lblVersion.Caption = "version: " & tbHelperClass.InstalledtBVersion
+                    
+                    If prevInstalledVersion <> tbHelperClass.InstalledtBVersion Then
+                        ' a new location with twinBASIC was selected, should a check to see if it can be updated run?
+                        CheckForNewVersion
+                    End If
+                End If
+            Else
+                ' indicate an invalid selection
+                tbHelperClass.InstalledtBVersion = 0
+                txttBLocation.BackColor = vbRed
+                lblVersion.Caption = ""
+            End If
+                        
+        End If
+        
+        tbHelperSettings.twinBASICFolder = txttBLocation.Text
     End Sub
+    
     ' *********************************** 
     ' ***   subs and functions
     ' ***************************************
+    
+    Private Sub CheckForNewVersion()
+        
+        ' should tBHelper look for a newer version?
+        If chkLookForUpdateOnLaunch.Value Then
+            ShowStatusMessage "Checking for new version"
+            chgLogs.GetNewerReleasedVersions(True)
+                
+            If chgLogs.tBVersionGap > 0 Then
+                ' there is at least 1 new version available
+                btnDownLoadZip.Caption = "Download version " & chgLogs.LatestVersion
+                FilltBChangeLog()
+                ShowStatusMessage "Newest version available is " & chgLogs.LatestVersion
+            Else
+                ShowStatusMessage "No newer version available"
+            End If
+        Else
+            btnDownLoadZip.Caption = "Check for new version"
+        End If
+            
+        EnableDownloadZipButton
+        
+    End Sub
     
     Private Sub EnableDownloadZipButton()
         
@@ -432,6 +450,7 @@ Class Form1
             lbStatus.AddItem(statMessage)
         End If
         
+        lbStatus.ListIndex = lbStatus.ListCount - 1
         DoEvents()
         
     End Sub
