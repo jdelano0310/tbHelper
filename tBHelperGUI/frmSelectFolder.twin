@@ -1,0 +1,46 @@
+[Description("")]
+[FormDesignerId("68122D51-EEDD-4680-B654-F1AA3F0AAB06")]
+[PredeclaredId]
+Class frmSelectFolder
+
+	Sub New()
+	End Sub
+    
+    Private Sub Form_Load()
+        
+        ConfigureButtons
+        
+    End Sub
+
+    Private Sub ConfigureButtons()
+        
+        'setup the user control download button
+        With btnOk
+            .Caption = "OK"
+            .BackColor = RGB(37, 99, 235)  ' Blue
+            .ForeColor = vbWhite  ' White
+            .FontSize = 11
+            .HoverColor = RGB(18, 40, 234) ' Darker blue
+            .BorderRadius = 6
+            .FontBold = True
+            .PngIconPath = ""
+            .IconSize = 0
+            .IconSpacing = 0
+        End With
+        
+        With btnCancel
+            .Caption = "Cancel"
+            .BackColor = &HF4F6F3  ' light grey
+            .ForeColor = vbBlack
+            .FontSize = 11
+            .HoverColor = &HF4F6F3 ' Darker grey
+            .BorderRadius = 6
+            .FontBold = True
+            .PngIconPath = ""
+            .IconSize = 0
+            .IconSpacing = 0
+        End With
+        
+    End Sub
+    
+End Class

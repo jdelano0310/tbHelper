@@ -1,0 +1,412 @@
+[Description("")]
+[FormDesignerId("C0155EC8-E839-4D81-81EA-D4D67C663D1B")]
+[ClassId("E87E6136-36ED-48D4-AE69-648B93EF0A12")]
+[InterfaceId("8DBC5F49-9658-4FEA-8786-FDE644379673")]
+[EventInterfaceId("3D66B76E-7CB0-45D1-A5B0-CB961394FDAD")]
+[COMControl]
+Class ucCustomButton
+
+    Private Declare Function GdiplusStartup Lib "gdiplus" (token As Long, inputbuf As GdiplusStartupInput, Optional ByVal outputbuf As Long = 0) As Long
+    Private Declare Function GdiplusShutdown Lib "gdiplus" (ByVal token As Long) As Long
+    Private Declare Function GdipCreateBitmapFromFile Lib "gdiplus" (ByVal filename As Long, bitmap As Long) As Long
+    Private Declare Function GdipCreateHBITMAPFromBitmap Lib "gdiplus" (ByVal bitmap As Long, hbmReturn As Long, ByVal background As Long) As Long
+    Private Declare Function GdipDisposeImage Lib "gdiplus" (ByVal image As Long) As Long
+    Private Declare Function CreateCompatibleDC Lib "gdi32" (ByVal hdc As Long) As Long
+    Private Declare Function SelectObject Lib "gdi32" (ByVal hdc As Long, ByVal hObject As Long) As Long
+    Private Declare Function BitBlt Lib "gdi32" (ByVal hDestDC As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As Long, ByVal xSrc As Long, ByVal ySrc As Long, ByVal dwRop As Long) As Long
+    Private Declare Function DeleteDC Lib "gdi32" (ByVal hdc As Long) As Long
+    Private Declare Function DeleteObject Lib "gdi32" (ByVal hObject As Long) As Long
+    Private Declare Function GdipCreateFromHDC Lib "gdiplus" (ByVal hdc As Long, graphics As Long) As Long
+    Private	Declare Function GdipDrawImageRectI Lib "gdiplus" (ByVal graphics As Long, ByVal Image As Long, ByVal x As Long, ByVal y As Long, ByVal Width As Long, ByVal Height As Long) As Long
+    Private Declare Function GdipDeleteGraphics Lib "gdiplus" (ByVal graphics As Long) As Long
+    
+    Private Type GdiplusStartupInput
+        GdiplusVersion As Long
+        DebugEventCallback As Long
+        SuppressBackgroundThread As Long
+        SuppressExternalCodecs As Long
+    End Type
+    
+    Sub New()
+    End Sub
+    
+    ' API declarations for drawing
+    Private Declare Function CreateRoundRectRgn Lib "gdi32" ( _
+        ByVal X1 As Long, ByVal Y1 As Long, _
+        ByVal X2 As Long, ByVal Y2 As Long, _
+        ByVal X3 As Long, ByVal Y3 As Long) As Long
+    
+    Private Declare Function SetWindowRgn Lib "user32" ( _
+        ByVal hWnd As Long, ByVal hRgn As Long, _
+        ByVal bRedraw As Boolean) As Long
+    
+    ' Private variables for properties
+    Private m_Caption As String
+    Private m_BackColor As OLE_COLOR
+    Private m_ForeColor As OLE_COLOR
+    Private m_HoverColor As OLE_COLOR
+    Private m_BorderColor As OLE_COLOR
+    Private m_BorderRadius As Long
+    Private m_BorderWidth As Long
+    Private m_IconSize As Long
+    Private m_IconSpacing As Long
+    Private m_FontBold As Boolean
+    Private m_IsHover As Boolean
+    Private m_IsPressed As Boolean
+    Private m_FontSize As Long
+    Private m_GdiplusToken As Long
+    Private m_PngPath As String
+    Private m_PngBitmap As Long
+
+    ' Events
+    Public Event Click()
+    Public Event MouseEnter()
+    Public Event MouseLeave()
+    
+    ' Properties
+    ' Add this property for PNG file path
+    Public Property Let PngIconPath(ByVal Value As String)
+        m_PngPath = Value
+        LoadPngIcon
+        Refresh
+    End Property
+    Public Property Get PngIconPath() As String
+        PngIconPath = m_PngPath
+    End Property
+    
+    Public Property Let Caption(ByVal Value As String)
+        m_Caption = Value
+        Refresh
+    End Property
+    Public Property Get Caption() As String
+        Caption = m_Caption
+    End Property
+    
+    Public Property Let FontSize(ByVal Value As Long)
+        m_FontSize = Value
+        UserControl.FontSize = m_FontSize
+        Refresh
+    End Property
+    Public Property Get FontSize() As Long
+        FontSize = m_FontSize
+    End Property
+    
+    Public Property Let BackColor(ByVal Value As OLE_COLOR)
+        m_BackColor = Value
+        Refresh
+    End Property
+    Public Property Get BackColor() As OLE_COLOR
+        BackColor = m_BackColor
+    End Property
+    
+    Public Property Let ForeColor(ByVal Value As OLE_COLOR)
+        m_ForeColor = Value
+        Refresh
+    End Property
+    Public Property Get ForeColor() As OLE_COLOR
+        ForeColor = m_ForeColor
+    End Property
+    
+    Public Property Let HoverColor(ByVal Value As OLE_COLOR)
+        m_HoverColor = Value
+    End Property
+    Public Property Get HoverColor() As OLE_COLOR
+        HoverColor = m_HoverColor
+    End Property
+    
+    Public Property Let BorderColor(ByVal Value As OLE_COLOR)
+        m_BorderColor = Value
+        Refresh
+    End Property
+    Public Property Get BorderColor() As OLE_COLOR
+        BorderColor = m_BorderColor
+    End Property
+    
+    Public Property Let BorderRadius(ByVal Value As Long)
+        m_BorderRadius = Value
+        ApplyRoundedRegion
+        Refresh
+    End Property
+    Public Property Get BorderRadius() As Long
+        BorderRadius = m_BorderRadius
+    End Property
+    
+    Public Property Let BorderWidth(ByVal Value As Long)
+        m_BorderWidth = Value
+        Refresh
+    End Property
+    Public Property Get BorderWidth() As Long
+        BorderWidth = m_BorderWidth
+    End Property
+    
+    Public Property Let IconSize(ByVal Value As Long)
+        m_IconSize = Value
+        Refresh
+    End Property
+    Public Property Get IconSize() As Long
+        IconSize = m_IconSize
+    End Property
+    
+    Public Property Let IconSpacing(ByVal Value As Long)
+        m_IconSpacing = Value
+        Refresh
+    End Property
+    Public Property Get IconSpacing() As Long
+        IconSpacing = m_IconSpacing
+    End Property
+    
+    Public Property Let FontBold(ByVal Value As Boolean)
+        m_FontBold = Value
+        UserControl.Font.Bold = Value
+        Refresh
+    End Property
+    Public Property Get FontBold() As Boolean
+        FontBold = m_FontBold
+    End Property
+    
+    Private Sub UserControl_Initialize()
+        ' Initialize GDI+
+        Dim gdipInput As GdiplusStartupInput
+        gdipInput.GdiplusVersion = 1
+        GdiplusStartup m_GdiplusToken, gdipInput
+    
+        ' Set default values (existing code)
+        m_Caption = "Button"
+        m_BackColor = RGB(37, 99, 235)
+        m_ForeColor = RGB(255, 255, 255)
+        m_HoverColor = RGB(18, 40, 234)
+        m_BorderColor = &H2E5C8A
+        m_BorderRadius = 4
+        m_BorderWidth = 1
+        m_IconSize = 16
+        m_IconSpacing = 8
+        m_FontBold = False
+        m_IsHover = False
+        m_IsPressed = False
+    
+        UserControl.BackColor = m_BackColor
+        UserControl.Font.Bold = m_FontBold
+                
+    End Sub
+    
+    Private Sub UserControl_Paint()
+        Cls
+    
+        If ScaleWidth <= 0 Or ScaleHeight <= 0 Then Exit Sub
+    
+        ' 1. FIRST: Fill background and draw border
+        ' Determine current background color
+        Dim currentBackColor As OLE_COLOR
+        If m_IsPressed Then
+            currentBackColor = DarkenColor(m_BackColor, 0.8)
+        ElseIf m_IsHover Then
+            currentBackColor = m_HoverColor
+        Else
+            currentBackColor = m_BackColor
+        End If
+    
+        ' Fill background
+        UserControl.BackColor = currentBackColor
+    
+        ' Draw border if specified
+        If m_BorderWidth > 0 Then
+            DrawWidth = m_BorderWidth
+            ForeColor = m_ForeColor
+            Line (0, 0)-(ScaleWidth - 1, ScaleHeight - 1), m_BorderColor, B
+        End If
+    
+        ' 2. SECOND: Calculate positions for icon and text
+        Dim iconX As Long, textX As Long, textY As Long
+        Dim iconWidth As Long, _textWidth As Long
+        Dim totalContentWidth As Long
+    
+        ' Measure text
+        ForeColor = m_ForeColor
+        Font.Bold = m_FontBold
+        _textWidth = TextWidth(m_Caption)
+        textY = (ScaleHeight - TextHeight(m_Caption)) \ 2
+    
+        ' Calculate icon width
+        iconWidth = IIf(m_PngBitmap <> 0, m_IconSize, 0)
+            
+        ' Calculate total content width
+        totalContentWidth = iconWidth
+        If iconWidth > 0 And Len(m_Caption) > 0 Then
+            totalContentWidth = totalContentWidth + m_IconSpacing
+        End If
+        totalContentWidth = totalContentWidth + _textWidth
+    
+        ' Center the content
+        Dim startX As Long
+        startX = (ScaleWidth - totalContentWidth) \ 2
+        
+        ' 3. THIRD: Draw icon on TOP of background
+        If m_PngBitmap <> 0 And iconWidth > 0 Then
+            ' PNG drawing - use pixel-based calculations - everything here has to be in twips
+            iconX = startX - (iconWidth + m_IconSpacing) * Screen.TwipsPerPixelX
+            
+            Dim iconY As Long
+            iconY = (ScaleHeight - (m_IconSize * Screen.TwipsPerPixelY)) \ 2  ' Convert icon size back to twips for centering
+    
+            DrawPngIcon iconX, iconY
+
+        End If
+
+        textX = startX
+        'DrawLayoutDebug iconX, iconY, iconWidth, textX, textY, [_textWidth]
+        
+        ' 4. FOURTH: Draw text on top
+        If Len(m_Caption) > 0 Then
+            ' Explicitly set the ForeColor before drawing text
+            UserControl.ForeColor = m_ForeColor
+            CurrentX = textX
+            CurrentY = textY
+            Print m_Caption
+        End If
+    End Sub
+    
+    Private Sub DrawPngIcon(ByVal iconX As Long, ByVal iconY As Long)
+        If m_PngBitmap = 0 Then Exit Sub
+    
+        ' Convert twips to pixels and add positioning adjustments
+        Dim pixelX As Long, pixelY As Long, pixelSize As Long
+        
+        pixelX = (iconX \ Screen.TwipsPerPixelX)
+        pixelY = iconY \ Screen.TwipsPerPixelY
+        pixelSize = m_IconSize
+    
+        ' Ensure icon stays within button bounds
+        If pixelX < 2 Then pixelX = 2
+        If pixelY < 2 Then pixelY = 2
+    
+        Dim hGraphics As Long, result As Long
+        result = GdipCreateFromHDC(UserControl.hDC, hGraphics)
+        
+        If result <> 0 Or hGraphics = 0 Then Exit Sub
+        
+        ' Draw PNG with transparency support
+        result = GdipDrawImageRectI(hGraphics, m_PngBitmap, pixelX, pixelY, m_IconSize, m_IconSize)
+
+        ' Clean up graphics object
+        Call GdipDeleteGraphics(hGraphics)
+        
+    End Sub
+    
+    Private Sub DrawLayoutDebug(ByVal iconX As Long, ByVal iconY As Long, ByVal iconWidth As Long, ByVal textX As Long, ByVal textY As Long, ByVal textWidth As Long)
+        ' Draw icon bounding box in red
+        Line (iconX, iconY)-Step(iconWidth * Screen.TwipsPerPixelX, m_IconSize * Screen.TwipsPerPixelY), RGB(255, 0, 0), B
+
+        ' Draw text bounding box in green
+        Line (textX, textY)-Step(textWidth, TextHeight(m_Caption)), RGB(0, 255, 0), B
+
+        ' Optional: draw center guide
+        Dim centerX As Long
+        centerX = ScaleWidth \ 2
+        Line (centerX, 0)-(centerX, ScaleHeight), RGB(0, 0, 255)
+    End Sub
+    
+    Private Sub UserControl_Resize()
+        ApplyRoundedRegion
+        Refresh
+    End Sub
+    
+    Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        If Not m_IsHover Then
+            m_IsHover = True
+            RaiseEvent MouseEnter
+            Refresh
+        End If
+    End Sub
+    
+    Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        If Button = vbLeftButton Then
+            m_IsPressed = True
+            Refresh
+        End If
+    End Sub
+    
+    Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        If Button = vbLeftButton Then
+            m_IsPressed = False
+            If m_IsHover Then
+                RaiseEvent Click
+            End If
+            Refresh
+        End If
+    End Sub
+    
+    ' This event fires when the mouse leaves the UserControl area
+    Private Sub UserControl_MouseLeave()
+        If m_IsHover Then
+            m_IsHover = False
+            m_IsPressed = False
+            RaiseEvent MouseLeave
+            Refresh
+        End If
+    End Sub
+    
+    Private Sub ApplyRoundedRegion()
+        If Width <= 0 Or Height <= 0 Then Exit Sub
+        If m_BorderRadius <= 0 Then Exit Sub
+        
+        Dim w As Long: w = Width \ Screen.TwipsPerPixelX
+        Dim h As Long: h = Height \ Screen.TwipsPerPixelY
+        Dim r As Long: r = m_BorderRadius
+        
+        Dim rgn As Long
+        rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, r * 2, r * 2)
+        
+        If rgn <> 0 Then
+            SetWindowRgn UserControl.hWnd, rgn, True
+        End If
+    End Sub
+    
+    Private Function DarkenColor(ByVal Color As OLE_COLOR, ByVal Factor As Double) As OLE_COLOR
+        ' Simple color darkening function
+        Dim r As Long, g As Long, b As Long
+        r = Color And &HFF
+        g = (Color And &HFF00&) \ &H100
+        b = (Color And &HFF0000) \ &H10000
+        
+        r = CLng(r * Factor)
+        g = CLng(g * Factor)
+        b = CLng(b * Factor)
+        
+        If r > 255 Then r = 255
+        If g > 255 Then g = 255
+        If b > 255 Then b = 255
+        
+        DarkenColor = RGB(r, g, b)
+    End Function
+    
+    Private Sub UserControl_Show()
+        ApplyRoundedRegion
+    End Sub
+
+    Private Sub UserControl_Terminate()
+        If m_PngBitmap <> 0 Then
+            GdipDisposeImage m_PngBitmap
+        End If
+        If m_GdiplusToken <> 0 Then
+            GdiplusShutdown m_GdiplusToken
+        End If
+    End Sub
+
+    ' Add method to load PNG file
+    Private Sub LoadPngIcon()
+        If m_PngBitmap <> 0 Then
+            GdipDisposeImage m_PngBitmap
+            m_PngBitmap = 0
+        End If
+    
+        If Len(m_PngPath) > 0 And Dir(m_PngPath) <> "" Then
+            Dim result As Long
+            result = GdipCreateBitmapFromFile(StrPtr(m_PngPath), m_PngBitmap)
+            If result <> 0 Then
+                m_PngBitmap = 0
+            End If
+        End If
+    End Sub
+    
+    
+End Class

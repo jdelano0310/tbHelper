@@ -1,0 +1,247 @@
+[Description("")]
+[FormDesignerId("AFEA3084-B60E-4293-997F-D622BD11369D")]
+[ClassId("F470E23E-4A86-4DF9-9ACC-4DD803520199")]
+[InterfaceId("2D2031B6-B862-4D5B-A148-BBA8F090C8BF")]
+[EventInterfaceId("15F03500-8905-43CB-98CB-BA373CA6B68E")]
+[COMControl]
+Class ucActivityLog
+
+    Option Explicit
+
+    ' Activity Log ListBox component for twinBASIC
+    ' Matches the aesthetic of the first image (tB Helper 0.9.0)
+
+    Public Type ActivityLogItem
+        Timestamp As String
+        Message As String
+        LogLevel As String  ' INFO, WARNING, ERROR, SUCCESS
+    End Type
+
+    Private Type RECT
+        Left As Long
+        Top As Long
+        Right As Long
+        Bottom As Long
+    End Type
+
+    Private Declare PtrSafe Function CreateSolidBrush Lib "gdi32" (ByVal crColor As Long) As Long
+    Private Declare PtrSafe Function DeleteObject Lib "gdi32" (ByVal hObject As Long) As Long
+    Private Declare PtrSafe Function SetBkMode Lib "gdi32" (ByVal hdc As Long, ByVal nBkMode As Long) As Long
+    Private Declare PtrSafe Function SetTextColor Lib "gdi32" (ByVal hdc As Long, ByVal crColor As Long) As Long
+    Private Declare PtrSafe Function FillRect Lib "user32" (ByVal hdc As Long, lpRect As RECT, ByVal hBrush As Long) As Long
+    Private Declare PtrSafe Function DrawText Lib "user32" Alias "DrawTextA" (ByVal hdc As Long, ByVal lpStr As String, ByVal nCount As Long, lpRect As RECT, ByVal wFormat As Long) As Long
+    Private Declare PtrSafe Function CreatePen Lib "gdi32" (ByVal nPenStyle As Long, ByVal nWidth As Long, ByVal crColor As Long) As Long
+    Private Declare PtrSafe Function SelectObject Lib "gdi32" (ByVal hdc As Long, ByVal hObject As Long) As Long
+    Private Declare PtrSafe Function MoveToEx Lib "gdi32" (ByVal hdc As Long, ByVal x As Long, ByVal y As Long, lpPoint As Any) As Long
+    Private Declare PtrSafe Function LineTo Lib "gdi32" (ByVal hdc As Long, ByVal x As Long, ByVal y As Long) As Long
+
+    Private Const TRANSPARENT = 1
+    Private Const DT_LEFT = &H0
+    Private Const DT_TOP = &H0
+    Private Const DT_VCENTER = &H4
+    Private Const DT_SINGLELINE = &H20
+    Private Const DT_WORDBREAK = &H10
+    Private Const DT_CALCRECT = &H400
+
+    ' Color constants matching tB Helper 0.9.0 aesthetic (more subdued/professional)
+    Private Const COLOR_BACKGROUND = &HF5F5F5      ' Light gray background
+    Private Const COLOR_ITEM_BG = &HFFFFFF         ' White item background
+    Private Const COLOR_SELECTED = &HE3F2FD        ' Light blue selection
+    Private Const COLOR_BORDER = &HE0E0E0          ' Light gray border
+    Private Const COLOR_TIMESTAMP = &H757575       ' Medium gray for timestamps
+    Private Const COLOR_MESSAGE = &H212121         ' Dark gray for messages
+    Private Const COLOR_SUCCESS = &H4CAF50         ' Green for success
+    Private Const COLOR_WARNING = &HFF9800         ' Orange for warnings
+    Private Const COLOR_ERROR = &HF44336           ' Red for errors
+
+    Private Items() As ActivityLogItem
+    Private ItemCount As Long
+    Private SelectedIndex As Long
+    Private ItemHeight As Long
+    Private ScrollTop As Long
+
+    ' UserControl reference - based on PictureBox for custom drawing
+    Private WithEvents UserControl As PictureBox
+
+    Public Property Get ListIndex() As Long
+        ListIndex = SelectedIndex
+    End Property
+
+    Public Property Let ListIndex(ByVal Value As Long)
+        If Value >= -1 And Value < ItemCount Then
+            SelectedIndex = Value
+            UserControl.Refresh
+        End If
+    End Property
+
+    Public Sub AddLogEntry(Message As String, Optional LogLevel As String = "INFO")
+        ' Resize array to accommodate new item
+        ReDim Preserve Items(ItemCount)
+    
+        ' Set item properties
+        Items(ItemCount).Timestamp = Format(Now, "mm/dd/yy hh:mm:ss AM/PM")
+        Items(ItemCount).Message = Message
+        Items(ItemCount).LogLevel = UCase(LogLevel)
+    
+        ItemCount = ItemCount + 1
+    
+        ' Auto-scroll to bottom
+        If ItemCount * ItemHeight > UserControl.ScaleHeight Then
+            ScrollTop = (ItemCount * ItemHeight) - UserControl.ScaleHeight + ItemHeight
+        End If
+    
+        UserControl.Refresh
+    End Sub
+
+    Public Sub Clear()
+        ItemCount = 0
+        ReDim Items(0)
+        SelectedIndex = -1
+        ScrollTop = 0
+        UserControl.Refresh
+    End Sub
+
+    Public Function GetSelectedItem() As ActivityLogItem
+        If SelectedIndex >= 0 And SelectedIndex < ItemCount Then
+            GetSelectedItem = Items(SelectedIndex)
+        End If
+    End Function
+
+    Private Sub UserControl_Initialize()
+        ItemHeight = 25  ' Height for each log entry
+        SelectedIndex = -1
+        ItemCount = 0
+        ScrollTop = 0
+        ReDim Items(0)
+    End Sub
+
+    Private Sub UserControl_Paint()
+        Dim i As Long
+        Dim itemRect As RECT
+        Dim timestampRect As RECT
+        Dim messageRect As RECT
+        Dim hBrush As Long
+        Dim hPen As Long
+        Dim hOldPen As Long
+        Dim visibleStart As Long
+        Dim visibleEnd As Long
+        Dim yPos As Long
+    
+        ' Set background
+        UserControl.BackColor = COLOR_BACKGROUND
+    
+        ' Calculate visible range
+        visibleStart = ScrollTop \ ItemHeight
+        visibleEnd = (ScrollTop + UserControl.ScaleHeight) \ ItemHeight + 1
+        If visibleEnd > ItemCount - 1 Then visibleEnd = ItemCount - 1
+    
+        ' Create border pen
+        hPen = CreatePen(0, 1, COLOR_BORDER)
+        hOldPen = SelectObject(UserControl.hDC, hPen)
+    
+        For i = visibleStart To visibleEnd
+            If i >= ItemCount Then Exit For
+        
+            ' Calculate item position
+            yPos = (i * ItemHeight) - ScrollTop
+        
+            ' Calculate item rectangle
+            itemRect.Left = 2
+            itemRect.Top = yPos
+            itemRect.Right = UserControl.ScaleWidth - 2
+            itemRect.Bottom = yPos + ItemHeight
+        
+            ' Draw item background
+            If i = SelectedIndex Then
+                hBrush = CreateSolidBrush(COLOR_SELECTED)
+            Else
+                hBrush = CreateSolidBrush(COLOR_ITEM_BG)
+            End If
+        
+            FillRect UserControl.hDC, itemRect, hBrush
+            DeleteObject hBrush
+        
+            ' Draw subtle separator line
+            MoveToEx UserControl.hDC, itemRect.Left, itemRect.Bottom - 1, ByVal 0&
+            LineTo UserControl.hDC, itemRect.Right, itemRect.Bottom - 1
+        
+            ' Draw timestamp
+            timestampRect.Left = itemRect.Left + 8
+            timestampRect.Top = itemRect.Top + 4
+            timestampRect.Right = itemRect.Left + 140
+            timestampRect.Bottom = itemRect.Bottom - 4
+        
+            SetBkMode UserControl.hDC, TRANSPARENT
+            SetTextColor UserControl.hDC, COLOR_TIMESTAMP
+            DrawText UserControl.hDC, Items(i).Timestamp & ":", -1, timestampRect, DT_LEFT Or DT_VCENTER Or DT_SINGLELINE
+        
+            ' Draw message
+            messageRect.Left = timestampRect.Right + 8
+            messageRect.Top = itemRect.Top + 4
+            messageRect.Right = itemRect.Right - 8
+            messageRect.Bottom = itemRect.Bottom - 4
+        
+            ' Set message color based on log level
+            Select Case Items(i).LogLevel
+                Case "SUCCESS"
+                    SetTextColor UserControl.hDC, COLOR_SUCCESS
+                Case "WARNING"
+                    SetTextColor UserControl.hDC, COLOR_WARNING
+                Case "ERROR"
+                    SetTextColor UserControl.hDC, COLOR_ERROR
+                Case Else
+                    SetTextColor UserControl.hDC, COLOR_MESSAGE
+            End Select
+        
+            DrawText UserControl.hDC, Items(i).Message, -1, messageRect, DT_LEFT Or DT_VCENTER Or DT_SINGLELINE
+        Next i
+    
+        ' Cleanup
+        SelectObject UserControl.hDC, hOldPen
+        DeleteObject hPen
+    End Sub
+
+    Private Sub UserControl_Click()
+        Dim clickedIndex As Long
+    
+        ' Calculate which item was clicked
+        clickedIndex = (UserControl.MouseY + ScrollTop) \ ItemHeight
+    
+        If clickedIndex >= 0 And clickedIndex < ItemCount Then
+            SelectedIndex = clickedIndex
+            UserControl.Refresh
+            RaiseEvent Click
+        End If
+    End Sub
+
+    ' Private Sub UserControl_MouseWheel(ByVal Page As Boolean, ByVal Count As Long)
+    '     ' Handle mouse wheel scrolling
+    '     If ItemCount * ItemHeight > UserControl.ScaleHeight Then
+    '         ScrollTop = ScrollTop - (Count * ItemHeight * 3)
+        
+    '         ' Boundary checks
+    '         If ScrollTop < 0 Then ScrollTop = 0
+    '         If ScrollTop > (ItemCount * ItemHeight) - UserControl.ScaleHeight Then
+    '             ScrollTop = (ItemCount * ItemHeight) - UserControl.ScaleHeight
+    '         End If
+        
+    '         UserControl.Refresh
+    '     End If
+    ' End Sub
+
+    Private Sub UserControl_Resize()
+        UserControl.Refresh
+    End Sub
+
+    ' Events
+    Public Event Click()
+    Public Event ItemSelected(Index As Long)
+
+    ' Usage example:
+    ' Private Sub Form_Load()
+    '     ActivityLog1.AddLogEntry "Application started", "SUCCESS"
+    '     ActivityLog1.AddLogEntry "Checking for Settings file - found and loaded", "INFO"
+    '     ActivityLog1.AddLogEntry "Configuration validated", "SUCCESS"
+    '     ActivityLog1.AddLogEntry "Warning: Update check failed", "WARNING"
+    ' End Sub
+End Class

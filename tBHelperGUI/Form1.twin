@@ -1,0 +1,82 @@
+[Description("")]
+[FormDesignerId("8CA8AA1D-C672-4662-A724-D05EB1E09148")]
+[PredeclaredId]
+Class Form1
+
+    Sub New()
+    End Sub
+    
+    Private Sub Form_Load()
+
+        SetupTypeFilterButtons
+
+        SetupSettingsToggleSliders
+
+        'setup the user control download button
+        With btnDownload
+            .Caption = "Download"
+            .BackColor = RGB(37, 99, 235)  ' Blue
+            .ForeColor = vbWhite  ' White
+            .FontSize = 11
+            .HoverColor = RGB(18, 40, 234) ' Darker blue
+            .BorderRadius = 6
+            .FontBold = True
+            .PngIconPath = App.Path & "\download.png"
+            .IconSize = 16
+            .IconSpacing = 8
+        End With
+
+        'setup the user control download button
+
+        
+        
+        clgView.LoadSampleData()
+        
+    End Sub
+    
+    Private Sub RefreshChangeLog()
+        ' Collect all active types and repopulate the MSFlexGrid
+    End Sub
+    
+    Private Sub tfImportant_StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
+        RefreshChangeLog
+    End Sub
+
+    Private Sub SetupSettingsToggleSliders()
+        ConfigureToggleSlider tsStartTB
+        ConfigureToggleSlider tsLogActivity
+        ConfigureToggleSlider tsLookForUpdateAtLaunch
+        ConfigureToggleSlider tsSaveSettingsOnExit
+    End Sub
+    
+    Private Sub SetupTypeFilterButtons()
+        
+        ConfigureTypeFilterButton tfImportant, "Important", vbBlue
+        ConfigureTypeFilterButton tfKnownIssue, "Known", vbBlack
+        ConfigureTypeFilterButton tfAdded, "Added", RGB(75, 0, 130) ' indigo
+        ConfigureTypeFilterButton tfImproved, "Improved", RGB(107, 142, 35) ' other green
+        ConfigureTypeFilterButton tfUpdated, "Updated", RGB(107, 45, 103) ' a purple
+        ConfigureTypeFilterButton tfTip, "Tip", RGB(22, 83, 126) ' blueish
+        ConfigureTypeFilterButton tfWarning, "Warning", RGB(153, 0, 0) ' dark red
+        ConfigureTypeFilterButton tfFixed, "Fixed", RGB(56, 118, 29) ' green
+        
+    End Sub
+    
+    Private Sub ConfigureToggleSlider(tsToggle As ucToggleSlider)
+        
+        tsToggle.OnColor = RGB(37, 99, 235)
+        tsToggle.SlideSpeed = 3
+        
+    End Sub
+    
+    Private Sub ConfigureTypeFilterButton(tfButton As ucTypeFilter, buttonCaption As String, buttonBackColor As Long)
+
+        tfButton.BorderRadius = 3
+        tfButton.TypeName = buttonCaption
+        tfButton.WidthOverride = 1065
+        tfButton.Backcolor = buttonBackColor
+        tfButton.FontSize = 9.75
+        
+    End Sub
+    
+End Class
