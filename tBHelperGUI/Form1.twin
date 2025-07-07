@@ -25,11 +25,8 @@ Class Form1
             .IconSize = 16
             .IconSpacing = 8
         End With
-
-        'setup the user control download button
-
         
-        
+        actLog.LoadSampleData()
         clgView.LoadSampleData()
         
     End Sub
