@@ -76,4 +76,40 @@ Class Form1
         
     End Sub
     
+    Private Sub btnSelectDownloadFolder_Click()
+        
+        Dim Dlg As New frmSelectFolder
+        Dim Path As String
+    
+        Dlg.Caption = "Select Download folder"
+        Path = Dlg.ShowAsDialog()
+    
+        If Len(Path) > 0 Then
+            If Right(Path, 1) <> "\" Then Path = Path & "\"
+            txtDownloadFolder.Text = Path
+        Else
+            MsgBox "Operation was cancelled."
+        End If
+                
+        Dlg.Close()
+    End Sub
+    
+    Private Sub btnSelecttBFolderLocation_Click()
+        Dim Dlg As New frmSelectFolder
+        Dim Path As String
+    
+        Dlg.Caption = "Select twinBASIC folder"
+        Path = Dlg.ShowAsDialog()
+    
+        If Len(Path) > 0 Then
+            If Right(Path, 1) <> "\" Then Path = Path & "\"
+            txttBFolderLocation.Text = Path
+        Else
+            MsgBox "Operation was cancelled."
+        End If
+                
+        Dlg.Close()
+    End Sub
+    
+
 End Class

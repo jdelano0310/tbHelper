@@ -23,3 +23,17 @@ Public Function Canvas_WindowProc(ByVal hwnd As Long, ByVal uMsg As Long, ByVal 
     Canvas_WindowProc = CallWindowProc(OriginalCanvasProc, hwnd, uMsg, wParam, lParam)
 End Function
 
+Public Sub WriteToLogFile(logFileLine As String)
+    
+    Dim logFileName As String = App.Path & "\debug_log.txt"
+    Dim fso As New FileSystemObject
+    Dim debugLogFile As TextStream = fso.OpenTextFile(logFileName, ForAppending, True)
+    
+    debugLogFile.WriteLine(Format(Now, "mm/dd/yy hh:MM:ss") & ": " & logFileLine)
+    debugLogFile.Close()
+    
+End Sub
+
+Public Function PixelsToTwips(pixels As Long) As Long
+    PixelsToTwips = pixels * Screen.TwipsPerPixelY
+End Function

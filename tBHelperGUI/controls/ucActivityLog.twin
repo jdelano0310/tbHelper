@@ -7,33 +7,11 @@
 Class ucActivityLog
 
     Option Explicit
-
-    ' APIs for drawing the control on the form
-    Private Declare Function CreateSolidBrush Lib "gdi32" (ByVal crColor As Long) As Long
-    Private Declare Function DeleteObject Lib "gdi32" (ByVal hObject As Long) As Long
-    Private Declare Function FillRect Lib "user32" (ByVal hdc As Long, lpRect As RECT, ByVal hBrush As Long) As Long
-    Private Declare Function SetBkMode Lib "gdi32" (ByVal hdc As Long, ByVal nBkMode As Long) As Long
-    Private Declare Function SetTextColor Lib "gdi32" (ByVal hdc As Long, ByVal crColor As Long) As Long
-    Private Declare Function TextOut Lib "gdi32" Alias "TextOutA" (ByVal hdc As Long, ByVal x As Long, ByVal y As Long, ByVal lpString As String, ByVal nCount As Long) As Long
-    Private Declare Function GetTextExtentPoint32 Lib "gdi32" Alias "GetTextExtentPoint32A" (ByVal hdc As Long, ByVal lpsz As String, ByVal cbString As Long, lpSize As Size) As Long
-    Private Declare Function CreateFont Lib "gdi32" Alias "CreateFontA" (ByVal nHeight As Long, ByVal nWidth As Long, ByVal nEscapement As Long, ByVal nOrientation As Long, ByVal fnWeight As Long, ByVal fdwItalic As Long, ByVal fdwUnderline As Long, ByVal fdwStrikeOut As Long, ByVal fdwCharSet As Long, ByVal fdwOutputPrecision As Long, ByVal fdwClipPrecision As Long, ByVal fdwQuality As Long, ByVal fdwPitchAndFamily As Long, ByVal lpszFace As String) As Long
-    Private Declare Function SelectObject Lib "gdi32" (ByVal hdc As Long, ByVal hObject As Long) As Long
-    Private Declare Function RoundRect Lib "gdi32" (ByVal hdc As Long, ByVal X1 As Long, ByVal Y1 As Long, ByVal X2 As Long, ByVal Y2 As Long, ByVal X3 As Long, ByVal Y3 As Long) As Long
-    
-    ' used in 32-bit
-    Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
     
     Private Const GWL_WNDPROC As Long = -4
     Private Const WM_MOUSEWHEEL As Long = &H20A
     
     Public canvashWnd As LongPtr
-    
-    Private Type RECT
-        Left As Long
-        Top As Long
-        Right As Long
-        Bottom As Long
-    End Type
 
     Private Type Size
         cx As Long
@@ -95,8 +73,7 @@ Class ucActivityLog
         canvashWnd = m_Canvas.hWnd
         
         OriginalCanvasProc = SetWindowLong(canvashWnd, GWL_WNDPROC, AddressOf Canvas_WindowProc)
-        
-        WriteToLogFile "UserControl_Initialize: m_Canvas.Height: " & m_Canvas.Height
+                
     End Sub
 
     Private Sub InitializeControls()
@@ -150,23 +127,17 @@ Class ucActivityLog
         m_Canvas.Cls
         m_Canvas.BackColor = BACKGROUND_COLOR
         
-        WriteToLogFile "RedrawCanvas: m_Canvas.Height: " & m_Canvas.Height
-        
         ' Convert canvas height to pixels FIRST
         canvasHeightPixels = m_Canvas.Height \ Screen.TwipsPerPixelY
-        WriteToLogFile "Redraw Canvas: canvasHeightPixels: " & canvasHeightPixels
         
         ' Now calculate how many full rows fit, plus 1 if there's partial space left
         visibleEntries = canvasHeightPixels \ ROW_HEIGHT
-        WriteToLogFile "Redraw Canvas: visibleEntries: " & visibleEntries
         If (canvasHeightPixels Mod ROW_HEIGHT) <> 0 Then visibleEntries = visibleEntries + 1
         
         startIndex = m_ScrollOffset
         endIndex = startIndex + visibleEntries - 1
         If endIndex >= m_EntryCount Then endIndex = m_EntryCount - 1
                 
-        WriteToLogFile "Redraw Canvas: start index: " & startIndex & " - endIndex: " & endIndex
-            
         yPos = 0
         For i = startIndex To endIndex
             DrawRow i, yPos
@@ -194,8 +165,6 @@ Class ucActivityLog
         Dim hBrush As Long
         Dim isSelected As Boolean
         Dim sz As Size
-            
-        WriteToLogFile "DrawRow: entryIndex: " & entryIndex & " - yPos: " & yPos
         
         ' Get the actual entry (accounting for filtering)
         actualIndex = m_EntryCount - 1
@@ -223,8 +192,6 @@ Class ucActivityLog
     
         FillRect hdc, rowRect, hBrush
         DeleteObject hBrush
-    
-        WriteToLogFile "DrawRow: " & entry.DateTime & " - " & entry.LogMessage
         
         ' Measure width of the timestamp in pixels using GDI
         Call GetTextExtentPoint32(hdc, entry.DateTime, Len(entry.DateTime), sz)
@@ -325,8 +292,6 @@ Class ucActivityLog
             newEntry.DateTime = dateTime
             newEntry.LogMessage = LogMessage
             
-            WriteToLogFile "AddEntry: " & dateTime & " - " & LogMessage & " m_EntryCount: " & m_EntryCount
-            
             ' Add to array
             ReDim Preserve m_Entries(m_EntryCount)
             m_Entries(m_EntryCount) = newEntry
@@ -344,13 +309,9 @@ Class ucActivityLog
     
         'filteredCount = 0 'GetFilteredEntryCount()
         filteredCount = m_EntryCount
-    
-        WriteToLogFile "UpdateScrollBar: m_EntryCount: " & m_EntryCount
         
         ' check to see if the scrollbar is needed, if so convert the pixel row height to twips to calculate that
         If Not m_Canvas Is Nothing Then visibleRows = Int(m_Canvas.Height / (ROW_HEIGHT * Screen.TwipsPerPixelX))
-    
-        WriteToLogFile "UpdateScrollBar: visibleRows: " & visibleRows
             
         If filteredCount > visibleRows Then
             m_VScrollBar.Max = filteredCount - visibleRows
@@ -363,8 +324,6 @@ Class ucActivityLog
     End Sub
 
     Public Sub ClearEntries()
-        
-        WriteToLogFile "Clearing Enteries"
         
         ReDim m_Entries(0)
         m_EntryCount = 0

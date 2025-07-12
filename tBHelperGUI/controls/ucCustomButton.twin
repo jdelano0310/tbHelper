@@ -5,30 +5,6 @@
 [EventInterfaceId("3D66B76E-7CB0-45D1-A5B0-CB961394FDAD")]
 [COMControl]
 Class ucCustomButton
-
-    Private Declare Function GdiplusStartup Lib "gdiplus" (token As Long, inputbuf As GdiplusStartupInput, Optional ByVal outputbuf As Long = 0) As Long
-    Private Declare Function GdiplusShutdown Lib "gdiplus" (ByVal token As Long) As Long
-    Private Declare Function GdipCreateBitmapFromFile Lib "gdiplus" (ByVal filename As Long, bitmap As Long) As Long
-    Private Declare Function GdipCreateHBITMAPFromBitmap Lib "gdiplus" (ByVal bitmap As Long, hbmReturn As Long, ByVal background As Long) As Long
-    Private Declare Function GdipDisposeImage Lib "gdiplus" (ByVal image As Long) As Long
-    Private Declare Function CreateCompatibleDC Lib "gdi32" (ByVal hdc As Long) As Long
-    Private Declare Function SelectObject Lib "gdi32" (ByVal hdc As Long, ByVal hObject As Long) As Long
-    Private Declare Function BitBlt Lib "gdi32" (ByVal hDestDC As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As Long, ByVal xSrc As Long, ByVal ySrc As Long, ByVal dwRop As Long) As Long
-    Private Declare Function DeleteDC Lib "gdi32" (ByVal hdc As Long) As Long
-    Private Declare Function DeleteObject Lib "gdi32" (ByVal hObject As Long) As Long
-    Private Declare Function GdipCreateFromHDC Lib "gdiplus" (ByVal hdc As Long, graphics As Long) As Long
-    Private	Declare Function GdipDrawImageRectI Lib "gdiplus" (ByVal graphics As Long, ByVal Image As Long, ByVal x As Long, ByVal y As Long, ByVal Width As Long, ByVal Height As Long) As Long
-    Private Declare Function GdipDeleteGraphics Lib "gdiplus" (ByVal graphics As Long) As Long
-    
-    Private Type GdiplusStartupInput
-        GdiplusVersion As Long
-        DebugEventCallback As Long
-        SuppressBackgroundThread As Long
-        SuppressExternalCodecs As Long
-    End Type
-    
-    Sub New()
-    End Sub
     
     ' API declarations for drawing
     Private Declare Function CreateRoundRectRgn Lib "gdi32" ( _

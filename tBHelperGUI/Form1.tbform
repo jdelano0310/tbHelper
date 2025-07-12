@@ -5,7 +5,7 @@
 		"AutoRedraw": false,
 		"BackColor": -2147483633,
 		"BorderStyle": "vbFixedSingle",
-		"Caption": "tB Helper 0.9.0",
+		"Caption": "tB Helper alpha 1",
 		"ClipControls": true,
 		"ControlBox": true,
 		"DrawMode": "vbCopyPen",
@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 99691954,
+		"__lastUpdateMarker": 1574404000,
 		"_children": [
 			{
 				"Anchors": {
@@ -570,7 +570,7 @@
 					"Italic": false,
 					"Name": "Segoe UI",
 					"Size": 11.25,
-					"Strikethru": false,
+					"Strikethrough": false,
 					"Underline": false
 				},
 				"Height": 31,
@@ -616,7 +616,7 @@
 					"Italic": false,
 					"Name": "Segoe UI",
 					"Size": 11.25,
-					"Strikethru": false,
+					"Strikethrough": false,
 					"Underline": false
 				},
 				"Height": 31,
@@ -1167,7 +1167,7 @@
 					"Italic": false,
 					"Name": "Segoe UI",
 					"Size": 9.75,
-					"Strikethru": false,
+					"Strikethrough": false,
 					"Underline": false
 				},
 				"ForeColor": -2147483630,
@@ -1242,7 +1242,7 @@
 					"Italic": false,
 					"Name": "Segoe UI",
 					"Size": 9.75,
-					"Strikethru": false,
+					"Strikethrough": false,
 					"Underline": false
 				},
 				"ForeColor": -2147483630,
@@ -2056,7 +2056,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 2624722
+				"canvashWnd": 855614
 			},
 			{
 				"Alignment": "vbCenter",
@@ -2085,7 +2085,7 @@
 					"Italic": false,
 					"Name": "Segoe UI",
 					"Size": 8.25,
-					"Strikethru": false,
+					"Strikethrough": false,
 					"Underline": false
 				},
 				"ForeColor": 0,
@@ -2160,7 +2160,7 @@
 					"Italic": false,
 					"Name": "Segoe UI",
 					"Size": 8.25,
-					"Strikethru": false,
+					"Strikethrough": false,
 					"Underline": false
 				},
 				"ForeColor": 0,
@@ -2363,7 +2363,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 5770290
+				"canvashWnd": 1183258
 			}
 		],
 		"_className": "Form",
