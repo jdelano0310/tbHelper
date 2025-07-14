@@ -27,7 +27,7 @@ Class Form1
         End With
         
         actLog.LoadSampleData()
-        clgView.LoadSampleData()
+        clgView.LoadSampleFullChangeLogData()
         
     End Sub
     
@@ -109,6 +109,13 @@ Class Form1
         End If
                 
         Dlg.Close()
+    End Sub
+    
+    Private Sub btnRevert_Click()
+        
+        Dim frm As New frmRevert
+        frm.Show(vbModal)
+        
     End Sub
     
 

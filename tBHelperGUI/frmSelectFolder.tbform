@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 2970162769,
+		"__lastUpdateMarker": 1068007813,
 		"_children": [
 			{
 				"Anchors": {
@@ -169,7 +169,7 @@
 				"VisualStyles": true,
 				"WhatsThisHelpID": 0,
 				"WheelScrollEvent": true,
-				"Width": 1725,
+				"Width": 282,
 				"_className": "ListBox",
 				"_clsid": "{33AD4F10-6699-11CF-B70C-00AA0060D393}"
 			},

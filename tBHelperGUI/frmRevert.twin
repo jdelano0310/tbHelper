@@ -1,0 +1,156 @@
+[Description("")]
+[FormDesignerId("0F4058BF-ACF9-4305-B830-80DC9A2A0FF8")]
+[PredeclaredId]
+Class frmRevert
+
+    Dim localVersions As String = ";"
+    
+    Private Sub Form_Load()
+        FillAvailableZips
+        
+        'setup the user control download button
+        With btnRevert
+            .Caption = "Revert"
+            .BackColor = &HA2640C
+            .ForeColor = vbWhite  ' White
+            .FontSize = 11
+            .HoverColor = RGB(18, 40, 234) ' Darker blue
+            .BorderRadius = 6
+            .FontBold = True
+            .PngIconPath = App.Path & "\revert_blue button.png"
+            .IconSize = 16
+            .IconSpacing = 8
+            .Enabled = False
+        End With
+        
+    End Sub
+
+    Private Sub FillAvailableZips()
+
+        ' find any available local zip files to revert to
+        Dim tBZipFiles As String
+        Dim zipFileVersion As String
+        Dim zipFileName As String
+        Dim fso As New FileSystemObject
+
+        tBZipFiles = Dir("F:\Downloads\twinBASIC_IDE_BETA_*.*")
+
+        If Len(tBZipFiles) > 0 Then
+            'drpAvailableZips.AddItem("Select previous version")
+            
+        Else
+            'drpAvailableZips.AddItem("No previous versions found")
+            Exit Sub
+        End If
+
+        Do While Len(tBZipFiles) > 0
+            ' don't include the installed version zip file
+            'If InStr(tBZipFiles, "_" & tbHelperClass.InstalledtBVersion & ".zip") = 0 Then
+            If InStr(tBZipFiles, "_855.zip") = 0 Then
+            
+                ' get just the filename from the full path
+                zipFileName = fso.GetFileName(tBZipFiles)
+                
+                ' find the version number in the file name
+                zipFileVersion = Mid(zipFileName, InStr(zipFileName, "BETA_") + 5, 4)
+                If Right(zipFileVersion, 1) = "." Then zipFileVersion = Left(zipFileVersion, Len(zipFileVersion) - 1)
+                
+                ' keeping the list of revertable versions to with in 10 from the previous version 
+                ' of the current installed version
+                    'If tbHelperClass.InstalledtBVersion - 11 <= CInt(zipFileVersion) Then
+                If 855 - 11 <= CInt(zipFileVersion) Then
+                    ' save a list of the versions of available in the local zip files
+                    localVersions = localVersions & zipFileVersion & ";"
+
+                    lstZipFiles.AddItem(zipFileName)
+                End If
+                
+            End If
+            tBZipFiles = Dir()
+        Loop
+
+        'drpAvailableZips.ListIndex = 0
+
+    End Sub
+    
+    ' Private Sub ZipPicker_SelectionChanged(ZipFile As String)
+    '     ' When the drive changes, update the folder list
+    '     ' Load the change log from the logs.txt file or GitHub if the selected zip isn't local
+    '     ZipPicker.ZipFile = ZipFile
+    '     HideZipList
+    ' End Sub
+    
+    Private Sub ZipPicker_DropDown()
+
+        ' toggle the dropdown if it is visible
+        If lstZipFiles.Visible Then
+            HideZipList()
+            Exit Sub
+        End If
+
+        ' Find the currently selected drive in the list and highlight it
+        Dim i As Long
+        For i = 0 To lstZipFiles.ListCount - 1
+            If lstZipFiles.List(i) = ZipPicker.ZipFile Then
+                lstZipFiles.ListIndex = i
+                Exit For
+            End If
+        Next i
+
+        Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
+        Const LIST_HEIGHT As Long = 1200
+        
+        ' STEP 1: Position and size the LISTBOX first. Its dimensions are the "source of truth".
+        With lstZipFiles
+            .Width = ZipPicker.Width - (BORDER_SIZE * 2)
+            .Height = LIST_HEIGHT
+            .Left = ZipPicker.Left
+            .Top = ZipPicker.Top + ZipPicker.Height
+            .Visible = True
+        End With
+
+        ' STEP 2: Position and size the BORDER to wrap perfectly around the ListBox.
+        With picDropDownBorder
+            .Move lstZipFiles.Left - BORDER_SIZE, _
+                    lstZipFiles.Top - BORDER_SIZE, _
+                    lstZipFiles.Width + (BORDER_SIZE * 2), _ 
+                    lstZipFiles.Height + (BORDER_SIZE * 2)
+            .Visible = True
+        End With
+
+        ApplyBottomRoundedCorners picDropDownBorder, 4, 4 ' Apply to the border first
+        ApplyBottomRoundedCorners lstZipFiles, 4, 4, True         ' Then apply to the listbox
+            
+        BringWindowToTop picDropDownBorder.hWnd ' Bring border to the top
+        BringWindowToTop lstZipFiles.hWnd
+
+    End Sub
+    
+    Private Sub HideZipList()
+    
+        lstZipFiles.Visible = False
+        picDropDownBorder.Visible = False
+    
+    End Sub
+    
+    Private Sub lstZipFiles_Click()
+        If lstZipFiles.ListIndex > -1 Then
+            
+            ZipPicker.ZipFile = lstZipFiles.Text ' Update the picker display
+            ZipPicker.Collapse()
+            
+            ' Hide the list
+            HideZipList
+            ' Show Change Log for the select twinBASIC version
+            
+            clgView.LoadSampleRevertChangeLogData()
+            btnRevert.Enabled = True
+        End If
+    End Sub
+    
+    Private Sub Form_Click()
+        ZipPicker.Collapse()
+        HideZipList
+    End Sub
+    
+End Class
