@@ -18,15 +18,6 @@ Class ucChangeLog
         cy As Long
     End Type
 
-    ' Private Type ChangeLogEntry
-    '     Version As String
-    '     EntryType As String
-    '     Description As String
-    '     TypeColor As Long
-    '     TypeTextColor As Long
-    '     TypeText As String
-    ' End Type
-
     Public Event ItemClick(ByVal ItemIndex As Long)
     Public Event ItemDoubleClick(ByVal ItemIndex As Long)
 
@@ -84,8 +75,9 @@ Class ucChangeLog
         m_ScrollOffset = 0
 
         'capture mouse scroll
-        Set CallbackOwner = Me
         canvashWnd = m_Canvas.hWnd
+        ucDictionary.Add canvashWnd, Me
+        
         'originalCanvasProc = SetWindowLongPtr(canvashWnd, GWL_WNDPROC, AddressOf Canvas_WindowProc)
         OriginalCanvasProc = SetWindowLong(canvashWnd, GWL_WNDPROC, AddressOf Canvas_WindowProc)
         
@@ -264,7 +256,8 @@ Class ucChangeLog
             colName = m_Columns(i).Name
 
             If UCase(colName) = "TYPE" Then
-                Call DrawTypeBadge(hdc, xPos, yPos + 8, entry)
+                ' if there is data in the type text of the entry then draw pill
+                If Len(entry.TypeText) > 0 Then DrawTypeBadge(hdc, xPos, yPos + 8, entry)
             Else
                 Dim value As String
                 On Error Resume Next
@@ -470,7 +463,27 @@ Class ucChangeLog
                 
     End Sub
     
-    
+    Public Sub LoadSampleHistoryActivityLogData()
+        
+        ClearEntries
+        
+        AddEntry "07/15/25 10:01:04 AM", "", "", "Checking for Settings file - found and loaded"
+        AddEntry "07/15/25 10:01:24 AM", "", "", "Auto check for new version"
+        AddEntry "07/15/25 10:01:44 AM", "", "", "Newest version available is 820"
+        AddEntry "07/15/25 10:02:04 AM", "", "", "Downloading twinBASIC 807 - done"
+        AddEntry "07/15/25 10:02:24 AM", "", "", "Executing Post Download action of installing twinBASIC"
+        AddEntry "07/15/25 10:02:44 AM", "", "", "twinBASIC from f:\downloads\twinBASIC_IDE_BETA_820.zip has been extracted and is ready to use"
+        AddEntry "07/15/25 10:03:04 AM", "", "", "Post Download action complete"
+        AddEntry "07/15/25 10:03:24 AM", "", "", "Process complete"
+        
+        AddEntry "07/15/25 10:03:44 AM", "820", "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
+        AddEntry "07/15/25 10:03:44 AM", "820", "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
+        AddEntry "07/15/25 10:03:44 AM", "820", "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
+        AddEntry "07/15/25 10:03:45 AM", "820", "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
+        AddEntry "07/15/25 10:03:45 AM", "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
+                        
+    End Sub
+        
     Private Sub UserControl_Resize()
         If Not m_Canvas Is Nothing Then
             m_HeaderCanvas.Width = UserControl.ScaleWidth - 200
@@ -505,6 +518,7 @@ Class ucChangeLog
     End Property
     
     Public Sub HandleMouseScroll(ByVal zDelta As Long)
+
         If Not m_VScrollBar.Visible Then Exit Sub
 
         Dim direction As Long
@@ -531,7 +545,6 @@ Class ucChangeLog
             canvashWnd = 0
             OriginalCanvasProc = 0
         End If
-        Set CallbackOwner = Nothing
         
     End Sub
     

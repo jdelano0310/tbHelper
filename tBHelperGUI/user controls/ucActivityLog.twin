@@ -69,8 +69,8 @@ Class ucActivityLog
         m_ScrollOffset = 0
 
         'capture mouse scroll
-        Set CallbackOwner = Me
         canvashWnd = m_Canvas.hWnd
+        ucDictionary.Add canvashWnd, Me
         
         OriginalCanvasProc = SetWindowLong(canvashWnd, GWL_WNDPROC, AddressOf Canvas_WindowProc)
                 
@@ -339,6 +339,12 @@ Class ucActivityLog
         AddEntry "07/05 11:10:33", "Loaded settings", True
         AddEntry "07/05 11:10:43", "Checking for new version on load"
         AddEntry "07/05 11:10:53", "found version 842", True
+        AddEntry "07/05 11:10:43", "Checking for new version on load"
+        AddEntry "07/05 11:10:43", "Checking for new version on load"
+        AddEntry "07/05 11:10:43", "Checking for new version on load"
+        AddEntry "07/05 11:10:43", "Checking for new version on load"
+        AddEntry "07/05 11:10:43", "Checking for new version on load"
+        AddEntry "07/05 11:10:43", "Checking for new version on load"
                 
     End Sub
 
@@ -366,6 +372,7 @@ Class ucActivityLog
     End Property
     
     Public Sub HandleMouseScroll(ByVal zDelta As Long)
+        
         If Not m_VScrollBar.Visible Then Exit Sub
 
         Dim direction As Long
@@ -392,7 +399,6 @@ Class ucActivityLog
             canvashWnd = 0
             OriginalCanvasProc = 0
         End If
-        Set CallbackOwner = Nothing
         
     End Sub
 

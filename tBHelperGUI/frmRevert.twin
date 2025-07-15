@@ -8,6 +8,13 @@ Class frmRevert
     Private Sub Form_Load()
         FillAvailableZips
         
+        SetupButtons
+        
+        
+    End Sub
+
+    Private Sub SetupButtons()
+        
         'setup the user control download button
         With btnRevert
             .Caption = "Revert"
@@ -23,8 +30,22 @@ Class frmRevert
             .Enabled = False
         End With
         
+        'setup the user control download button
+        With btnGetVersionsFromGitHub
+            .Caption = "Get Versions From GitHub"
+            .BackColor = &HA2640C
+            .ForeColor = vbWhite  ' White
+            .FontSize = 11
+            .HoverColor = RGB(18, 40, 234) ' Darker blue
+            .BorderRadius = 6
+            .FontBold = True
+            .PngIconPath = App.Path & "\download.png"
+            .IconSize = 16
+            .IconSpacing = 8
+        End With
+        
     End Sub
-
+    
     Private Sub FillAvailableZips()
 
         ' find any available local zip files to revert to
@@ -62,7 +83,7 @@ Class frmRevert
                     ' save a list of the versions of available in the local zip files
                     localVersions = localVersions & zipFileVersion & ";"
 
-                    lstZipFiles.AddItem(zipFileName)
+                    lbDropdown.AddItem(zipFileName)
                 End If
                 
             End If
@@ -73,26 +94,19 @@ Class frmRevert
 
     End Sub
     
-    ' Private Sub ZipPicker_SelectionChanged(ZipFile As String)
-    '     ' When the drive changes, update the folder list
-    '     ' Load the change log from the logs.txt file or GitHub if the selected zip isn't local
-    '     ZipPicker.ZipFile = ZipFile
-    '     HideZipList
-    ' End Sub
-    
     Private Sub ZipPicker_DropDown()
 
         ' toggle the dropdown if it is visible
-        If lstZipFiles.Visible Then
+        If lbDropdown.Visible Then
             HideZipList()
             Exit Sub
         End If
 
-        ' Find the currently selected drive in the list and highlight it
+        ' Find the currently selected version in the list and highlight it
         Dim i As Long
-        For i = 0 To lstZipFiles.ListCount - 1
-            If lstZipFiles.List(i) = ZipPicker.ZipFile Then
-                lstZipFiles.ListIndex = i
+        For i = 0 To lbDropdown.ListCount - 1
+            If lbDropdown.List(i) = ZipPicker.Item Then
+                lbDropdown.ListIndex = i
                 Exit For
             End If
         Next i
@@ -100,8 +114,7 @@ Class frmRevert
         Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
         Const LIST_HEIGHT As Long = 1200
         
-        ' STEP 1: Position and size the LISTBOX first. Its dimensions are the "source of truth".
-        With lstZipFiles
+        With lbDropdown
             .Width = ZipPicker.Width - (BORDER_SIZE * 2)
             .Height = LIST_HEIGHT
             .Left = ZipPicker.Left
@@ -109,34 +122,33 @@ Class frmRevert
             .Visible = True
         End With
 
-        ' STEP 2: Position and size the BORDER to wrap perfectly around the ListBox.
         With picDropDownBorder
-            .Move lstZipFiles.Left - BORDER_SIZE, _
-                    lstZipFiles.Top - BORDER_SIZE, _
-                    lstZipFiles.Width + (BORDER_SIZE * 2), _ 
-                    lstZipFiles.Height + (BORDER_SIZE * 2)
+            .Move lbDropdown.Left - BORDER_SIZE, _
+                    lbDropdown.Top - BORDER_SIZE, _
+                    lbDropdown.Width + (BORDER_SIZE * 2), _ 
+                    lbDropdown.Height + (BORDER_SIZE * 2)
             .Visible = True
         End With
 
         ApplyBottomRoundedCorners picDropDownBorder, 4, 4 ' Apply to the border first
-        ApplyBottomRoundedCorners lstZipFiles, 4, 4, True         ' Then apply to the listbox
+        ApplyBottomRoundedCorners lbDropdown, 4, 4, True         ' Then apply to the listbox
             
         BringWindowToTop picDropDownBorder.hWnd ' Bring border to the top
-        BringWindowToTop lstZipFiles.hWnd
+        BringWindowToTop lbDropdown.hWnd
 
     End Sub
     
     Private Sub HideZipList()
     
-        lstZipFiles.Visible = False
+        lbDropdown.Visible = False
         picDropDownBorder.Visible = False
     
     End Sub
     
-    Private Sub lstZipFiles_Click()
-        If lstZipFiles.ListIndex > -1 Then
+    Private Sub lbDropdown_Click()
+        If lbDropdown.ListIndex > -1 Then
             
-            ZipPicker.ZipFile = lstZipFiles.Text ' Update the picker display
+            ZipPicker.Item = lbDropdown.Text ' Update the picker display
             ZipPicker.Collapse()
             
             ' Hide the list

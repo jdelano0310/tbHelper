@@ -15,7 +15,7 @@ Class Form1
         'setup the user control download button
         With btnDownload
             .Caption = "Download"
-            .BackColor = RGB(37, 99, 235)  ' Blue
+            .BackColor = &HA2640C
             .ForeColor = vbWhite  ' White
             .FontSize = 11
             .HoverColor = RGB(18, 40, 234) ' Darker blue
@@ -114,6 +114,12 @@ Class Form1
     Private Sub btnRevert_Click()
         
         Dim frm As New frmRevert
+        frm.Show(vbModal)
+        
+    End Sub
+    
+    Private Sub btnViewLogHistory_Click()
+        Dim frm As New frmViewHistoryLog
         frm.Show(vbModal)
         
     End Sub

@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 1068007813,
+		"__lastUpdateMarker": 3878358161,
 		"_children": [
 			{
 				"Anchors": {
@@ -169,7 +169,7 @@
 				"VisualStyles": true,
 				"WhatsThisHelpID": 0,
 				"WheelScrollEvent": true,
-				"Width": 282,
+				"Width": 160,
 				"_className": "ListBox",
 				"_clsid": "{33AD4F10-6699-11CF-B70C-00AA0060D393}"
 			},
@@ -181,42 +181,7 @@
 					"Top": true,
 					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
 				},
-				"CausesValidation": false,
-				"Dock": "vbDockNone",
-				"DragIcon": "",
-				"DragMode": "vbManual",
-				"Drive": null,
-				"Height": 18,
-				"HelpContextID": 0,
-				"Index": -1,
-				"Left": 4,
-				"Name": "DrivePicker",
-				"Opacity": 100,
-				"TabIndex": 3,
-				"TabStop": true,
-				"Tag": null,
-				"ToolTipText": null,
-				"Top": 10,
-				"TransparencyKey": -1,
-				"UseIViewObjectSnapshots": false,
-				"Visible": true,
-				"WhatsThisHelpID": 0,
-				"Width": 115,
-				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AOMLAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkA3AEAAA==",
-				"_className": "tBHelperGUI.ucDrivePicker",
-				"_clsid": "{5758D893-B754-44F6-8317-4364D1F6FC06}",
-				"_hasExclusiveCancelProp": true,
-				"_hasExclusiveDefaultProp": true
-			},
-			{
-				"Anchors": {
-					"Bottom": false,
-					"Left": true,
-					"Right": false,
-					"Top": true,
-					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
-				},
-				"BackColor": 15426341,
+				"BackColor": 10642444,
 				"BorderColor": 3038346,
 				"BorderRadius": 4,
 				"BorderWidth": 1,
@@ -262,7 +227,7 @@
 					"Top": true,
 					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
 				},
-				"BackColor": 15426341,
+				"BackColor": 10642444,
 				"BorderColor": 3038346,
 				"BorderRadius": 4,
 				"BorderWidth": 1,
@@ -372,6 +337,41 @@
 				"_className": "PictureBox",
 				"_clsid": "{33AD4ED0-6699-11CF-B70C-00AA0060D393}",
 				"_isFrame": true
+			},
+			{
+				"Anchors": {
+					"Bottom": false,
+					"Left": true,
+					"Right": false,
+					"Top": true,
+					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
+				},
+				"CausesValidation": false,
+				"Dock": "vbDockNone",
+				"DragIcon": "",
+				"DragMode": "vbManual",
+				"Height": 24,
+				"HelpContextID": 0,
+				"Index": -1,
+				"Item": null,
+				"Left": 7,
+				"Name": "DrivePicker",
+				"Opacity": 100,
+				"TabIndex": 8,
+				"TabStop": true,
+				"Tag": null,
+				"ToolTipText": null,
+				"Top": 10,
+				"TransparencyKey": -1,
+				"UseIViewObjectSnapshots": false,
+				"Visible": true,
+				"WhatsThisHelpID": 0,
+				"Width": 160,
+				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AIkQAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAewIAAA==",
+				"_className": "tBHelperGUI.ucDropdown",
+				"_clsid": "{97288DC2-C853-46E8-BFB6-87938BCF281F}",
+				"_hasExclusiveCancelProp": true,
+				"_hasExclusiveDefaultProp": true
 			}
 		],
 		"_className": "Form",

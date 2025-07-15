@@ -1,0 +1,110 @@
+[Description("")]
+[FormDesignerId("B024EA57-AF38-4736-9BA0-8C4316007286")]
+[PredeclaredId]
+Class frmViewHistoryLog
+
+	Sub New()
+	End Sub
+    
+    Private Sub Form_Load()
+        With btnDeleteLog
+            .Caption = "Delete Log"
+            .BackColor = &HA2640C
+            .ForeColor = vbWhite  ' White
+            .FontSize = 11
+            .HoverColor = RGB(18, 40, 234) ' Darker blue
+            .BorderRadius = 6
+            .FontBold = True
+            .PngIconPath = App.Path & "\delete.png"
+            .IconSize = 16
+            .IconSpacing = 8
+            .Enabled = False
+        End With
+        
+        SetupActivityLog
+        FindUniqueDates
+        
+        clgView.LoadSampleHistoryActivityLogData()
+
+    End Sub
+
+    Private Sub	SetupActivityLog()
+        
+        clgView.DefineColumns("DATE TIME", "VERSION", "TYPE", "LOG TEXT")
+        
+    End Sub
+    
+    Private Sub DatePicker_DropDown()
+
+        ' toggle the dropdown if it is visible
+        If lbDropdown.Visible Then
+            HideZipList()
+            Exit Sub
+        End If
+
+        ' Find the currently selected version in the list and highlight it
+        Dim i As Long
+        For i = 0 To lbDropdown.ListCount - 1
+            If lbDropdown.List(i) = DatePicker.Item Then
+                lbDropdown.ListIndex = i
+                Exit For
+            End If
+        Next i
+
+        Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
+        Const LIST_HEIGHT As Long = 1200
+        
+        With lbDropdown
+            .Width = DatePicker.Width - (BORDER_SIZE * 2)
+            .Height = LIST_HEIGHT
+            .Left = DatePicker.Left
+            .Top = DatePicker.Top + DatePicker.Height
+            .Visible = True
+        End With
+
+        With picDropDownBorder
+            .Move lbDropdown.Left - BORDER_SIZE, _
+                    lbDropdown.Top - BORDER_SIZE, _
+                    lbDropdown.Width + (BORDER_SIZE * 2), _ 
+                    lbDropdown.Height + (BORDER_SIZE * 2)
+            .Visible = True
+        End With
+
+        ApplyBottomRoundedCorners picDropDownBorder, 4, 4 ' Apply to the border first
+        ApplyBottomRoundedCorners lbDropdown, 4, 4, True         ' Then apply to the listbox
+            
+        BringWindowToTop picDropDownBorder.hWnd ' Bring border to the top
+        BringWindowToTop lbDropdown.hWnd
+        
+    End Sub
+    
+    Private Sub HideZipList()
+    
+        lbDropdown.Visible = False
+        picDropDownBorder.Visible = False
+    
+    End Sub
+    
+    Private Sub lbDropdown_Click()
+        If lbDropdown.ListIndex > -1 Then
+            
+            DatePicker.Item = lbDropdown.Text ' Update the picker display
+            DatePicker.Collapse()
+            
+            ' Hide the list
+            HideZipList
+        End If
+    End Sub
+    
+    Private Sub Form_Click()
+        DatePicker.Collapse()
+        HideZipList
+    End Sub
+    
+    Private Sub FindUniqueDates()
+        ' add some dates to the dropdown while testing
+        lbDropdown.AddItem("07/14/2025")
+        lbDropdown.AddItem("07/15/2025")
+    End Sub
+    
+End Class
