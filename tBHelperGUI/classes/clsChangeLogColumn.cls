@@ -14,3 +14,4 @@ Attribute VB_Exposed = False
 
 Public Name As String
 Public Width As Long
+Public WrappedEnabled As Boolean

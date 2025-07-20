@@ -17,6 +17,7 @@ Private m_Values As Collection
 Private m_TypeText As String
 Private m_TypeColor As Long
 Private m_TypeTextColor As Long
+Private m_EntryHeight As Long
 
 ' colors for the type of changle log item
 Private Const COLOR_IMPORTANT = vbBlue
@@ -30,7 +31,15 @@ Private Const COLOR_ADDED = RGB(75, 0, 130)
 Private Const COLOR_WARNING = RGB(153, 0, 0)
 
 Private Const TEXT_COLOR_WHITE = &HFFFFFF
-    
+
+Public Property Get EntryHeight() As Long
+    EntryHeight = m_EntryHeight
+End Property
+
+Public Property Let EntryHeight(ByVal c As Long)
+    m_EntryHeight = c
+End Property
+
 Public Property Get Values() As Collection
     Set Values = m_Values
 End Property
@@ -59,35 +68,35 @@ Public Property Let TypeTextColor(ByVal c As Long)
     m_TypeTextColor = c
 End Property
 
-Public Sub Initialize(ByVal columnDefs As Collection, columnValues() As Variant)
+Public Sub Initialize(columnDefs() As clsChangeLogColumn, columnValues() As Variant)
+    
     Set m_Values = New Collection
-    Dim i As Long
+    Dim i As Integer = 0
     Dim value As String
 
-    For i = LBound(columnValues) To UBound(columnValues)
+    Dim col As clsChangeLogColumn
+    For Each col In columnDefs
+    
         value = columnValues(i)
-        Dim colName As String
+        m_Values.Add value, col.Name
 
-        If i + 1 <= columnDefs.Count Then
-            colName = columnDefs(i + 1).Name  ' Collections are 1-based
-            m_Values.Add value, colName
+        If UCase(col.Name) = "TYPE" Then
+            m_TypeText = UCase(value)
+            m_TypeTextColor = TEXT_COLOR_WHITE
 
-            If UCase(colName) = "TYPE" Then
-                m_TypeText = UCase(value)
-                m_TypeTextColor = TEXT_COLOR_WHITE
-
-                Select Case m_TypeText
-                    Case "IMPORTANT": m_TypeColor = COLOR_IMPORTANT
-                    Case "IMPROVED":  m_TypeColor = COLOR_IMPROVED
-                    Case "FIXED":     m_TypeColor = COLOR_FIXED
-                    Case "UPDATED":   m_TypeColor = COLOR_UPDATED
-                    Case "TIP":       m_TypeColor = COLOR_TIP
-                    Case "KNOWN ISSUE": m_TypeColor = COLOR_KNOWN
-                    Case "ADDED":     m_TypeColor = COLOR_ADDED
-                    Case "WARNING":   m_TypeColor = COLOR_WARNING
-                    Case Else:        m_TypeColor = COLOR_DEFAULT
-                End Select
-            End If
+            Select Case m_TypeText
+                Case "IMPORTANT": m_TypeColor = COLOR_IMPORTANT
+                Case "IMPROVED":  m_TypeColor = COLOR_IMPROVED
+                Case "FIXED":     m_TypeColor = COLOR_FIXED
+                Case "UPDATED":   m_TypeColor = COLOR_UPDATED
+                Case "TIP":       m_TypeColor = COLOR_TIP
+                Case "KNOWN ISSUE": m_TypeColor = COLOR_KNOWN
+                Case "ADDED":     m_TypeColor = COLOR_ADDED
+                Case "WARNING":   m_TypeColor = COLOR_WARNING
+                Case Else:        m_TypeColor = COLOR_DEFAULT
+            End Select
         End If
-    Next i
+        
+        i += 1
+    Next col
 End Sub

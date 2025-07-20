@@ -1,4 +1,4 @@
-Attribute VB_Name = "modChangeLog"
+Attribute VB_Name = "modtBHelper"
 Private Declare PtrSafe Function CallWindowProc Lib "user32" Alias "CallWindowProcA" ( _
 ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, _
 ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As LongPtr) As Long

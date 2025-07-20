@@ -27,7 +27,8 @@ Class Form1
         End With
         
         actLog.LoadSampleData()
-        clgView.LoadSampleFullChangeLogData()
+        'clgView.LoadSampleFullChangeLogData()
+        ShowChangeLogSampleData
         
     End Sub
     
@@ -124,5 +125,45 @@ Class Form1
         
     End Sub
     
+    Private Sub ShowChangeLogSampleData()
+        
+        WriteToLogFile("LoadSampleFullChangeLogData: start")
+        'clgView.ClearEntries()
+        
+        WriteToLogFile("LoadSampleFullChangeLogData: set columns")
+        Dim clgColumns(2) As New clsChangeLogColumn
+        clgColumns(0).Name = "VERSION"
+        clgColumns(0).Width = 70
+        clgColumns(0).WrappedEnabled = False
+
+        clgColumns(1).Name = "TYPE"
+        clgColumns(1).Width = 140
+        clgColumns(1).WrappedEnabled = False
+        
+        clgColumns(2).Name = "DESCRIPTION"
+        clgColumns(2).Width = 550
+        clgColumns(2).WrappedEnabled = True
+        
+        'clgView.ViewColumns = clgColumns
+
+        WriteToLogFile("LoadSampleFullChangeLogData: add entries")
+        With clgView
+            .ClearEntries()
+            .SetColumns = clgColumns
+            .AddEntry "820", "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
+            .AddEntry "820", "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
+            .AddEntry "820", "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
+            .AddEntry "820", "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
+            .AddEntry "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
+
+            .AddEntry "820", "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
+            .AddEntry "820", "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
+            .AddEntry "820", "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
+            .AddEntry "820", "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
+            .AddEntry "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
+            
+        End With
+        WriteToLogFile("LoadSampleFullChangeLogData: done")
+    End Sub
 
 End Class

@@ -32,12 +32,9 @@ Class ucChangeLog
     Private WithEvents m_Canvas As PictureBox
     Private WithEvents m_HeaderCanvas As PictureBox
     Private WithEvents m_VScrollBar As VScrollBar
-    Private m_Columns As Collection
     
-    Private Type ChangeLogColumn
-        Name As String
-        Width As Long
-    End Type
+    Private m_Columns() As clsChangeLogColumn
+    Private m_ColumnCount As Integer
         
     ' colors for the type of changle log item
     Private Const COLOR_IMPORTANT = vbBlue
@@ -71,6 +68,7 @@ Class ucChangeLog
         ReDim m_Entries(0)
                 
         m_EntryCount = 0
+        m_ColumnCount = 0
         m_SelectedIndex = -1
         m_ScrollOffset = 0
 
@@ -136,29 +134,35 @@ Class ucChangeLog
         
     End Sub
 
-    Public Sub DefineColumns(ParamArray ColumnNames() As Variant)
-        Set m_Columns = New Collection
+    Public Property Let SetColumns(value() As clsChangeLogColumn)
         
-        Dim i As Long
-        For i = LBound(ColumnNames) To UBound(ColumnNames)
-            Dim col As clsChangeLogColumn
-            Set col = New clsChangeLogColumn
-            
-            col.Name = ColumnNames(i)
-            col.Width = 100 ' Default, can be adjusted later
-            m_Columns.Add col
-            
-            Set col = Nothing
+        On Error GoTo BadHeaderValues
+        
+        m_Columns = value
+        
+        ' count the columns
+        Dim c As clsChangeLogColumn
+        Dim cCount As Integer
+        For Each c In m_Columns
+            cCount += 1
         Next
-        'UserControl.Refresh
-        DrawHeaders
         
-    End Sub
+        m_ColumnCount = cCount
+        
+        On Error GoTo 0
+        DrawHeaders()
+        
+        Exit Property
+        
+    BadHeaderValues:
+        MsgBox("The column header values passed could not be used!" & vbCrLf & Err.Description, vbCritical, "Changle Log")
+    End Property
     
     Private Sub DrawHeaders()
         
-        If m_Columns Is Nothing Then Exit Sub
-        If m_Columns.Count = 0 Then Exit Sub
+        If m_ColumnCount = 0 Then Exit Sub
+        
+        On Error GoTo DrawError
         
         Dim hdc As Long
         Dim hFont As Long
@@ -176,19 +180,24 @@ Class ucChangeLog
         SetTextColor hdc, TEXT_COLOR_DARK
 
         xPos = 20
-        For i = 1 To m_Columns.Count
-            Dim colName As String
-            colName = m_Columns(i).Name
-            TextOut hdc, xPos, 8, colName, Len(colName)
-            xPos = xPos + m_Columns(i).Width
+        Dim col As clsChangeLogColumn
+        For Each col In m_Columns
+            TextOut hdc, xPos, 8, col.Name, Len(col.Name)
+            xPos = xPos + col.Width
         Next
-
+        
         If hFont <> 0 Then
             SelectObject hdc, hOldFont
             DeleteObject hFont
         End If
 
         m_HeaderCanvas.Refresh
+
+        Exit Sub
+        
+    DrawError:
+    MsgBox("The column header values passed could not be used!" & vbCrLf & Err.Description, vbCritical, "Changle Log")
+        
     End Sub
 
     Private Sub m_Canvas_Paint()
@@ -215,7 +224,8 @@ Class ucChangeLog
         yPos = 0
         For i = startIndex To endIndex - 1
             DrawRow i, yPos
-            yPos = yPos + ROW_HEIGHT
+            'yPos = yPos + ROW_HEIGHT
+            yPos = yPos + m_Entries(i).EntryHeight
         Next i
     
         m_Canvas.Refresh
@@ -223,6 +233,7 @@ Class ucChangeLog
     End Sub
 
     Private Sub DrawRow(ByVal entryIndex As Long, ByVal yPos As Long)
+        
         Dim entry As clsChangeLogEntry
         Dim actualIndex As Long
         Dim hdc As Long
@@ -231,7 +242,11 @@ Class ucChangeLog
         Dim isSelected As Boolean
         Dim xPos As Long
         Dim i As Long
-
+        Dim col As clsChangeLogColumn
+        Dim value As String
+        
+        Dim BASE_LINE_HEIGHT As Integer = 18
+        
         actualIndex = GetFilteredEntryIndex(entryIndex)
         If actualIndex = -1 Then Exit Sub
 
@@ -239,10 +254,40 @@ Class ucChangeLog
         isSelected = (actualIndex = m_SelectedIndex)
         hdc = m_Canvas.hDC
 
+        ' does the description field exists in this row
+        ' needed to create the rect that the row needs to display properly
+        Dim includesDescription As Boolean = False
+        Dim thisRowHeight As Long = ROW_HEIGHT
+        
+        ' for now loop the columns to see if description is one of the columns (change to WrappedEnabled if this works)
+        For Each col In m_Columns
+            If UCase(col.Name) = "DESCRIPTION" Then
+                includesDescription = True
+                Exit For
+            End If
+        Next
+        
+        ' if the column exists, then how many lines will wrapping the value need?
+        Dim requiredLines As Integer = 1    ' how many lines will this row need to write correctly
+        If includesDescription Then
+            Dim descrLines As Collection
+            Set descrLines = WrapTextToLines(entry.Values("DESCRIPTION"), col.Width - 8, hdc)
+            requiredLines = descrLines.Count
+            
+            ' in the event that description is blank 
+            If requiredLines < 2 Then
+                thisRowHeight = ROW_HEIGHT
+            Else
+                thisRowHeight = (requiredLines * BASE_LINE_HEIGHT) + 8
+            End If
+        End If
+
+        ' create the rect using the precalculated height
         rowRect.Left = 0
         rowRect.Top = yPos
         rowRect.Right = m_Canvas.Width
-        rowRect.Bottom = yPos + ROW_HEIGHT
+        rowRect.Bottom = yPos + thisRowHeight
+        entry.EntryHeight = thisRowHeight
 
         hBrush = CreateSolidBrush(IIf(isSelected, SELECTED_COLOR, IIf(entryIndex Mod 2 = 0, ROW_ALT_COLOR, BACKGROUND_COLOR)))
         FillRect hdc, rowRect, hBrush
@@ -251,29 +296,40 @@ Class ucChangeLog
         SetBkMode hdc, 1
         xPos = 20
 
-        For i = 1 To m_Columns.Count
-            Dim colName As String
-            colName = m_Columns(i).Name
-
-            If UCase(colName) = "TYPE" Then
-                ' if there is data in the type text of the entry then draw pill
-                If Len(entry.TypeText) > 0 Then DrawTypeBadge(hdc, xPos, yPos + 8, entry)
-            Else
-                Dim value As String
-                On Error Resume Next
-                value = entry.Values(colName)
-                On Error GoTo 0
-
-                If UCase(colName) = "VERSION" Then
+        For Each col In m_Columns
+            
+            ' use select case on col.name - add description - do a hack split into to lines to try the wrap 
+            ' in a more controlled manner
+            value = entry.Values(col.Name)
+            Select Case UCase(col.Name)
+                Case "VERSION"
                     SetTextColor hdc, TEXT_COLOR_VERSION
-                Else
+                    TextOut hdc, xPos + 4, yPos + 12, value, Len(value)
+                Case "TYPE"
+                    If Len(entry.TypeText) > 0 Then DrawTypeBadge(hdc, xPos, yPos + 8, entry)
+                Case "DESCRIPTION"
                     SetTextColor hdc, TEXT_COLOR_DARK
-                End If
 
-                TextOut hdc, xPos + 4, yPos + 12, Left(value, 80), Len(Left(value, 80))
-            End If
+                    Dim lineYPos As Long
+                    lineYPos = IIf(requiredLines < 2, yPos + 12, yPos + 6)
+                    
+                    Dim descrLine As String
+                    Dim eachLineHeight As Long = (thisRowHeight / (requiredLines + 1))
+                    For Each descrLine In descrLines
+                        ' write each line 
+                        TextOut hdc, xPos + 4, lineYPos, descrLine, Len(descrLine)
+                        lineYPos = lineYPos + eachLineHeight
+                    Next
+                    
+                    Set descrLines = Nothing
+                Case Else
+                    SetTextColor hdc, TEXT_COLOR_DARK
+                    TextOut hdc, xPos + 4, yPos + 12, value, Len(value)
+                Case Else
+                    
+            End Select
 
-            xPos = xPos + m_Columns(i).Width
+            xPos = xPos + col.Width
         Next
     End Sub
 
@@ -396,7 +452,9 @@ Class ucChangeLog
         filteredCount = GetFilteredEntryCount()
         
         ' check to see if the scrollbar is needed, if so convert the pixel row height to twips to calculate that
-        If Not m_Canvas Is Nothing Then visibleRows = Int(m_Canvas.Height / (ROW_HEIGHT * Screen.TwipsPerPixelX))
+        If Not m_Canvas Is Nothing Then
+            visibleRows = Int(m_Canvas.Height / (ROW_HEIGHT * Screen.TwipsPerPixelX))
+        End If
     
         If filteredCount > visibleRows Then
             m_VScrollBar.Max = filteredCount - visibleRows
@@ -422,45 +480,6 @@ Class ucChangeLog
         m_ScrollOffset = 0
         UpdateScrollBar
         RedrawCanvas
-    End Sub
-
-    Public Sub LoadSampleFullChangeLogData()
-        
-        ClearEntries
-
-        DefineColumns "VERSION", "TYPE", "DESCRIPTION"
-        AddEntry "820", "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
-        AddEntry "820", "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
-        AddEntry "820", "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
-        AddEntry "820", "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
-        AddEntry "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
-
-        AddEntry "820", "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
-        AddEntry "820", "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
-        AddEntry "820", "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
-        AddEntry "820", "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
-        AddEntry "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
-                
-    End Sub
-
-    Public Sub LoadSampleRevertChangeLogData()
-        
-        ClearEntries
-
-        DefineColumns "TYPE", "DESCRIPTION"
-        
-        AddEntry "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
-        AddEntry "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
-        AddEntry "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
-        AddEntry "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
-        AddEntry "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
-
-        AddEntry "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
-        AddEntry "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
-        AddEntry "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
-        AddEntry "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
-        AddEntry "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
-                
     End Sub
     
     Public Sub LoadSampleHistoryActivityLogData()
@@ -537,6 +556,41 @@ Class ucChangeLog
         End If
     End Sub
 
+    Public Function WrapTextToLines(ByVal text As String, ByVal maxWidth As Long, ByVal hdc As Long) As Collection
+        
+        ' adding word wrap functionality to the ucChangeLog control
+        Dim words() As String
+        Dim line As String
+        Dim lines As New Collection
+        Dim i As Long
+        Dim testLine As String
+        Dim textSize As Size
+
+        words = Split(text, " ")
+        line = ""
+        
+        For i = LBound(words) To UBound(words)
+            If Len(line) = 0 Then
+                testLine = words(i)
+            Else
+                testLine = line & " " & words(i)
+            End If
+            
+            GetTextExtentPoint32 hdc, testLine, Len(testLine), textSize
+            
+            If textSize.cx <= maxWidth Then
+                line = testLine
+            Else
+                If Len(line) > 0 Then lines.Add line
+                line = words(i)
+            End If
+        Next i
+
+        If Len(line) > 0 Then lines.Add line
+
+        Set WrapTextToLines = lines
+    End Function
+    
     Private Sub UserControl_Terminate()
         
         ' have to release things when destorying the control

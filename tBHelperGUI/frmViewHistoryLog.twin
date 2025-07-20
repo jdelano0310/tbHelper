@@ -30,7 +30,7 @@ Class frmViewHistoryLog
 
     Private Sub	SetupActivityLog()
         
-        clgView.DefineColumns("DATE TIME", "VERSION", "TYPE", "LOG TEXT")
+        'clgView.DefineColumns("DATE TIME", "VERSION", "TYPE", "LOG TEXT")
         
     End Sub
     

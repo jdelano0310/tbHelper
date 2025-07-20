@@ -63,7 +63,12 @@ Class frmSelectFolder
     End Sub
     
     Private Sub PopulateDrivesList()
-        Dim drives As Long, i As Long, driveLetter As String, driveType As Long
+        Dim drives As Long
+        Dim i As Long
+        Dim driveLetter As String
+        Dim driveType As Long
+        Dim volumeLabel As String
+        
         drives = GetLogicalDrives()
         lstDrives.Clear
 
@@ -72,6 +77,7 @@ Class frmSelectFolder
                 driveLetter = Chr$(65 + i) & ":"
                 driveType = GetDriveType(driveLetter & "\")
                 If driveType = DRIVE_FIXED Or driveType = DRIVE_REMOVABLE Then
+                    'volumeLabel = Dir(driveLetter & ":\", vbVolume)
                     lstDrives.AddItem driveLetter
                 End If
             End If

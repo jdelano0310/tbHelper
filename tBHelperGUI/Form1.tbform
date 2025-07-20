@@ -5,7 +5,7 @@
 		"AutoRedraw": false,
 		"BackColor": -2147483633,
 		"BorderStyle": "vbFixedSingle",
-		"Caption": "tB Helper alpha 1",
+		"Caption": "tB Helper alpha 2",
 		"ClipControls": true,
 		"ControlBox": true,
 		"DrawMode": "vbCopyPen",
@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 291655987,
+		"__lastUpdateMarker": 2270729418,
 		"_children": [
 			{
 				"Anchors": {
@@ -2041,6 +2041,7 @@
 				"Left": 6,
 				"Name": "clgView",
 				"Opacity": 100,
+				"SetColumns": [],
 				"TabIndex": 35,
 				"TabStop": true,
 				"Tag": null,
@@ -2056,7 +2057,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 201958
+				"canvashWnd": 7865248
 			},
 			{
 				"Alignment": "vbCenter",
@@ -2363,7 +2364,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 1511922
+				"canvashWnd": 2822908
 			}
 		],
 		"_className": "Form",

@@ -155,7 +155,7 @@ Class frmRevert
             HideZipList
             ' Show Change Log for the select twinBASIC version
             
-            clgView.LoadSampleRevertChangeLogData()
+            FillTestData
             btnRevert.Enabled = True
         End If
     End Sub
@@ -165,4 +165,34 @@ Class frmRevert
         HideZipList
     End Sub
     
+    Private Sub FillTestData()
+        
+        Dim clgColumns(1) As New clsChangeLogColumn
+
+        clgColumns(0).Name = "TYPE"
+        clgColumns(0).Width = 140
+        clgColumns(0).WrappedEnabled = False
+        
+        clgColumns(1).Name = "DESCRIPTION"
+        clgColumns(1).Width = 300
+        clgColumns(1).WrappedEnabled = True
+        
+        
+        With clgView
+            .ClearEntries
+            .SetColumns = clgColumns
+            .AddEntry "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
+            .AddEntry "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
+            .AddEntry "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
+            .AddEntry "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
+            .AddEntry "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
+
+            .AddEntry "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
+            .AddEntry "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
+            .AddEntry "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
+            .AddEntry "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
+            .AddEntry "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
+            
+        End With
+    End Sub
 End Class
