@@ -49,7 +49,7 @@ Class ucChangeLog
     
     Private Const TEXT_COLOR_WHITE = &HFFFFFF
     Private Const BACKGROUND_COLOR = &HFFFFFF
-    Private Const ROW_ALT_COLOR = &HF8F8F8
+    
     Private Const TEXT_COLOR_DARK = &H333333
     Private Const TEXT_COLOR_VERSION = -RGB(128, 49, 116) ' Blue version text
     Private Const SELECTED_COLOR = &HE6F3FF       ' Light blue selection

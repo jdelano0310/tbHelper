@@ -33,14 +33,24 @@ Class ucCustomButton
     Private m_GdiplusToken As Long
     Private m_PngPath As String
     Private m_PngBitmap As Long
-
+    Private m_Enabled As Boolean
+    
     ' Events
     Public Event Click()
     Public Event MouseEnter()
     Public Event MouseLeave()
     
     ' Properties
-    ' Add this property for PNG file path
+     Public Property Let Enabled(ByVal value As Boolean)
+        m_Enabled = value
+        
+        Refresh  ' Force visual update
+    End Property
+
+    Public Property Get Enabled() As Boolean
+        Enabled = m_Enabled
+    End Property
+    
     Public Property Let PngIconPath(ByVal Value As String)
         m_PngPath = Value
         LoadPngIcon
@@ -69,6 +79,7 @@ Class ucCustomButton
     
     Public Property Let BackColor(ByVal Value As OLE_COLOR)
         m_BackColor = Value
+        m_HoverColor = DarkenColor(Value, 0.8) ' automatically calculate the hover color
         Refresh
     End Property
     Public Property Get BackColor() As OLE_COLOR
@@ -150,11 +161,11 @@ Class ucCustomButton
         m_Caption = "Button"
         m_BackColor = &HA2640C 'RGB(37, 99, 235)
         m_ForeColor = RGB(255, 255, 255)
-        m_HoverColor = RGB(18, 40, 234)
+        'm_HoverColor = RGB(18, 40, 234)
         m_BorderColor = &H2E5C8A
         m_BorderRadius = 4
         m_BorderWidth = 1
-        m_IconSize = 16
+        m_IconSize = 20
         m_IconSpacing = 8
         m_FontBold = False
         m_IsHover = False
@@ -166,79 +177,81 @@ Class ucCustomButton
     End Sub
     
     Private Sub UserControl_Paint()
-        Cls
-    
+
+        ' reasons to not run the paint routine
         If ScaleWidth <= 0 Or ScaleHeight <= 0 Then Exit Sub
-    
-        ' 1. FIRST: Fill background and draw border
+        
+        Cls
+        
         ' Determine current background color
         Dim currentBackColor As OLE_COLOR
-        If m_IsPressed Then
-            currentBackColor = DarkenColor(m_BackColor, 0.8)
-        ElseIf m_IsHover Then
-            currentBackColor = m_HoverColor
+        Dim currentForeColor As OLE_COLOR
+        Dim borderColor As OLE_COLOR
+        
+        currentForeColor = m_ForeColor
+        If Not m_Enabled Then
+            currentBackColor = LightenColor(m_BackColor, 1.2)
+            currentForeColor = RGB(160, 160, 160)      ' softened gray for caption
+            
         Else
-            currentBackColor = m_BackColor
+            currentBackColor = IIf(m_IsPressed, DarkenColor(m_BackColor, 0.8), IIf(m_IsHover, m_HoverColor, m_BackColor))
+            currentForeColor = m_ForeColor
+            borderColor = m_BorderColor
         End If
-    
+        
         ' Fill background
         UserControl.BackColor = currentBackColor
-    
+
         ' Draw border if specified
         If m_BorderWidth > 0 Then
             DrawWidth = m_BorderWidth
-            ForeColor = m_ForeColor
+            ForeColor = currentForeColor
             Line (0, 0)-(ScaleWidth - 1, ScaleHeight - 1), m_BorderColor, B
         End If
-    
-        ' 2. SECOND: Calculate positions for icon and text
-        Dim iconX As Long, textX As Long, textY As Long
-        Dim iconWidth As Long, _textWidth As Long
-        Dim totalContentWidth As Long
-    
-        ' Measure text
-        ForeColor = m_ForeColor
-        Font.Bold = m_FontBold
-        _textWidth = TextWidth(m_Caption)
-        textY = (ScaleHeight - TextHeight(m_Caption)) \ 2
-    
-        ' Calculate icon width
-        iconWidth = IIf(m_PngBitmap <> 0, m_IconSize, 0)
-            
-        ' Calculate total content width
-        totalContentWidth = iconWidth
-        If iconWidth > 0 And Len(m_Caption) > 0 Then
-            totalContentWidth = totalContentWidth + m_IconSpacing
-        End If
-        totalContentWidth = totalContentWidth + _textWidth
-    
-        ' Center the content
-        Dim startX As Long
-        startX = (ScaleWidth - totalContentWidth) \ 2
         
-        ' 3. THIRD: Draw icon on TOP of background
-        If m_PngBitmap <> 0 And iconWidth > 0 Then
-            ' PNG drawing - use pixel-based calculations - everything here has to be in twips
-            iconX = startX - (iconWidth + m_IconSpacing) * Screen.TwipsPerPixelX
-            
-            Dim iconY As Long
-            iconY = (ScaleHeight - (m_IconSize * Screen.TwipsPerPixelY)) \ 2  ' Convert icon size back to twips for centering
-    
-            DrawPngIcon iconX, iconY
+        ' Calculate positions for icon and text, all in twips
+        Dim iconWidthTw As Long
+        Dim iconSpacingTw As Long
+        Dim textWidthTw As Long
+        Dim totalContentWidthTw As Long
+        Dim startXTw As Long
+        Dim iconXTw As Long, iconYTw As Long
+        Dim textXTw As Long, textYTw As Long
 
+        ' Measure text (returns twips)
+        UserControl.ForeColor = currentForeColor
+        UserControl.Font.Bold = m_FontBold
+        
+        textWidthTw = TextWidth(m_Caption)
+        textYTw = (ScaleHeight - TextHeight(m_Caption)) \ 2
+
+        ' Compute icon width & spacing in twips
+        If m_PngBitmap <> 0 Then
+            iconWidthTw = m_IconSize * Screen.TwipsPerPixelX
+            iconSpacingTw = IIf(Len(m_Caption) > 0, m_IconSpacing * Screen.TwipsPerPixelX, 0)
+        Else
+            iconWidthTw = 0
+            iconSpacingTw = 0
         End If
 
-        textX = startX
-        'DrawLayoutDebug iconX, iconY, iconWidth, textX, textY, [_textWidth]
-        
-        ' 4. FOURTH: Draw text on top
-        If Len(m_Caption) > 0 Then
-            ' Explicitly set the ForeColor before drawing text
-            UserControl.ForeColor = m_ForeColor
-            CurrentX = textX
-            CurrentY = textY
-            Print m_Caption
+        ' Total width = icon + spacing + text
+        totalContentWidthTw = iconWidthTw + iconSpacingTw + textWidthTw
+
+        ' Center that block
+        startXTw = (ScaleWidth - totalContentWidthTw) \ 2
+
+        ' if there is an icon, draw it on the button
+        If iconWidthTw > 0 Then
+            iconXTw = startXTw
+            iconYTw = (ScaleHeight - (m_IconSize * Screen.TwipsPerPixelY)) \ 2
+            DrawPngIcon iconXTw, iconYTw
         End If
+
+        ' write to the button
+        textXTw = startXTw + iconWidthTw + iconSpacingTw
+        CurrentX = textXTw
+        CurrentY = textYTw
+        Print m_Caption
     End Sub
     
     Private Sub DrawPngIcon(ByVal iconX As Long, ByVal iconY As Long)
@@ -267,6 +280,7 @@ Class ucCustomButton
         Call GdipDeleteGraphics(hGraphics)
         
     End Sub
+ 
     
     Private Sub DrawLayoutDebug(ByVal iconX As Long, ByVal iconY As Long, ByVal iconWidth As Long, ByVal textX As Long, ByVal textY As Long, ByVal textWidth As Long)
         ' Draw icon bounding box in red
@@ -287,14 +301,23 @@ Class ucCustomButton
     End Sub
     
     Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+
+        If Not m_Enabled Then Exit Sub
+
+        ' If inside and not already hovering, trigger hover
         If Not m_IsHover Then
             m_IsHover = True
             RaiseEvent MouseEnter
             Refresh
+            tmrMouseTracker.Enabled = True
         End If
+
     End Sub
     
     Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        
+        If Not m_Enabled Then Exit Sub
+
         If Button = vbLeftButton Then
             m_IsPressed = True
             Refresh
@@ -302,6 +325,9 @@ Class ucCustomButton
     End Sub
     
     Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        
+        If Not m_Enabled Then Exit Sub
+        
         If Button = vbLeftButton Then
             m_IsPressed = False
             If m_IsHover Then
@@ -313,6 +339,9 @@ Class ucCustomButton
     
     ' This event fires when the mouse leaves the UserControl area
     Private Sub UserControl_MouseLeave()
+        
+        If Not m_Enabled Then Exit Sub
+        
         If m_IsHover Then
             m_IsHover = False
             m_IsPressed = False
@@ -338,7 +367,8 @@ Class ucCustomButton
     End Sub
     
     Private Function DarkenColor(ByVal Color As OLE_COLOR, ByVal Factor As Double) As OLE_COLOR
-        ' Simple color darkening function
+        
+        ' Simple color darkening function used to create the mouse over color (if it isn't supplied)
         Dim r As Long, g As Long, b As Long
         r = Color And &HFF
         g = (Color And &HFF00&) \ &H100
@@ -353,6 +383,21 @@ Class ucCustomButton
         If b > 255 Then b = 255
         
         DarkenColor = RGB(r, g, b)
+    End Function
+    
+    Private Function LightenColor(ByVal Color As OLE_COLOR, ByVal Factor As Double) As OLE_COLOR
+        
+        ' used when a button is disabled.
+        Dim r As Long, g As Long, b As Long
+        r = (Color And &HFF) * Factor
+        g = ((Color And &HFF00&) \ &H100) * Factor
+        b = ((Color And &HFF0000) \ &H10000) * Factor
+
+        If r > 255 Then r = 255
+        If g > 255 Then g = 255
+        If b > 255 Then b = 255
+
+        LightenColor = RGB(r, g, b)
     End Function
     
     Private Sub UserControl_Show()
@@ -384,5 +429,30 @@ Class ucCustomButton
         End If
     End Sub
     
+    Private Sub tmrMouseTracker_Timer()
+        Dim pt As POINTAPI
+        Dim cx As Long, cy As Long
+    
+        ' where is the mouse
+        GetCursorPos pt
+        ScreenToClient Me.hWnd, pt
+    
+        ' use twips of course
+        cx = ScaleWidth \ Screen.TwipsPerPixelX
+        cy = ScaleHeight \ Screen.TwipsPerPixelY
+    
+        ' compare where the mouse is to that of the location of the button
+        If pt.X < 0 Or pt.Y < 0 Or pt.X >= cx Or pt.Y >= cy Then
+            If m_IsHover Then
+                m_IsHover = False
+                m_IsPressed = False
+                RaiseEvent MouseLeave
+                Refresh
+                tmrMouseTracker.Enabled = False
+            End If
+            Exit Sub
+        End If
+                
+    End Sub
     
 End Class

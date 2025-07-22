@@ -18,16 +18,17 @@ Class Form1
             .BackColor = &HA2640C
             .ForeColor = vbWhite  ' White
             .FontSize = 11
-            .HoverColor = RGB(18, 40, 234) ' Darker blue
+            '.HoverColor = RGB(18, 40, 234) ' Darker blue
             .BorderRadius = 6
             .FontBold = True
             .PngIconPath = App.Path & "\download.png"
             .IconSize = 16
             .IconSpacing = 8
+            .Enabled = True
         End With
         
         actLog.LoadSampleData()
-        'clgView.LoadSampleFullChangeLogData()
+
         ShowChangeLogSampleData
         
     End Sub
@@ -127,10 +128,6 @@ Class Form1
     
     Private Sub ShowChangeLogSampleData()
         
-        WriteToLogFile("LoadSampleFullChangeLogData: start")
-        'clgView.ClearEntries()
-        
-        WriteToLogFile("LoadSampleFullChangeLogData: set columns")
         Dim clgColumns(2) As New clsChangeLogColumn
         clgColumns(0).Name = "VERSION"
         clgColumns(0).Width = 70
@@ -143,10 +140,7 @@ Class Form1
         clgColumns(2).Name = "DESCRIPTION"
         clgColumns(2).Width = 550
         clgColumns(2).WrappedEnabled = True
-        
-        'clgView.ViewColumns = clgColumns
 
-        WriteToLogFile("LoadSampleFullChangeLogData: add entries")
         With clgView
             .ClearEntries()
             .SetColumns = clgColumns
@@ -163,7 +157,13 @@ Class Form1
             .AddEntry "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
             
         End With
-        WriteToLogFile("LoadSampleFullChangeLogData: done")
+
+    End Sub
+    
+    Private Sub btnDownload_Click()
+        
+        btnDownload.Enabled = False
+
     End Sub
 
 End Class

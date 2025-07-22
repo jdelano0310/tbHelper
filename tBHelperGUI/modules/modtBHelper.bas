@@ -5,9 +5,9 @@ ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As LongPtr) As Long
 
 Private Const WM_MOUSEWHEEL As Long = &H20A
 
-Private Declare Function GetCursorPos Lib "user32" (lpPoint As POINTAPI) As Long
+Public Declare Function GetCursorPos Lib "user32" (lpPoint As POINTAPI) As Long
 Private Declare Function WindowFromPoint Lib "user32" (ByVal xPoint As Long, ByVal yPoint As Long) As Long
-Private Type POINTAPI
+Public Type POINTAPI
     X As Long
     Y As Long
 End Type
@@ -23,6 +23,8 @@ Public Sub RegisterScrollableCanvas(ByVal hWnd As Long, ByVal ownerCtrl As Objec
     Call SetWindowLong(hWnd, GWL_WNDPROC, AddressOf Canvas_WindowProc)
     ucDictionary.Add hWnd, ownerCtrl
 End Sub
+
+Public Const ROW_ALT_COLOR = &HF8F8F8
 
 Private Sub UpdateScrollOwnership()
     

@@ -34,6 +34,40 @@ Private Declare PtrSafe Function SetWindowPos Lib "user32" (ByVal hWnd As LongPt
 Private Declare PtrSafe Function CombineRgn Lib "gdi32" (ByVal hrgnDest As LongPtr, ByVal hrgnSrc1 As LongPtr, ByVal hrgnSrc2 As LongPtr, ByVal fnCombineMode As Long) As Long
 Public Declare Function GetModuleFileName Lib "kernel32" Alias "GetModuleFileNameA" (ByVal hModule As Long, ByVal lpFileName As String, ByVal nSize As Long) As Long
 Public Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+Public Declare Function ScreenToClient Lib "user32" (ByVal hWnd As Long, lpPoint As POINTAPI) As Long
+
+'-- GDI+ Types
+Private Type ColorMatrix
+    m(0 To 4, 0 To 4) As Single
+End Type
+
+' change the png to greyscale to denote disabled status
+Public Declare Function GdipCreateImageAttributes Lib "gdiplus" (Imageattr As Long) As Long
+Public Declare Function GdipDisposeImageAttributes Lib "gdiplus" (ByVal imageattr As Long) As Long
+Public Declare Function GdipGetImageWidth Lib "gdiplus" (ByVal image As Long, Width As Long) As Long
+Public Declare Function GdipGetImageHeight Lib "gdiplus" (ByVal image As Long, Height As Long) As Long
+
+Public Declare Function GdipSetImageAttributesColorMatrix Lib "gdiplus" ( _
+    ByVal imageattr As Long, _
+    ByVal ColorAdjustType As Long, _
+    ByVal enableFlag As Long, _
+    ByVal colorMatrix As Long, _
+    ByVal grayMatrix As Long, _
+    ByVal flags As Long) As Long
+
+Public Declare Function GdipDrawImageRectRectI Lib "gdiplus" ( _
+    ByVal graphics As Long, _
+    ByVal image As Long, _
+    ByVal dstx As Long, _
+    ByVal dsty As Long, _
+    ByVal dstwidth As Long, _
+    ByVal dstheight As Long, _
+    ByVal srcx As Long, _
+    ByVal srcy As Long, _
+    ByVal srcwidth As Long, _
+    ByVal srcheight As Long, _
+    ByVal srcUnit As Long, _
+    ByVal imageAttributes As Long) As Long
 
 Private Const WM_GETFONT As Long = &H31
 
