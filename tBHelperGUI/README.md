@@ -1,7 +1,8 @@
-Just a few updated screenshots as of 7-14-25:
+Just a few updated screenshots as of 7-24-25:
 
 Main form
-<img width="786" height="783" alt="image" src="https://github.com/user-attachments/assets/fc5dcab6-718f-44dc-afac-1fad0b53c94b" />
+<img width="783" height="780" alt="image" src="https://github.com/user-attachments/assets/b9f83bd4-ad32-484b-86c2-0e290519a1f2" />
+
 
 
 Select Folder dialog (this needs refinement)
