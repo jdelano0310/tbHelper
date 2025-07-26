@@ -10,6 +10,7 @@ Class frmRevert
         
         SetupButtons
         
+        lblCurrentVersion.Caption = " version: " & tbHelperClass.InstalledtBVersion
         
     End Sub
 

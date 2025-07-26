@@ -36,33 +36,37 @@ Class frmSelectFolder
         'setup the user control download button
         With btnOkay
             .Caption = "Okay"
-            .BackColor = RGB(37, 99, 235)  ' Blue
+            .BackColor = CUST_BTN_BCOLOR  ' Blue
             .ForeColor = vbWhite  ' White
             .FontSize = 11
-            .HoverColor = RGB(18, 40, 234) ' Darker blue
-            .BorderRadius = 6
-            .FontBold = True
+            '.HoverColor = RGB(18, 40, 234) ' Darker blue
+            .BorderRadius = 3
+            .FontBold = False
             .PngIconPath = ""
             .IconSize = 0
             .IconSpacing = 0
+            .Enabled = True
         End With
         
         With btnCancel
             .Caption = "Cancel"
-            .BackColor = &HF4F6F3  ' darker grey
-            .ForeColor = vbBlack
+            .BackColor = CUST_BTN_BCOLOR  ' darker grey
+            .ForeColor = vbWhite
             .FontSize = 11
-            .HoverColor = RGB(37, 99, 235)
-            .BorderRadius = 6
-            .FontBold = True
+            '.HoverColor = RGB(37, 99, 235)
+            .BorderRadius = 3
+            .FontBold = False
             .PngIconPath = ""
             .IconSize = 0
             .IconSpacing = 0
+            .Enabled = True
         End With
         
     End Sub
     
     Private Sub PopulateDrivesList()
+        
+        'TODO: add volume label to the drive list
         Dim drives As Long
         Dim i As Long
         Dim driveLetter As String
@@ -104,7 +108,7 @@ Class frmSelectFolder
         Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
         Const LIST_HEIGHT As Long = 1200
           
-        ' STEP 1: Position and size the LISTBOX first. Its dimensions are the "source of truth".
+        ' listbox for the available drives
         With lstDrives
             .Width = DrivePicker.Width - (BORDER_SIZE * 2)
             .Height = LIST_HEIGHT
@@ -113,7 +117,7 @@ Class frmSelectFolder
             .Visible = True
         End With
 
-        ' STEP 2: Position and size the BORDER to wrap perfectly around the ListBox.
+        ' the border for the listbox
         With picDropDownBorder
             .Move lstDrives.Left - BORDER_SIZE, _
                   lstDrives.Top - BORDER_SIZE, _
@@ -158,9 +162,9 @@ Class frmSelectFolder
         m_IsCancelled = True
         Me.Hide
     End Sub
-
-    ' --- Hiding the Dropdown when clicking elsewhere ---
+    
     Private Sub Form_Click()
+        'Hiding the Dropdown when clicking the form
         HideDriveList
     End Sub
 
@@ -168,7 +172,6 @@ Class frmSelectFolder
         HideDriveList
     End Sub
 
-    ' --- Public Dialog Function ---
     Public Function ShowAsDialog() As String
         m_IsCancelled = True
         Me.SelectedPath = ""

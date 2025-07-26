@@ -39,19 +39,19 @@ Class ucRoundedTextbox
     End Property
     
     Public Property Get Text() As String
-        Text = txtInputW.Text
+        Text = txtInput.Text
     End Property
 
     Public Property Let Text(ByVal Value As String)
-        txtInputW.Text = Value
+        txtInput.Text = Value
     End Property
 
     Public Property Get Font() As StdFont
-        Set Font = txtInputW.Font
+        Set Font = txtInput.Font
     End Property
 
     Public Property Set Font(ByVal Value As StdFont)
-        Set txtInputW.Font = Value
+        Set txtInput.Font = Value
     End Property
     
     Private Sub UserControl_Initialize()
@@ -68,7 +68,7 @@ Class ucRoundedTextbox
     Private Sub UserControl_Resize()
         
         Const padding As Long = 120
-        txtInputW.Move padding, padding \ 2, ScaleWidth - (padding * 2), ScaleHeight - padding
+        txtInput.Move padding, padding \ 2, ScaleWidth - (padding * 2), ScaleHeight - padding
         
         ApplyRoundedRegion
         

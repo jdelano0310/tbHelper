@@ -111,7 +111,7 @@ Class ucTypeFilter
         lblCaption.Alignment = vbCenter
         lblCaption.BackStyle = 1
         lblCaption.BorderStyle = 0
-        lblCaption.FontBold = True
+        lblCaption.FontBold = False
                 
         If m_WidthOverride = 0 Then
             UserControl.Width = CalcAutoWidth()

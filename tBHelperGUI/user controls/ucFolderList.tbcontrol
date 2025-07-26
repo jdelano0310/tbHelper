@@ -71,7 +71,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 3124083153,
+		"__lastUpdateMarker": 4223253931,
 		"_children": [
 			{
 				"Anchors": {
@@ -135,8 +135,8 @@
 				"BackColor": -2147483643,
 				"ColorDepth": "ColorDepth32Bit",
 				"Height": 27,
-				"ImageHeight": 0,
-				"ImageWidth": 0,
+				"ImageHeight": 16,
+				"ImageWidth": 16,
 				"Index": -1,
 				"InternalImages_INIT": [],
 				"InternalKeys_INIT": [],

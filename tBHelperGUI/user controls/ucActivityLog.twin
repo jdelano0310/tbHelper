@@ -18,7 +18,7 @@ Class ucActivityLog
         cy As Long
     End Type
 
-    Private Type ActivityLogEntry
+    Public Type ActivityLogEntry
         DateTime As String
         LogMessage As String
     End Type
@@ -51,12 +51,20 @@ Class ucActivityLog
     Private Const ROW_ALT_COLOR = &HF8F8F8
     Private Const TEXT_COLOR_DARK = &H333333
     Private Const TEXT_COLOR_VERSION = -RGB(128, 49, 116) ' Blue version text
-    Private Const SELECTED_COLOR = &HE6F3FF       ' Light blue selection
+    Private Const SELECTED_COLOR = &HEAE2D0    ' Light blue selection
     Private Const BORDER_COLOR = &HE0E0E0
 
     Private Const ROW_HEIGHT = 40
     Private Const HEADER_HEIGHT = 0  ' no header in the activity log
 
+    Public Property Get LogEntries() As ActivityLogEntry()
+        LogEntries = m_Entries
+    End Property
+    
+    Public Property Get LogEntryCount() As Integer
+        LogEntryCount = m_EntryCount
+    End Property
+    
     Private Sub UserControl_Initialize()
     
         InitializeControls
@@ -297,6 +305,25 @@ Class ucActivityLog
             m_Entries(m_EntryCount) = newEntry
             m_EntryCount = m_EntryCount + 1
         
+            ' show the latest entry in the activity log
+            m_SelectedIndex = m_EntryCount - 1
+
+            ' how many entries can be shown 
+            Dim canvasHeightPixels As Long
+            canvasHeightPixels = m_Canvas.Height \ Screen.TwipsPerPixelY
+            
+            Dim visibleEntries As Long
+            visibleEntries = canvasHeightPixels \ ROW_HEIGHT
+            
+            If (canvasHeightPixels Mod ROW_HEIGHT) <> 0 Then visibleEntries = visibleEntries + 1
+            
+            ' scroll if needed to highlight the last entry added to the log
+            If m_EntryCount > visibleEntries Then
+                m_ScrollOffset = m_EntryCount - visibleEntries
+            Else
+                m_ScrollOffset = 0
+            End If
+            
             UpdateScrollBar
             RedrawCanvas
         End If

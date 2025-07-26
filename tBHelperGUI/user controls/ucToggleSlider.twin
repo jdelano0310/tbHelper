@@ -62,8 +62,7 @@ Class ucToggleSlider
     End Property
     
     Private Sub UserControl_Paint()
-        Static firstTime As Boolean = True ' the placement of the thumb depends on first run
-        
+                
         Const padding As Single = 2
         Dim radius As Single
         radius = (UserControl.ScaleHeight \ 2) - padding
@@ -84,15 +83,7 @@ Class ucToggleSlider
 
         ' Calculate thumb position
         Dim thumbX As Single
-        If firstTime Then
-            ' this positions the thumb the first time the toggle is drawn
-            thumbX = IIf(m_IsOn, UserControl.ScaleWidth - radius - padding, radius + padding)
-            firstTime = False
-            m_ThumbX = thumbX
-        Else
-            ' the timer takes care of sliding it once clicked
-            thumbX = m_ThumbX
-        End If
+        thumbX = IIf(m_IsOn, UserControl.ScaleWidth - radius - padding, radius + padding)
 
         ' Draw thumb
         UserControl.FillColor = m_ThumbColor

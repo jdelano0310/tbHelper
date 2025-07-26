@@ -34,6 +34,8 @@ Class ucCustomButton
     Private m_PngPath As String
     Private m_PngBitmap As Long
     Private m_Enabled As Boolean
+    Private m_ButtonWidth As Long
+    Private m_ButtonHeight As Long
     
     ' Events
     Public Event Click()
@@ -41,6 +43,22 @@ Class ucCustomButton
     Public Event MouseLeave()
     
     ' Properties
+    Public Property Let ButtonWidth(ByVal Value As Long)
+        m_ButtonWidth = Value
+        Refresh
+    End Property
+    Public Property Get ButtonWidth() As Long
+        ButtonWidth = m_ButtonWidth
+    End Property
+    
+    Public Property Let ButtonHeight(ByVal Value As Long)
+        m_ButtonHeight = Value
+        Refresh
+    End Property
+    Public Property Get ButtonHeight() As Long
+        ButtonWidth = m_ButtonHeight
+    End Property
+    
      Public Property Let Enabled(ByVal value As Boolean)
         m_Enabled = value
         
@@ -170,7 +188,9 @@ Class ucCustomButton
         m_FontBold = False
         m_IsHover = False
         m_IsPressed = False
-    
+        'm_ButtonWidth = 650
+        'm_ButtonHeight = 650
+        
         UserControl.BackColor = m_BackColor
         UserControl.Font.Bold = m_FontBold
                 
@@ -187,6 +207,9 @@ Class ucCustomButton
         Dim currentBackColor As OLE_COLOR
         Dim currentForeColor As OLE_COLOR
         Dim borderColor As OLE_COLOR
+        
+        'UserControl.Width = m_ButtonWidth
+        'UserControl.Height = m_ButtonHeight
         
         currentForeColor = m_ForeColor
         If Not m_Enabled Then

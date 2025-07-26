@@ -2,80 +2,69 @@
 [FormDesignerId("8CA8AA1D-C672-4662-A724-D05EB1E09148")]
 [PredeclaredId]
 Class Form1
-
-    Sub New()
-    End Sub
+    Dim loadingSettingsFromFile As Boolean
     
     Private Sub Form_Load()
 
+        loadingSettingsFromFile = True
+        Set tbHelperSettings = New clsSettings
+        Set tbHelperClass = New clstBHelper
+        
+        ' configure the custom controls on the main form
         SetupTypeFilterButtons
-
         SetupSettingsToggleSliders
-
-        'setup the user control download button
-        With btnDownload
-            .Caption = "Download"
-            .BackColor = &HA2640C
-            .ForeColor = vbWhite  ' White
-            .FontSize = 11
-            '.HoverColor = RGB(18, 40, 234) ' Darker blue
-            .BorderRadius = 6
-            .FontBold = True
-            .PngIconPath = App.Path & "\download.png"
-            .IconSize = 16
-            .IconSpacing = 8
-            .Enabled = True
-        End With
+        SetupCustomButtons
+        SetChangeLogHeader
         
-        actLog.LoadSampleData()
-
-        ShowChangeLogSampleData
+        Me.Show
+        DoEvents()
         
+        Set fso = New FileSystemObject
+        
+        ShowStatusMessage "Checking for Settings file"
+        
+        If tbHelperSettings.SettingsFileLoaded Then
+            LoadSettingsIntoForm()
+            ShowStatusMessage "loaded", True
+        Else
+            ShowStatusMessage "none found", True
+        End If
+        loadingSettingsFromFile = False
+
+        If FoldersAreValid Then
+            ' get the version of twinBASIC that is current in the folder
+            lblCurrentTBVersion.Caption = "Installed version: " & GetCurrentTBVersion(txttBFolderLocation.Text)
+            If tbHelperClass.InstalledtBVersion = 0 Then
+                txttBFolderLocation.BackColor = vbRed
+            Else
+                lblCurrentTBVersion.Visible = True
+            End If
+        End If
+        
+        ' enable or disable view log button
+        btnViewLogHistory.Enabled = fso.FileExists(App.Path & "\log.txt")
+        
+        DoEvents()
+        
+        ' this contiues to check for version info if the folders are valid
+        If tbHelperSettings.SettingsFileLoaded And FoldersAreValid Then
+            CheckForNewVersion
+        End If
     End Sub
-    
-    Private Sub RefreshChangeLog()
-        ' Collect all active types and repopulate the MSFlexGrid
+
+    Private Sub Form_Unload(Cancel As Integer)
+        
+        If tbHelperSettings.SettingsChanged Then tbHelperSettings.SaveSettings()
+
+        Set tbHelperSettings = Nothing
+        Set tbHelperClass = Nothing
+        
+        Set fso = Nothing
+        
     End Sub
     
     Private Sub tfImportant_StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
         RefreshChangeLog
-    End Sub
-
-    Private Sub SetupSettingsToggleSliders()
-        ConfigureToggleSlider tsStartTB
-        ConfigureToggleSlider tsLogActivity
-        ConfigureToggleSlider tsLookForUpdateAtLaunch
-        ConfigureToggleSlider tsSaveSettingsOnExit
-    End Sub
-    
-    Private Sub SetupTypeFilterButtons()
-        
-        ConfigureTypeFilterButton tfImportant, "Important", vbBlue
-        ConfigureTypeFilterButton tfKnownIssue, "Known", vbBlack
-        ConfigureTypeFilterButton tfAdded, "Added", RGB(75, 0, 130) ' indigo
-        ConfigureTypeFilterButton tfImproved, "Improved", RGB(107, 142, 35) ' other green
-        ConfigureTypeFilterButton tfUpdated, "Updated", RGB(107, 45, 103) ' a purple
-        ConfigureTypeFilterButton tfTip, "Tip", RGB(22, 83, 126) ' blueish
-        ConfigureTypeFilterButton tfWarning, "Warning", RGB(153, 0, 0) ' dark red
-        ConfigureTypeFilterButton tfFixed, "Fixed", RGB(56, 118, 29) ' green
-        
-    End Sub
-    
-    Private Sub ConfigureToggleSlider(tsToggle As ucToggleSlider)
-        
-        tsToggle.OnColor = RGB(37, 99, 235)
-        tsToggle.SlideSpeed = 3
-        
-    End Sub
-    
-    Private Sub ConfigureTypeFilterButton(tfButton As ucTypeFilter, buttonCaption As String, buttonBackColor As Long)
-
-        tfButton.BorderRadius = 3
-        tfButton.TypeName = buttonCaption
-        tfButton.WidthOverride = 1065
-        tfButton.Backcolor = buttonBackColor
-        tfButton.FontSize = 9.75
-        
     End Sub
     
     Private Sub btnSelectDownloadFolder_Click()
@@ -126,7 +115,349 @@ Class Form1
         
     End Sub
     
-    Private Sub ShowChangeLogSampleData()
+    Private Sub btnDownload_Click()
+                
+        ' is the download button captioned to check for which version is available on GitHub
+         If btnDownload.Caption = "Check for new version" Then
+             ShowStatusMessage "Manual check for new version"
+             GetCurrentTBVersion txttBFolderLocation.Text
+             chgLogs.GetNewerReleasedVersions
+            
+             ' the result of checking is that no new version is available at this time
+             If chgLogs.versionCheckResult = "Latest version already installed" Then
+                 ShowStatusMessage " - none available", True
+             Else
+                 FilltBChangeLog
+                
+                 If tbHelperClass.InstalledtBVersion >= chgLogs.LatestVersion Then
+                     ' no newer version is available
+                     ShowStatusMessage " - no newer version available", True
+                 Else
+                     ShowStatusMessage " - version  " & chgLogs.LatestVersion & "  available", True
+                     btnDownload.Caption = "Download version " & chgLogs.LatestVersion
+                 End If
+             End If
+            
+             Exit Sub  ' leave the sub
+         End If
+        
+         ' use the version number to download the latest release
+         ' example of the dowmload url: https://github.com/twinbasic/twinbasic/releases/download/beta-x-0641/twinBASIC_IDE_BETA_641.zip
+         Dim newReleaseURL As String = githubReleasesURL & "/download/beta-x-" & IIf(chgLogs.LatestVersion < 1000, "0" & CStr(chgLogs.LatestVersion), chgLogs.LatestVersion)
+         Dim justTheFileName As String = "twinBASIC_IDE_BETA_" & chgLogs.LatestVersion & ".zip"
+         Dim localZipFileName As String = txtDownloadFolder.Text & justTheFileName
+         Dim downloadTheZip As Boolean = True
+        
+         If fso.FileExists(localZipFileName) Then
+             ' the zip has been downloaded already
+             ShowStatusMessage "The zip exists in the download folder, redownload it?"
+             downloadTheZip = MsgBox("The file '" & localZipFileName & "' already exists. Download it again? (if no, then the current file will be used)", vbYesNo, "Previously Downloaded") = vbYes
+             ShowStatusMessage IIf(downloadTheZip, " - Yes", " - No"), True
+             If downloadTheZip Then fso.DeleteFile(localZipFileName)
+         End If
+
+         If downloadTheZip Then
+             ShowStatusMessage "Downloading twinBasic " & chgLogs.LatestVersion
+             URLDownloadToFile 0, newReleaseURL & "/" & justTheFileName, localZipFileName, 0, 0
+             ShowStatusMessage " - done ", True
+         End If
+        
+         ProcessDownloadedZip localZipFileName
+        
+         ShowStatusMessage "process complete"
+
+         ' after the latest has been downloaded, set the download button to a manual check
+         btnDownload.Caption = "Check for new version"
+         lblCurrentTBVersion.Caption = "version: " & chgLogs.LatestVersion
+         DoEvents()
+         
+    End Sub
+    
+    Private Sub optOpenFolder_Click()
+        ' if just opening the folder, you can't launch the new twinBASIC
+        If loadingSettingsFromFile Then Exit Sub
+        tsStartTB.IsOn = False
+        tsStartTB.Enabled = False
+        
+        tbHelperSettings.PostDownloadAction = 1
+        
+        ' is the form reaf to download the zip file
+        EnableDownloadZipButton
+    End Sub
+    
+    Private Sub optOpenZip_Click()
+        ' if just opening the zip, you can't launch the new twinBASIC
+        If loadingSettingsFromFile Then Exit Sub
+        tsStartTB.IsOn = False
+        tsStartTB.Enabled = False
+                
+        tbHelperSettings.PostDownloadAction = 2
+        
+        ' is the form reaf to download the zip file
+        EnableDownloadZipButton
+    End Sub
+    
+    Private Sub optInstallTB_Click()
+        ' warn the user of the process involved in installing the latest twinBASIC version
+        If Not loadingSettingsFromFile Then MsgBox("Selecting this option will delete the twinBASIC folder entirely and recreate it.", vbExclamation, "Warning")
+    
+        tbHelperSettings.PostDownloadAction = 3
+        
+        ' is the form ready to download the zip file
+        EnableDownloadZipButton
+        
+    End Sub
+    
+    Private Sub tsStartTB_StateChanged(ByVal NewState As Boolean)
+        tbHelperSettings.StarttwinBASICAfterUpdate = NewState
+    End Sub
+    
+    Private Sub tsLogActivity_StateChanged(ByVal NewState As Boolean)
+        tbHelperSettings.LogActivity = NewState
+    End Sub
+    
+    Private Sub tsLookForUpdateAtLaunch_StateChanged(ByVal NewState As Boolean)
+        tbHelperSettings.CheckForNewVersionOnLoad = NewState
+    End Sub
+
+    Private Sub tsSaveSettingsOnExit_StateChanged(ByVal NewState As Boolean)
+        tbHelperSettings.SaveSettingsOnExit = NewState
+    End Sub
+    
+    Private Sub txtDownloadFolder_LostFocus()
+        
+        If fso.FolderExists(txtDownloadFolder.Text) Then
+            ' set the color to the normal background if the folders are valid
+            txtDownloadFolder.BackColor = vbWhite
+            
+            ' complete the path
+            If Right(txtDownloadFolder.Text, 1) <> "\" Then txtDownloadFolder.Text += "\"
+            tbHelperSettings.DownloadFolder = txtDownloadFolder.Text
+        Else
+            ' indicate an invalid selection
+            txtDownloadFolder.BackColor = vbRed
+        End If
+        
+    End Sub
+    
+    Private Sub txttBFolderLocation_LostFocus()
+        Dim newtBLocationFolder As Boolean = False
+        
+        ' if there is a folder name in the textbox and folder doesn't exist, create it?
+        If Not fso.FolderExists(txttBFolderLocation.Text) And Not Trim(txttBFolderLocation.Text) = "" Then
+            ' ask the user if the folder should be created (like a first time setup)
+            If MsgBox("This folder doesn't exist. Should it be created?", vbYesNo, "twinBASIC Location") = vbYes Then
+                On Error Resume Next
+                fso.CreateFolder(txttBFolderLocation.Text)
+                If Not fso.FolderExists(txttBFolderLocation.Text) Then
+                    ShowStatusMessage("Unable to create the twinBASIC folder " & txttBFolderLocation.Text & " as requested")()
+                    MsgBox("Unable to create the folder. Try another folder name.", vbCritical, "Creation Error")
+                    txttBFolderLocation.BackColor = vbRed
+                    txttBFolderLocation.SetFocus()
+                Else
+                    txttBFolderLocation.BackColor = vbWhite
+                    newtBLocationFolder = True
+                    ShowStatusMessage("The twinBASIC folder " & txttBFolderLocation.Text & " was created")
+                    EnableDownloadZipButton
+                End If
+                On Error GoTo 0
+            End If
+        End If
+        
+        ' is the folder to install twinBASIC to valid?
+        If Not newtBLocationFolder Then
+            ' the user didn't create a new tBFolder
+            If fso.FolderExists(txttBFolderLocation.Text) Then
+                ' set the color to the normal background if the folders are valid
+                txttBFolderLocation.BackColor = vbWhite
+            
+                ' complete the path
+                If Right(txttBFolderLocation.Text, 1) <> "\" Then txttBFolderLocation.Text += "\"
+            
+                Dim prevInstalledVersion As Integer = tbHelperClass.InstalledtBVersion
+                    
+                ' retrieve the current version from the selected folder
+                Dim temp As String = GetCurrentTBVersion(txttBFolderLocation.Text)
+            
+                If Val(temp) = 0 Then
+                    ' indicate an invalid selection
+                    lblCurrentTBVersion.Caption = ""
+                    tbHelperClass.InstalledtBVersion = 0
+                    txttBFolderLocation.BackColor = vbRed
+                
+                    MsgBox(temp, vbOKOnly, "twinBASIC installed version check")
+                Else
+                    lblCurrentTBVersion.Caption = "version: " & tbHelperClass.InstalledtBVersion
+                    
+                    If prevInstalledVersion <> tbHelperClass.InstalledtBVersion Then
+                        ' a new location with twinBASIC was selected, should a check to see if it can be updated run?
+                        CheckForNewVersion
+                    End If
+                End If
+            Else
+                ' indicate an invalid selection
+                tbHelperClass.InstalledtBVersion = 0
+                txttBFolderLocation.BackColor = vbRed
+                lblCurrentTBVersion.Caption = ""
+            End If
+                        
+        End If
+        
+        tbHelperSettings.twinBASICFolder = txttBFolderLocation.Text
+    End Sub
+    
+    '**************************************
+    '   local procedures
+    '**************************************** 
+    Private Sub CheckForNewVersion()
+        
+        ' should tBHelper look for a newer version?
+        If tbHelperSettings.CheckForNewVersionOnLoad Then
+            ShowStatusMessage "Checking for new version"
+            chgLogs.GetNewerReleasedVersions(True)
+                
+            If chgLogs.tBVersionGap > 0 Then
+                ' there is at least 1 new version available
+                btnDownload.Caption = "Download version " & chgLogs.LatestVersion
+                FilltBChangeLog()
+                ShowStatusMessage "Newest version available is " & chgLogs.LatestVersion
+            Else
+                ShowStatusMessage "No newer version available"
+            End If
+        Else
+            btnDownload.Caption = "Check for new version"
+        End If
+            
+        EnableDownloadZipButton
+        
+    End Sub
+    
+    Private Sub ConfigureToggleSlider(tsToggle As ucToggleSlider)
+        
+        tsToggle.OnColor = CUST_BTN_BCOLOR
+        tsToggle.SlideSpeed = 3
+        
+    End Sub
+    
+    Private Sub ConfigureTypeFilterButton(tfButton As ucTypeFilter, buttonCaption As String, buttonBackColor As Long)
+
+        tfButton.BorderRadius = 3
+        tfButton.TypeName = buttonCaption
+        tfButton.WidthOverride = 1065
+        tfButton.Backcolor = buttonBackColor
+        tfButton.FontSize = 9.75
+        
+    End Sub
+    
+    Private Sub EnableDownloadZipButton()
+        
+        ' should the download zip button be enabled?
+        btnDownload.Enabled = FoldersAreValid And (chgLogs.tBVersionGap > 0 Or btnDownload.Caption = "Check for new version")
+        
+        If btnDownload.Enabled Then
+            ' add the final forward slash if needed
+            If Right(txtDownloadFolder.Text, 1) <> "\" Then txtDownloadFolder.Text += "\"
+            If Right(txttBFolderLocation.Text, 1) <> "\" Then txttBFolderLocation.Text += "\"
+        End If
+        
+    End Sub
+    
+    Private Function FoldersAreValid() As Boolean
+        
+        ' check to see if both folders are valid
+        Dim theyAreValid As Boolean
+        theyAreValid = (txtDownloadFolder.BackColor <> vbRed And Len(txtDownloadFolder.Text) > 0) And _ 
+                   (txttBFolderLocation.BackColor <> vbRed And Len(txttBFolderLocation.Text) > 0)
+        Return theyAreValid
+        
+    End Function
+    
+    Private Sub LoadSettingsIntoForm()
+    
+        'Set the controls on the form with their settings values
+        With Form1
+            .txtDownloadFolder.Text = tbHelperSettings.DownloadFolder
+            .txttBFolderLocation.Text = tbHelperSettings.twinBASICFolder
+            Select Case tbHelperSettings.PostDownloadAction
+                Case 1
+                    .optOpenFolder.Value = True
+                Case 2
+                    .optOpenZip.Value = True
+                Case 3
+                    .optInstallTB.Value = True
+            End Select
+            .tsLookForUpdateAtLaunch.IsOn = tbHelperSettings.CheckForNewVersionOnLoad
+            .tsStartTB.IsOn = tbHelperSettings.StarttwinBASICAfterUpdate
+            .tsLogActivity.IsOn = tbHelperSettings.LogActivity
+            .tsSaveSettingsOnExit.IsOn = tbHelperSettings.SaveSettingsOnExit
+        End With
+    
+    End Sub
+
+    Private Function OptionSelection() As Integer
+        
+        ' return the selection for the post download process
+        If optOpenFolder.Value Then
+            OptionSelection = 1
+            
+        ElseIf optOpenZip.Value Then
+            OptionSelection = 2
+            
+        ElseIf optInstallTB.Value Then
+            OptionSelection = 3
+
+        End If
+                
+    End Function
+    
+    Private Sub ProcessDownloadedZip(tBZipFile As String)
+    
+        ShowStatusMessage "Executing Post download action"
+        
+        ' depending on the selection, work with the zipfile downloaded
+        Select Case OptionSelection
+            Case 1
+                ' download only - open the download folder
+                ShowStatusMessage(" of opening the download folder", True)
+                ShellExecute(0, "open", txtDownloadFolder.Text, vbNullString, vbNullString, 1)
+                
+            Case 2
+                ' open the zip file using the default zip client
+                ShowStatusMessage(" of opening the zip file", True)
+                ShellExecute(0, "open", tBZipFile, vbNullString, vbNullString, 1)
+                
+            Case 3
+                ' ensure the IDE is not running before attempting to unzip the latest version
+                If Not IsCodeRunningInTheIDE Then
+                    Do While IsProcessRunning("twinbasic.exe")
+                        If MsgBox("The twinBASIC IDE is running, you can not install version " & chgLogs.LatestVersion & " while it Is open." & vbCrLf & _ 
+                            "Please close the IDE or click cancel to abort.", vbCancelTryAgainContinue, "Installing twinBASIC") = vbOKCancel Then Exit Sub
+                    Loop
+                Else
+                    MsgBox("You can not install a new version while running the project in the IDE", vbInformation, "Installing twinBASIC")
+                    Exit Sub
+                End If
+                
+                ShowStatusMessage(" of installing twinBASIC", True)
+                InstallTwinBasic(tBZipFile)
+                
+                ' does the user want to run twinBASIC after the update
+                If tsStartTB.IsOn Then
+                    ShowStatusMessage "Start twinBASIC after update is checked, starting it"
+                    ShellExecute(0, "open", txttBFolderLocation.Text & "\twinBASIC.exe", vbNullString, vbNullString, 1)
+                    ShowStatusMessage " - done", True
+                End If
+        End Select
+        
+        ShowStatusMessage "Post download action done"
+    End Sub
+
+    
+    Private Sub RefreshChangeLog()
+        ' Collect all active types and repopulate the MSFlexGrid
+    End Sub
+
+    Private Sub SetChangeLogHeader()
         
         Dim clgColumns(2) As New clsChangeLogColumn
         clgColumns(0).Name = "VERSION"
@@ -141,29 +472,118 @@ Class Form1
         clgColumns(2).Width = 550
         clgColumns(2).WrappedEnabled = True
 
-        With clgView
-            .ClearEntries()
-            .SetColumns = clgColumns
-            .AddEntry "820", "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
-            .AddEntry "820", "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
-            .AddEntry "820", "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
-            .AddEntry "820", "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
-            .AddEntry "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
-
-            .AddEntry "820", "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
-            .AddEntry "820", "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
-            .AddEntry "820", "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
-            .AddEntry "820", "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
-            .AddEntry "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
-            
-        End With
+        clgView.SetColumns = clgColumns
 
     End Sub
     
-    Private Sub btnDownload_Click()
+    Private Sub SetupCustomButton(theButton As ucCustomButton, buttonCaption As String, bkColor As OLE_COLOR, frColor As OLE_COLOR, _
+        pngImagePath As String, iconSize As Integer, startEnabled As Boolean, boldFont As Boolean, _
+        Optional borderColor As OLE_COLOR = 0, Optional borderWidth As Integer = 0)
         
-        btnDownload.Enabled = False
-
+        With theButton
+            .Caption = buttonCaption
+            .BackColor = bkColor
+            .ForeColor = frColor
+            If borderWidth > 0 Then
+                .BorderColor = borderColor
+                .BorderWidth = borderWidth
+            End If
+            .FontSize = 11
+            '.HoverColor = RGB(18, 40, 234) ' Darker blue   this can be set or let the automatic hover work
+            .BorderRadius = 3
+            .FontBold = boldFont
+            .PngIconPath = pngImagePath
+            .IconSize = iconSize
+            .IconSpacing = 8
+            .Enabled = startEnabled
+        End With
+    End Sub
+    
+    Private Sub SetupCustomButtons()
+        
+        'setup the custom button user controls on the form
+        SetupCustomButton btnDownload, "Download", CUST_BTN_BCOLOR, vbWhite, App.Path & "\download.png", 20, True, False
+        SetupCustomButton btnSelectDownloadFolder, "", CUST_BTN_BCOLOR, vbWhite, App.Path & "\folder.png", 20, True, False
+        SetupCustomButton btnSelecttBFolderLocation, "", CUST_BTN_BCOLOR, vbWhite, App.Path & "\folder.png", 20, True, False
+        SetupCustomButton btnRevert, "Revert", CUST_BTN_BCOLOR, vbWhite, App.Path & "\revert.png", 20, True, False
+        SetupCustomButton btnViewLogHistory, "View Log History", CUST_BTN_BCOLOR, vbWhite, App.Path & "\logHistory.png", 20, True, False
+         
+    End Sub
+        
+    Private Sub SetupSettingsToggleSliders()
+        
+        'setup the switch user controls on the form
+        ConfigureToggleSlider tsStartTB
+        ConfigureToggleSlider tsLogActivity
+        ConfigureToggleSlider tsLookForUpdateAtLaunch
+        ConfigureToggleSlider tsSaveSettingsOnExit
+    End Sub
+    
+    Private Sub SetupTypeFilterButtons()
+        
+        'setup the type filter user controls on the form
+        ConfigureTypeFilterButton tfImportant, "Important", vbBlue
+        ConfigureTypeFilterButton tfKnownIssue, "Known", vbBlack
+        ConfigureTypeFilterButton tfAdded, "Added", RGB(75, 0, 130) ' indigo
+        ConfigureTypeFilterButton tfImproved, "Improved", RGB(107, 142, 35) ' other green
+        ConfigureTypeFilterButton tfUpdated, "Updated", RGB(107, 45, 103) ' a purple
+        ConfigureTypeFilterButton tfTip, "Tip", RGB(22, 83, 126) ' blueish
+        ConfigureTypeFilterButton tfWarning, "Warning", RGB(153, 0, 0) ' dark red
+        ConfigureTypeFilterButton tfFixed, "Fixed", RGB(56, 118, 29) ' green
+        
+    End Sub
+    
+    Public Sub ShowStatusMessage(statMessage As String, Optional updatePreviousStatus As Boolean = False)
+        
+        ' write the message to the listbox on the form
+        If updatePreviousStatus Then
+            actLog.AddEntry "", statMessage, True
+        Else
+            actLog.AddEntry Format(Now, "MM/dd/yy hh:mm:ss AM/PM: "), statMessage
+        End If
+        
+        ' lbStatus.ListIndex = lbStatus.ListCount - 1
+        DoEvents()
+        
     End Sub
 
+    Public Sub WriteToLogFile()
+        
+        ' write the contents of the displayed logs to the log history file
+        Dim logFile As TextStream
+        Dim logFileName As String = App.Path & "\log.txt"
+        Dim tbVersionInstalled As Boolean = False
+        
+        Dim activityLog() As ActivityLogEntry = actLog.LogEntries
+        Dim changeLog() As clsChangeLogEntry = clgView.LogEntries
+        Dim algEntry As ActivityLogEntry
+        
+        Set logFile = fso.OpenTextFile(logFileName, ForAppending, True)
+            For Each algEntry In activityLog
+                logFile.WriteLine(algEntry.DateTime & ": " & algEntry.LogMessage)
+                If Not tbVersionInstalled Then tbVersionInstalled = InStr(algEntry.LogMessage, "Post download") > 1 ' if the user at least downloaded the zip
+            Next algEntry
+        
+            ' write the change log(s) for the version downloaded, plus the previous versions inbetween 
+            ' the installed and the latest available installed
+            If tbVersionInstalled Then
+            
+                ' these force the var to use a fixed length
+                Dim tBVersion As String * 4
+                Dim clType As String * 11
+                Dim clText As String * 150
+                Dim clgEntry As clsChangeLogEntry
+                
+                For Each clgEntry In changeLog
+                    tBVersion = clgEntry.Values("VERSION")
+                    clType = clgEntry.Values("TYPE")
+                    clText = clgEntry.Values("DESCIPTION")
+                
+                    logFile.WriteLine(Format(Now, "MM/dd/yy hh:mm:ss AM/PM: ") & tBVersion & " - " & clType & ": " & clText)
+                Next clgEntry
+            End If
+        logFile.Close()
+        Set logFile = Nothing
+        
+    End Sub
 End Class

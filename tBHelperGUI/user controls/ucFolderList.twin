@@ -17,7 +17,6 @@ Class ucFolderList
     ' --- Private State ---
     Private Const FOLDER_CLOSED_ICON = 1
     Private Const FOLDER_OPEN_ICON = 2
-
     
     Private Sub UserControl_Initialize()
         ' Setup ImageList using our own bundled icon files.

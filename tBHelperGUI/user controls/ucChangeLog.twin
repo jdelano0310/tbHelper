@@ -58,6 +58,10 @@ Class ucChangeLog
     Private Const ROW_HEIGHT = 40
     Private Const HEADER_HEIGHT = 500
 
+    Public Property Get LogEntries() As clsChangeLogEntry()
+        LogEntries = m_Entries
+    End Property
+    
     Private Sub UserControl_Initialize()
     
         InitializeControls
