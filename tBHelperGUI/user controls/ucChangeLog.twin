@@ -8,6 +8,13 @@ Class ucChangeLog
 
     Option Explicit
 
+    '************** 
+    ' used to handle scrolling the change log user control better
+    '*******************************
+    Private Declare Function SetTimer Lib "user32" (ByVal hWnd As Long, ByVal nIDEvent As Long, ByVal uElapse As Long, ByVal lpTimerFunc As Long) As Long
+    Private Declare Function KillTimer Lib "user32" (ByVal hWnd As Long, ByVal nIDEvent As Long) As Long
+    Private Const DEBOUNCE_TIMER_ID As Long = 1001
+        
     Private Const GWL_WNDPROC As Long = -4
     Private Const WM_MOUSEWHEEL As Long = &H20A
     
@@ -27,7 +34,7 @@ Class ucChangeLog
     Private m_FilterType As String
     Private m_SelectedIndex As Long
     Private m_ScrollOffset As Long
-
+    
     ' Drawing surface
     Private WithEvents m_Canvas As PictureBox
     Private WithEvents m_HeaderCanvas As PictureBox
@@ -35,24 +42,13 @@ Class ucChangeLog
     
     Private m_Columns() As clsChangeLogColumn
     Private m_ColumnCount As Integer
-        
-    ' colors for the type of changle log item
-    Private Const COLOR_IMPORTANT = vbBlue
-    Private Const COLOR_IMPROVED = RGB(107, 142, 35)      ' other green  
-    Private Const COLOR_FIXED = RGB(56, 118, 29) ' green
-    Private Const COLOR_UPDATED = RGB(107, 45, 103)       ' Orange badge
-    Private Const COLOR_TIP = RGB(22, 83, 126)           ' blueish
-    Private Const COLOR_DEFAULT = &H808080       ' Gray badge  
-    Private Const COLOR_KNOWN = vbBlack
-    Private Const COLOR_ADDED = RGB(75, 0, 130)
-    Private Const COLOR_WARNING = RGB(153, 0, 0)
     
     Private Const TEXT_COLOR_WHITE = &HFFFFFF
     Private Const BACKGROUND_COLOR = &HFFFFFF
     
     Private Const TEXT_COLOR_DARK = &H333333
     Private Const TEXT_COLOR_VERSION = -RGB(128, 49, 116) ' Blue version text
-    Private Const SELECTED_COLOR = &HE6F3FF       ' Light blue selection
+    Private Const SELECTED_COLOR = &HEAE2D0    ' Light blue selection    
     Private Const BORDER_COLOR = &HE0E0E0
 
     Private Const ROW_HEIGHT = 40
@@ -61,6 +57,7 @@ Class ucChangeLog
     Public Property Get LogEntries() As clsChangeLogEntry()
         LogEntries = m_Entries
     End Property
+
     
     Private Sub UserControl_Initialize()
     
@@ -75,7 +72,7 @@ Class ucChangeLog
         m_ColumnCount = 0
         m_SelectedIndex = -1
         m_ScrollOffset = 0
-
+                
         'capture mouse scroll
         canvashWnd = m_Canvas.hWnd
         ucDictionary.Add canvashWnd, Me
@@ -138,6 +135,12 @@ Class ucChangeLog
         
     End Sub
 
+    Sub OnDebouncedScroll(ByVal hwnd As Long, ByVal uMsg As Long, ByVal idEvent As Long, ByVal dwTime As Long)
+        '8-1-25 modify scrolling to not redraw on every wheel roll
+        KillTimer hwnd, DEBOUNCE_TIMER_ID
+        RedrawCanvas
+    End Sub
+    
     Public Property Let SetColumns(value() As clsChangeLogColumn)
         
         On Error GoTo BadHeaderValues
@@ -398,11 +401,11 @@ Class ucChangeLog
         Dim typeValue As String
         
         On Error Resume Next
-        typeValue = m_Entries(i).Values("TYPE")
+        typeValue = UCase(m_Entries(i).Values("TYPE"))
         On Error GoTo 0
         
         For i = 0 To m_EntryCount - 1
-            If m_FilterType = "All" Or UCase(m_FilterType) = UCase(typeValue) Then
+            If m_FilterType = "All" Or UCase(m_FilterType) = typeValue Then
                 count = count + 1
             End If
         Next i
@@ -416,11 +419,11 @@ Class ucChangeLog
         Dim typeValue As String
         
         On Error Resume Next
-        typeValue = m_Entries(i).Values("TYPE")
+        typeValue = UCase(m_Entries(i).Values("TYPE"))
         On Error GoTo 0
             
         For i = 0 To m_EntryCount - 1
-            If m_FilterType = "All" Or UCase(m_FilterType) = UCase(typeValue) Then
+            If m_FilterType = "All" Or UCase(m_FilterType) = typeValue Then
                 If count = displayIndex Then
                     GetFilteredEntryIndex = i
                     Exit Function
@@ -485,27 +488,6 @@ Class ucChangeLog
         UpdateScrollBar
         RedrawCanvas
     End Sub
-    
-    Public Sub LoadSampleHistoryActivityLogData()
-        
-        ClearEntries
-        
-        AddEntry "07/15/25 10:01:04 AM", "", "", "Checking for Settings file - found and loaded"
-        AddEntry "07/15/25 10:01:24 AM", "", "", "Auto check for new version"
-        AddEntry "07/15/25 10:01:44 AM", "", "", "Newest version available is 820"
-        AddEntry "07/15/25 10:02:04 AM", "", "", "Downloading twinBASIC 807 - done"
-        AddEntry "07/15/25 10:02:24 AM", "", "", "Executing Post Download action of installing twinBASIC"
-        AddEntry "07/15/25 10:02:44 AM", "", "", "twinBASIC from f:\downloads\twinBASIC_IDE_BETA_820.zip has been extracted and is ready to use"
-        AddEntry "07/15/25 10:03:04 AM", "", "", "Post Download action complete"
-        AddEntry "07/15/25 10:03:24 AM", "", "", "Process complete"
-        
-        AddEntry "07/15/25 10:03:44 AM", "820", "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
-        AddEntry "07/15/25 10:03:44 AM", "820", "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
-        AddEntry "07/15/25 10:03:44 AM", "820", "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
-        AddEntry "07/15/25 10:03:45 AM", "820", "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
-        AddEntry "07/15/25 10:03:45 AM", "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
-                        
-    End Sub
         
     Private Sub UserControl_Resize()
         If Not m_Canvas Is Nothing Then
@@ -556,7 +538,9 @@ Class ucChangeLog
         If newVal <> m_VScrollBar.Value Then
             m_VScrollBar.Value = newVal
             m_ScrollOffset = newVal
-            RedrawCanvas
+            'RedrawCanvas                  8-1-25 modify scrolling to not redraw on every wheel roll
+            KillTimer canvashWnd, DEBOUNCE_TIMER_ID
+            SetTimer canvashWnd, DEBOUNCE_TIMER_ID, 120, AddressOf OnDebouncedScroll
         End If
     End Sub
 

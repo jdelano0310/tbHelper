@@ -20,13 +20,23 @@ Class ucTypeFilter
 
     Option Explicit
 
-    Private m_Active As Boolean
+    Private m_Active As Boolean      ' whether the log type is included in the filter
     Private m_TypeName As String
     Private m_Backcolor As Long
     Private m_WidthOverride As Long
     Private m_FontSize As Integer
     Private m_BorderRadius As Integer
+    Private m_Enabled As Boolean    ' false if the type doesn't exist in the current change log listed
+    Private m_FilterText As String
 
+    Public Property Get FilterText() As String
+        FilterText = m_FilterText
+    End Property
+
+    Public Property Let FilterText(ByVal Value As String)
+        m_FilterText = Value
+    End Property
+    
     Public Property Get WidthOverride() As Long
         WidthOverride = m_WidthOverride
     End Property
@@ -84,6 +94,16 @@ Class ucTypeFilter
         UpdateAppearance
     End Property
 
+    Public Property Get Enabled() As Boolean
+        Enabled = m_Enabled
+    End Property
+
+    Public Property Let Enabled(ByVal Value As Boolean)
+        m_Enabled = Value
+        UpdateAppearance
+        UserControl.Enabled = Value
+    End Property
+    
     Public Event StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
     Public Event Click(ByVal TypeName As String)
 
@@ -91,18 +111,26 @@ Class ucTypeFilter
         
         m_Active = Not m_Active
         UpdateAppearance
-        RaiseEvent StateChanged(m_TypeName, m_Active)
+        'RaiseEvent StateChanged(m_TypeName, m_Active)
+        RaiseEvent StateChanged(m_FilterText, m_Active)
+        
     End Sub
 
     Private Sub UpdateAppearance()
         
         ' change the look to indicate the type is included in the filter
-        If m_Active Then
-            lblCaption.BackColor = m_Backcolor ' change back to the selected color
-            lblCaption.ForeColor = vbWhite
+        If m_Enabled Then
+            If m_Active Then
+                lblCaption.BackColor = m_Backcolor ' change back to the selected color
+                lblCaption.ForeColor = vbWhite
+            Else
+                lblCaption.BackColor = &HCCCCCC ' Grey when inactive
+                lblCaption.ForeColor = vbBlack
+            End If
         Else
-            lblCaption.BackColor = &HCCCCCC ' Grey when inactive
-            lblCaption.ForeColor = vbBlack
+            ' the button isn't enabled - looks different than if not included in the filter
+            lblCaption.BackColor = &H626262 ' Grey when inactive
+            lblCaption.ForeColor = &H878787
         End If
     End Sub
 

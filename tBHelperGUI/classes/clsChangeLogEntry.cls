@@ -20,7 +20,7 @@ Private m_TypeTextColor As Long
 Private m_EntryHeight As Long
 
 ' colors for the type of changle log item
-Private Const COLOR_IMPORTANT = vbBlue
+Private Const COLOR_IMPORTANT = &HA2640C
 Private Const COLOR_IMPROVED = RGB(107, 142, 35)      ' other green  
 Private Const COLOR_FIXED = RGB(56, 118, 29) ' green
 Private Const COLOR_UPDATED = RGB(107, 45, 103)       ' Orange badge

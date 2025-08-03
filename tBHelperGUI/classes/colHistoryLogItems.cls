@@ -147,10 +147,10 @@ Public Function LoadLog() As Boolean
                 historyLogItem.LogCLI.Notes = ""
                                 
             Else
-                
+                Dim typePosition As Integer = InStr(LogLine, " - ") + 3
                 historyLogItem.LogCLI.tBVersion = CInt(tbVersion)
-                historyLogItem.LogCLI.Type = Mid(LogLine, 30, 11)
-                historyLogItem.LogCLI.Notes = Mid(LogLine, 43)
+                historyLogItem.LogCLI.Type = Trim(Mid(LogLine, typePosition, 10))
+                historyLogItem.LogCLI.Notes = Mid(LogLine, typePosition + 13)
                 historyLogItem.LogMessage = ""
                 historyLogItem.LogDateTime = LogDateTime
                 

@@ -3,10 +3,13 @@
 [PredeclaredId]
 Class frmViewHistoryLog
 
-	Sub New()
-	End Sub
+    Sub New()
+    End Sub
+    
+    Dim logContents As New colHistoryLogItems
     
     Private Sub Form_Load()
+        
         With btnDeleteLog
             .Caption = "Delete Log"
             .BackColor = &HA2640C
@@ -22,15 +25,61 @@ Class frmViewHistoryLog
         End With
         
         SetupActivityLog
-        FindUniqueDates
         
-        clgView.LoadSampleHistoryActivityLogData()
-
+        If Not FillLogHistoryGrid Then
+            'UpdateStatusPanel ""
+            btnDeleteLog.Enabled = False
+            Exit Sub
+        End If
+        
+        Form1.ShowStatusMessage "- loaded", True
     End Sub
 
-    Private Sub	SetupActivityLog()
+    Private Sub Form_Unload(Cancel As Integer)
+        Set logContents = Nothing
+        Form1.ShowStatusMessage "View log closed"
+    End Sub
+    
+    Private Sub btnDeleteLog_Click()
         
-        'clgView.DefineColumns("DATE TIME", "VERSION", "TYPE", "LOG TEXT")
+        ' user wishes to delete the current log.txt file
+        If MsgBox("Are you sure you want to delete the log.txt file?", vbYesNo, "Confirmation") = vbNo Then Exit Sub
+        
+        fso.DeleteFile(App.Path & "\log.txt")
+        Form1.ShowStatusMessage "Log.txt has been deleted."
+        
+        If tbHelperSettings.LogActivity Then
+            tbHelperSettings.LogActivity = MsgBox("The setting to write to a log file is still active. Should this be turned off?", vbYesNo, "Write to log File") = vbNo
+            Form1.tsLogActivity = tbHelperSettings.LogActivity
+        End If
+        
+        clgView.ClearEntries()
+        
+        DatePicker.Cls()
+        lbDropdown.Clear()
+        
+    End Sub
+    
+    Private Sub SetupActivityLog()
+        
+        Dim clgColumns(3) As New clsChangeLogColumn
+        clgColumns(0).Name = "Date Time"
+        clgColumns(0).Width = 150
+        clgColumns(0).WrappedEnabled = False
+        
+        clgColumns(1).Name = "Version"
+        clgColumns(1).Width = 70
+        clgColumns(1).WrappedEnabled = False
+
+        clgColumns(2).Name = "Type"
+        clgColumns(2).Width = 140
+        clgColumns(2).WrappedEnabled = False
+        
+        clgColumns(3).Name = "Description"
+        clgColumns(3).Width = 400
+        clgColumns(3).WrappedEnabled = True
+        
+        clgView.SetColumns = clgColumns
         
     End Sub
     
@@ -101,10 +150,54 @@ Class frmViewHistoryLog
         HideZipList
     End Sub
     
-    Private Sub FindUniqueDates()
-        ' add some dates to the dropdown while testing
-        lbDropdown.AddItem("07/14/2025")
-        lbDropdown.AddItem("07/15/2025")
-    End Sub
+    Public Function FillLogHistoryGrid(Optional ViewDate As String = "") As Boolean
+    
+        ' open the log text file and display it in the flexgrid
+
+        Dim logItem As clsHistoryLogItem
+        Dim itemColor As Long
+        Dim colNum As Integer
+    
+        If Not logContents.LoadLog Then
+            MsgBox("There was an issue reading the log file", vbExclamation, "View log")
+            FillLogHistoryGrid = False
+            Exit Function
+        End If
+    
+        clgView.ClearEntries()
+        For Each logItem In logContents
+            With clgView
+                If Len(ViewDate) = 0 Or logItem.LogDate = ViewDate Or ViewDate = "Show All" Then
+            
+                    If logItem.LogCLI.tBVersion = 0 Then
+                        .AddEntry(logItem.LogDateTime, "", "", logItem.LogMessage)
+                    Else
+                        .AddEntry(logItem.LogDateTime, logItem.LogCLI.tBVersion, logItem.LogCLI.Type, logItem.LogCLI.Notes)
+                    End If
+                
+                End If
+            
+            End With
+            DoEvents()
+        
+        Next
+    
+        If Len(ViewDate) = 0 Then
+            ' fill the dropdown with the unique dates from the log file
+            ' just during the first time through this
+            Dim logDate As String
+        
+            With lbDropdown
+                .Clear()
+                .AddItem("Show All")()
+                For Each logDate In logContents.HistoryLogDates
+                    .AddItem(logDate)
+                Next
+                .ListIndex = 0
+            End With
+        End If
+    
+        FillLogHistoryGrid = True
+    End Function
     
 End Class

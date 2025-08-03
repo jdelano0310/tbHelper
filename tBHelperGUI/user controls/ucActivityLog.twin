@@ -325,8 +325,10 @@ Class ucActivityLog
             End If
             
             UpdateScrollBar
-            RedrawCanvas
+            
         End If
+        
+        RedrawCanvas
     End Sub
 
     Private Sub UpdateScrollBar()

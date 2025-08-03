@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 695026215,
+		"__lastUpdateMarker": 691875548,
 		"_children": [
 			{
 				"Anchors": {
@@ -1338,7 +1338,7 @@
 				"VerticalAlignment": "vbVerticalAlignTop",
 				"Visible": true,
 				"WhatsThisHelpID": 0,
-				"Width": 359,
+				"Width": 127,
 				"WordWrap": false,
 				"_className": "Label",
 				"_clsid": "{33AD4ED8-6699-11CF-B70C-00AA0060D393}"
@@ -1570,6 +1570,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1610,12 +1611,13 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
 				"Index": -1,
 				"Left": 105,
-				"Name": "tfKnownIssue",
+				"Name": "tfKnown_Issue",
 				"Opacity": 100,
 				"TabIndex": 28,
 				"TabStop": true,
@@ -1650,6 +1652,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1690,6 +1693,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1730,6 +1734,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1770,6 +1775,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1810,6 +1816,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1850,6 +1857,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1910,7 +1918,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 1376736
+				"canvashWnd": 11274792
 			},
 			{
 				"Anchors": {
@@ -2067,7 +2075,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 3344268
+				"canvashWnd": 3213748
 			},
 			{
 				"Anchors": {
@@ -2264,6 +2272,87 @@
 				"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
+			},
+			{
+				"Alignment": "vbLeftJustify",
+				"Anchors": {
+					"Bottom": false,
+					"Left": true,
+					"Right": false,
+					"Top": true,
+					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
+				},
+				"Angle": 0,
+				"Appearance": "vbAppear3d",
+				"AutoSize": false,
+				"BackColor": -2147483633,
+				"BackStyle": "vbBFOpaque",
+				"BorderCustomOptions": {
+					"Bottom": {
+						"Color": 0,
+						"Padding": 0,
+						"Size": 0
+					},
+					"Left": {
+						"Color": 0,
+						"Padding": 0,
+						"Size": 0
+					},
+					"Right": {
+						"Color": 0,
+						"Padding": 0,
+						"Size": 0
+					},
+					"Top": {
+						"Color": 0,
+						"Padding": 0,
+						"Size": 0
+					}
+				},
+				"BorderStyle": "vbNoBorder",
+				"Caption": "",
+				"DataField": null,
+				"DataFieldAggregate": "vbAggregateNone",
+				"DataFormat": null,
+				"DataMember": null,
+				"DataSource": null,
+				"Dock": "vbDockNone",
+				"DragIcon": "",
+				"DragMode": "vbManual",
+				"Enabled": true,
+				"FontBold": true,
+				"FontItalic": false,
+				"FontName": "Segoe UI",
+				"FontSize": 12.75,
+				"FontStrikethru": false,
+				"FontUnderline": false,
+				"ForeColor": 10642444,
+				"Height": 24,
+				"Index": -1,
+				"InternalSectionId": -1,
+				"Left": 178,
+				"LineSpacing": 0,
+				"LinkItem": null,
+				"LinkMode": "vbLinkNone",
+				"LinkTimeout": 50,
+				"LinkTopic": null,
+				"MouseIcon": "",
+				"MousePointer": "vbDefault",
+				"Name": "lblNewVersions",
+				"OLEDropMode": "vbOLEDropNone",
+				"RightToLeft": false,
+				"TabIndex": 44,
+				"Tag": null,
+				"ToolTipText": null,
+				"Top": 372,
+				"UseMnemonic": true,
+				"VerticalAlignment": "vbVerticalAlignTop",
+				"Visible": true,
+				"WhatsThisHelpID": 0,
+				"Width": 155,
+				"WordWrap": false,
+				"_className": "Label",
+				"_clsid": "{33AD4ED8-6699-11CF-B70C-00AA0060D393}"
 			}
 		],
 		"_className": "Form",

@@ -16,6 +16,15 @@ Class ucCustomButton
         ByVal hWnd As Long, ByVal hRgn As Long, _
         ByVal bRedraw As Boolean) As Long
     
+    ' adding a mouse cursor to visually indicate that the button is disabled
+    Private Declare Function LoadCursorFromFile Lib "user32" Alias "LoadCursorFromFileA" (ByVal lpFileName As String) As Long
+    Private Declare Function SetCursor Lib "user32" (ByVal hCursor As Long) As Long
+    Private Declare Function GetCursor Lib "user32" () As Long
+    
+    Private m_DisabledCursor As Long
+    Private m_DefaultCursor As Long
+    Private m_CurrentCursor As Long
+    
     ' Private variables for properties
     Private m_Caption As String
     Private m_BackColor As OLE_COLOR
@@ -61,7 +70,7 @@ Class ucCustomButton
     
      Public Property Let Enabled(ByVal value As Boolean)
         m_Enabled = value
-        
+
         Refresh  ' Force visual update
     End Property
 
@@ -179,7 +188,7 @@ Class ucCustomButton
         m_Caption = "Button"
         m_BackColor = &HA2640C 'RGB(37, 99, 235)
         m_ForeColor = RGB(255, 255, 255)
-        'm_HoverColor = RGB(18, 40, 234)
+
         m_BorderColor = &H2E5C8A
         m_BorderRadius = 4
         m_BorderWidth = 1
@@ -188,8 +197,9 @@ Class ucCustomButton
         m_FontBold = False
         m_IsHover = False
         m_IsPressed = False
-        'm_ButtonWidth = 650
-        'm_ButtonHeight = 650
+        
+        m_DefaultCursor = GetCursor ' save the default mouse cursor
+        m_DisabledCursor = LoadCursorFromFile(App.Path & "\disabled.cur")  ' get the mouse cursor that indicates the button is disabled
         
         UserControl.BackColor = m_BackColor
         UserControl.Font.Bold = m_FontBold
@@ -325,7 +335,18 @@ Class ucCustomButton
     
     Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
-        If Not m_Enabled Then Exit Sub
+        If Not m_Enabled Then
+            ' if the button is disabled and the mouse hovers over it, then show the disabled mouse pointer
+            SetCursor m_DisabledCursor
+            m_CurrentCursor = m_DisabledCursor
+            Exit Sub
+        Else
+            ' switch the cursor if it is currently set to the disabled version
+            If m_CurrentCursor = m_DisabledCursor Then
+                SetCursor m_DefaultCursor
+                m_CurrentCursor = m_DefaultCursor
+            End If
+        End If
 
         ' If inside and not already hovering, trigger hover
         If Not m_IsHover Then

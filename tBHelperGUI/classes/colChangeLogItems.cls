@@ -22,6 +22,11 @@ Private _githubReleasesPage As HTMLDocument
 Private _versionCheckResult As String
 Private _tBVersionGap As Integer
 Private _latestVersion As Integer
+Private _LogTypes As Scripting.Dictionary
+
+Public Property Get LogTypes() As Scripting.Dictionary
+    Set LogTypes = _LogTypes
+End Property
 
 Public Property Let LatestVersion(lv As Integer)
     _latestVersion = lv
@@ -58,6 +63,9 @@ Public Function Add(tBVersion As String, clType As String, clDescription As Stri
         _col.Add newCLI, sKey
     End If
 
+    ' save a list of unique change log types to be used in filtering the log
+    If Not [_LogTypes].Exists(UCase(clType)) Then [_LogTypes].Add(UCase(clType), UCase(clType))
+    
     'return the object created
     Set Add = newCLI
     Set newCLI = Nothing
@@ -101,6 +109,7 @@ Private Sub Class_Initialize()
     'creates the collection when this class is created
     Set _col = New Collection
     Set _githubReleasesPage = New HTMLDocument
+    Set _LogTypes = New Scripting.Dictionary
 End Sub
 
 Private Sub Class_Terminate()

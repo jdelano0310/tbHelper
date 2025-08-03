@@ -135,6 +135,7 @@ ByVal lpFile As String, ByVal lpParameters As String, ByVal lpDirectory As Strin
     
 Public SW_HIDE As Integer = 0
 
+
 Public Sub DrawGDIPlusImageFromFile(hdc As Long, path As String, x As Long, y As Long, w As Long, h As Long)
     ' used by ucCustomButton to draw the image in the button whie using a png file with transparent background
     Dim img As Long, g As Long
