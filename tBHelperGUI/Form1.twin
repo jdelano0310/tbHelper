@@ -23,6 +23,7 @@ Class Form1
         SetChangeLogHeader
         
         Me.Show
+        Me.MousePointer = vbHourglass
         DoEvents()
         
         Set fso = New FileSystemObject
@@ -40,7 +41,7 @@ Class Form1
         loadingSettingsFromFile = False
 
         If FoldersAreValid Then
-            ' get the version of twinBASIC that is current in the folder
+            ' get the version of twinBASIC that is currently in the folder
             lblCurrentTBVersion.Caption = "Installed version: " & GetCurrentTBVersion(txttBFolderLocation.Text)
             If tbHelperClass.InstalledtBVersion = 0 Then
                 txttBFolderLocation.BackColor = vbRed
@@ -68,10 +69,12 @@ Class Form1
             btnDownload.Caption = "Check for new version"
             btnDownload.PngIconPath = [_checkForNewIcon]
         Else
-            
+            ' TODO: I started something here but what I don't recall
         End If
         
         EnableDownloadZipButton()
+        
+        Me.MousePointer = vbDefault
     End Sub
 
     Private Sub Form_Unload(Cancel As Integer)
@@ -101,7 +104,8 @@ Class Form1
             If Right(Path, 1) <> "\" Then Path = Path & "\"
             txtDownloadFolder.Text = Path
         Else
-            MsgBox "Operation was cancelled."
+            'MsgBox "Operation was cancelled."
+            MessageBox("Operation was cancelled", , "No selection")
         End If
                 
         Dlg.Close()
@@ -118,7 +122,8 @@ Class Form1
             If Right(Path, 1) <> "\" Then Path = Path & "\"
             txttBFolderLocation.Text = Path
         Else
-            MsgBox "Operation was cancelled."
+            'MsgBox "Operation was cancelled."
+            MessageBox("Operation was cancelled", , "No selection")
         End If
                 
         Dlg.Close()
@@ -141,17 +146,18 @@ Class Form1
     End Sub
     
     Private Sub btnDownload_Click()
-                
+        
         ' is the download button captioned to check for which version is available on GitHub
-         If btnDownload.Caption = "Check for new version" Then
-             ShowStatusMessage "Manual check for new version"
-             GetCurrentTBVersion txttBFolderLocation.Text
-             chgLogs.GetNewerReleasedVersions
-            
-             ' the result of checking is that no new version is available at this time
-             If chgLogs.versionCheckResult = "Latest version already installed" Then
+        Me.MousePointer = vbHourglass
+        If btnDownload.Caption = "Check for new version" Then
+            ShowStatusMessage "Manual check for new version"
+            GetCurrentTBVersion txttBFolderLocation.Text
+            chgLogs.GetNewerReleasedVersions
+        
+            ' the result of checking is that no new version is available at this time
+            If chgLogs.versionCheckResult = "Latest version already installed" Then
                 ShowStatusMessage "none available", True
-             Else
+                Else
                 FilltBChangeLog
                 SetInitialTypeFilters
                 
@@ -164,42 +170,46 @@ Class Form1
                     btnDownload.Caption = "Download version " & chgLogs.LatestVersion
                     btnDownload.PngIconPath = _downloadIcon
                 End If
-             End If
-            
-             Exit Sub  ' leave the sub
-         End If
+            End If
         
-         ' use the version number to download the latest release
-         ' example of the dowmload url: https://github.com/twinbasic/twinbasic/releases/download/beta-x-0641/twinBASIC_IDE_BETA_641.zip
-         Dim newReleaseURL As String = githubReleasesURL & "/download/beta-x-" & IIf(chgLogs.LatestVersion < 1000, "0" & CStr(chgLogs.LatestVersion), chgLogs.LatestVersion)
-         Dim justTheFileName As String = "twinBASIC_IDE_BETA_" & chgLogs.LatestVersion & ".zip"
-         Dim localZipFileName As String = txtDownloadFolder.Text & justTheFileName
-         Dim downloadTheZip As Boolean = True
-        
-         If fso.FileExists(localZipFileName) Then
-             ' the zip has been downloaded already
-             ShowStatusMessage "The zip exists in the download folder, redownload it?"
-             downloadTheZip = MsgBox("The file '" & localZipFileName & "' already exists. Download it again? (if no, then the current file will be used)", vbYesNo, "Previously Downloaded") = vbYes
-             ShowStatusMessage IIf(downloadTheZip, " - Yes", " - No"), True
-             If downloadTheZip Then fso.DeleteFile(localZipFileName)
-         End If
+            Me.MousePointer = vbDefault
+            Exit Sub  ' leave the sub
+        End If
+    
+        ' use the version number to download the latest release
+        ' example of the dowmload url: https://github.com/twinbasic/twinbasic/releases/download/beta-x-0641/twinBASIC_IDE_BETA_641.zip
+        Dim newReleaseURL As String = githubReleasesURL & "/download/beta-x-" & IIf(chgLogs.LatestVersion < 1000, "0" & CStr(chgLogs.LatestVersion), chgLogs.LatestVersion)
+        Dim justTheFileName As String = "twinBASIC_IDE_BETA_" & chgLogs.LatestVersion & ".zip"
+        Dim localZipFileName As String = txtDownloadFolder.Text & justTheFileName
+        Dim downloadTheZip As Boolean = True
+    
+        If fso.FileExists(localZipFileName) Then
+            ' the zip has been downloaded already
+            ShowStatusMessage "The zip exists in the download folder, redownload it?"
+            'downloadTheZip = MsgBox("The file '" & localZipFileName & "' already exists. Download it again? (if no, then the current file will be used)", vbYesNo, "Previously Downloaded") = vbYes
+            downloadTheZip = MessageBox("The file '" & localZipFileName & "' already exists. Download it again? (if no, then the current file will be used)", _
+                "Question", "Previously Downloaded", "Yes", "No") = 1
+            ShowStatusMessage IIf(downloadTheZip, " - Yes", " - No"), True
+            If downloadTheZip Then fso.DeleteFile(localZipFileName)
+        End If
 
-         If downloadTheZip Then
-             ShowStatusMessage "Downloading twinBasic " & chgLogs.LatestVersion
-             URLDownloadToFile 0, newReleaseURL & "/" & justTheFileName, localZipFileName, 0, 0
-             ShowStatusMessage " - done ", True
-         End If
-        
-         ProcessDownloadedZip localZipFileName
-        
-         ShowStatusMessage "process complete"
+        If downloadTheZip Then
+            ShowStatusMessage "Downloading twinBasic " & chgLogs.LatestVersion
+            URLDownloadToFile 0, newReleaseURL & "/" & justTheFileName, localZipFileName, 0, 0
+            ShowStatusMessage " - done ", True
+        End If
+    
+        ProcessDownloadedZip localZipFileName
+    
+        ShowStatusMessage "process complete"
 
-         ' after the latest has been downloaded, set the download button to a manual check
-         btnDownload.Caption = "Check for new version"
-         btnDownload.PngIconPath = [_checkForNewIcon]
-         
-         lblCurrentTBVersion.Caption = "version: " & chgLogs.LatestVersion
-         DoEvents()
+        ' after the latest has been downloaded, set the download button to a manual check
+        btnDownload.Caption = "Check for new version"
+        btnDownload.PngIconPath = [_checkForNewIcon]
+        
+        lblCurrentTBVersion.Caption = "version: " & chgLogs.LatestVersion
+        Me.MousePointer = vbDefault
+        DoEvents()
          
     End Sub
     
@@ -232,7 +242,8 @@ Class Form1
         If loadingSettingsFromFile Then Exit Sub
 
         ' warn the user of the process involved in installing the latest twinBASIC version
-        If Not loadingSettingsFromFile Then MsgBox("Selecting this option will delete the twinBASIC folder entirely and recreate it.", vbExclamation, "Warning")
+        If Not loadingSettingsFromFile Then _ 
+            MessageBox("Selecting this option will delete the twinBASIC folder entirely and recreate it.", "warning", "Warning")
     
         tbHelperSettings.PostDownloadAction = 3
         
@@ -308,16 +319,18 @@ Class Form1
     Private Sub txttBFolderLocation_LostFocus()
 
         Dim newtBLocationFolder As Boolean = False
+        Me.MousePointer = vbHourglass
         
         ' if there is a folder name in the textbox and folder doesn't exist, create it?
         If Not fso.FolderExists(txttBFolderLocation.Text) And Not Trim(txttBFolderLocation.Text) = "" Then
             ' ask the user if the folder should be created (like a first time setup)
-            If MsgBox("This folder doesn't exist. Should it be created?", vbYesNo, "twinBASIC Location") = vbYes Then
+            'If MsgBox("This folder doesn't exist. Should it be created?", vbYesNo, "twinBASIC Location") = vbYes Then
+            If MessageBox("This folder doesn't exist. Should it be created?", "question", "twinBASIC Location", "Yes", "No") = 1 Then
                 On Error Resume Next
                 fso.CreateFolder(txttBFolderLocation.Text)
                 If Not fso.FolderExists(txttBFolderLocation.Text) Then
                     ShowStatusMessage("Unable to create the twinBASIC folder " & txttBFolderLocation.Text & " as requested")
-                    MsgBox("Unable to create the folder." & vbCrLf & Err.Description, vbCritical, "Creation Error")
+                    MessageBox("Unable to create the folder." & vbCrLf & Err.Description, "error", "Creation Error")
                     txttBFolderLocation.BackColor = vbRed
                     txttBFolderLocation.SetFocus()
                 Else
@@ -351,7 +364,7 @@ Class Form1
                     tbHelperClass.InstalledtBVersion = 0
                     txttBFolderLocation.BackColor = vbRed
                 
-                    MsgBox(temp, vbOKOnly, "twinBASIC installed version check")
+                    MessageBox("Folder '" & txttBFolderLocation.Text & "'; no version found.", "info", "twinBASIC version check")
                 Else
                     lblCurrentTBVersion.Caption = "version: " & tbHelperClass.InstalledtBVersion
                     
@@ -379,6 +392,7 @@ Class Form1
         End If
         
         tbHelperSettings.twinBASICFolder = txttBFolderLocation.Text
+        Me.MousePointer = vbDefault
     End Sub
     
     '**************************************
@@ -424,6 +438,16 @@ Class Form1
         tfButton.Enabled = False
         
     End Sub
+    
+    Private Function MessageBox(ByVal sText As String, _
+        Optional ByVal sType As String = "info", _
+        Optional ByVal sTitle As String = vbNullString, _
+        Optional ByVal sBtn1 As String = "OK", _
+        Optional ByVal sBtn2 As String = vbNullString) As Integer
+    
+        MessageBox = frmMessageBox.ShowMessage(sText, sType, sTitle, sBtn1, sBtn2)
+        
+    End Function
     
     Private Sub EnableDownloadZipButton()
         
@@ -472,7 +496,7 @@ Class Form1
                    (txttBFolderLocation.BackColor <> vbRed And Len(txttBFolderLocation.Text) > 0)
         
         If Not theyAreValid Then
-            ' indicate that there is an issue with the folder(s)
+            ' TODO: indicate that there is an issue with the folder(s)
             
         End If
         
@@ -547,13 +571,24 @@ Class Form1
                 End If
                 
                 ShowStatusMessage(" of installing twinBASIC", True)
-                InstallTwinBasic(tBZipFile)
+                If InstallTwinBasic(tBZipFile) Then
+                    Form1.ShowStatusMessage("twinBASIC from " & tBZipFile & " has been extracted and is ready to use.")
+                    MessageBox("twinBASIC from " & tBZipFile & " has been extracted and is ready to use.", "info", "Completed")
+                Else
+                    Form1.ShowStatusMessage("twinBASIC from " & tBZipFile & " could not be extracted to " & tbHelperSettings.twinBASICFolder)
+                    MessageBox("There was a problem recreating " & tbHelperSettings.twinBASICFolder & ". The parent folder and the zip file will be opened so that you can finish the process.", "error", "Unable to complete")
+                
+                    ShellExecute(0, "open", tBZipFile, vbNullString, vbNullString, 1) ' open the zipfile for the user
+                    ShellExecute(0, "open", GettBParentFolder, vbNullString, vbNullString, 1) ' open the folder where twinBASIC is supposed to be installed.
+                
+                    MessageBox("Going forward, you can open this utility as administrator to avoid this extra step.", "info", "Application Folder Rights")
+                End If
                 
                 ' does the user want to run twinBASIC after the update
                 If tsStartTB.IsOn Then
                     ShowStatusMessage "Start twinBASIC after update is checked, starting it"
                     ShellExecute(0, "open", txttBFolderLocation.Text & "\twinBASIC.exe", vbNullString, vbNullString, 1)
-                    ShowStatusMessage " - done", True
+                    ShowStatusMessage "done", True
                 End If
         End Select
         
@@ -576,7 +611,6 @@ Class Form1
         ' apply a filter to the listed change log
         Dim clItem As clsChangeLogItem
         For Each clItem In chgLogs
-            'WriteToDebugFile("current type: " & UCase(clItem.Type))
             If activeTypeFilters.Exists(UCase(clItem.Type)) Then
                 clgView.AddEntry(clItem.tBVersion, clItem.Type, clItem.Notes)
             End If

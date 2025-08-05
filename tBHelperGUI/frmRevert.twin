@@ -4,6 +4,9 @@
 Class frmRevert
 
     Dim localVersions As String = ";"
+    Dim revertToCLs As New colChangeLogItems
+    Dim revertToVersion As Integer
+    Dim revertToVersionRequiresDownload As Boolean
     
     Private Sub Form_Load()
         FillAvailableZips
@@ -11,6 +14,7 @@ Class frmRevert
         SetupButtons
         
         lblCurrentVersion.Caption = " version: " & tbHelperClass.InstalledtBVersion
+        
         
     End Sub
 
@@ -55,20 +59,19 @@ Class frmRevert
         Dim zipFileName As String
         Dim fso As New FileSystemObject
 
-        tBZipFiles = Dir("F:\Downloads\twinBASIC_IDE_BETA_*.*")
+        tBZipFiles = Dir(tbHelperSettings.DownloadFolder & "twinBASIC_IDE_BETA_*.*")
 
         If Len(tBZipFiles) > 0 Then
-            'drpAvailableZips.AddItem("Select previous version")
+            lbDropdown.AddItem("Select previous version")
             
         Else
-            'drpAvailableZips.AddItem("No previous versions found")
+            lbDropdown.AddItem("No previous versions found")
             Exit Sub
         End If
 
         Do While Len(tBZipFiles) > 0
             ' don't include the installed version zip file
-            'If InStr(tBZipFiles, "_" & tbHelperClass.InstalledtBVersion & ".zip") = 0 Then
-            If InStr(tBZipFiles, "_855.zip") = 0 Then
+            If InStr(tBZipFiles, "_" & tbHelperClass.InstalledtBVersion & ".zip") = 0 Then
             
                 ' get just the filename from the full path
                 zipFileName = fso.GetFileName(tBZipFiles)
@@ -79,8 +82,7 @@ Class frmRevert
                 
                 ' keeping the list of revertable versions to with in 10 from the previous version 
                 ' of the current installed version
-                    'If tbHelperClass.InstalledtBVersion - 11 <= CInt(zipFileVersion) Then
-                If 855 - 11 <= CInt(zipFileVersion) Then
+                If tbHelperClass.InstalledtBVersion - 11 <= CInt(zipFileVersion) Then
                     ' save a list of the versions of available in the local zip files
                     localVersions = localVersions & zipFileVersion & ";"
 
@@ -90,8 +92,6 @@ Class frmRevert
             End If
             tBZipFiles = Dir()
         Loop
-
-        'drpAvailableZips.ListIndex = 0
 
     End Sub
     
@@ -156,7 +156,7 @@ Class frmRevert
             HideZipList
             ' Show Change Log for the select twinBASIC version
             
-            FillTestData
+            
             btnRevert.Enabled = True
         End If
     End Sub
@@ -165,35 +165,53 @@ Class frmRevert
         ZipPicker.Collapse()
         HideZipList
     End Sub
-    
-    Private Sub FillTestData()
-        
-        Dim clgColumns(1) As New clsChangeLogColumn
 
-        clgColumns(0).Name = "TYPE"
-        clgColumns(0).Width = 140
-        clgColumns(0).WrappedEnabled = False
-        
-        clgColumns(1).Name = "DESCRIPTION"
-        clgColumns(1).Width = 300
-        clgColumns(1).WrappedEnabled = True
-        
-        
-        With clgView
-            .ClearEntries
-            .SetColumns = clgColumns
-            .AddEntry "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
-            .AddEntry "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
-            .AddEntry "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
-            .AddEntry "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
-            .AddEntry "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
+    ' Private Sub FillChangeLogGrid()
 
-            .AddEntry "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
-            .AddEntry "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
-            .AddEntry "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
-            .AddEntry "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
-            .AddEntry "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
+    '     Dim revertToCL As clsChangeLogItem
+    '     Dim itemColor As Long
+    '     Dim colNum As Integer
+        
+    '      flgLog.Rows = 1
+    '     If revertToCLs.Count > 0 Then
+    '         ' the user clicked the get from github button
+    '         FillGridFrom()
+    '     Else
+    '         Dim localLogs As New colHistoryLogItems
             
-        End With
-    End Sub
+    '         ' check for the local log file
+    '         If Not localLogs.LoadLog() Then
+    '             ' there are no logs to use
+    '             If revertToCLs Is Nothing Then GetChangeLogsFromGitHub()
+                    
+    '             FillGridFrom()
+    '         Else
+    '             ' there is a log file, search for the selected version change log
+    '             Dim Li As Integer
+                
+    '             ' add the logs to the object the fill grid uses
+    '             For Li = 1 To localLogs.Count
+    '                 Set revertToCL = localLogs.Item(Li).LogCLI
+    '                 If revertToCL.tBVersion = revertToVersion Then
+    '                     revertToCLs.Add(revertToCL.tBVersion, revertToCL.Type, revertToCL.Notes)
+    '                 End If
+    '                 Set revertToCL = Nothing
+    '             Next
+                
+    '             If revertToCLs.Count = 0 Then
+    '                 ' the change log is not in the history log, fetch it from the releases page
+    '                 GetChangeLogsFromGitHub()
+    '             End If
+                
+    '             FillGridFrom()
+
+    '         End If
+            
+    '         Set localLogs = Nothing
+            
+    '     End If
+                
+    '     Set revertToCL = Nothing
+        
+    ' End Sub
 End Class

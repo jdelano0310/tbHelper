@@ -1,0 +1,82 @@
+[Description("")]
+[FormDesignerId("20144C38-302E-43CC-A20B-B73D92C8BBC9")]
+[PredeclaredId]
+Class frmMessageBox
+
+	Sub New()
+	End Sub
+    
+    Dim buttonNumber As Integer
+    
+    Public Function ShowMessage(ByVal sText As String, _
+        Optional ByVal sType As String = "info", _
+        Optional ByVal sTitle As String = vbNullString, _
+        Optional ByVal sBtn1 As String = "OK", _
+        Optional ByVal sBtn2 As String = vbNullString) As Integer
+
+        ' Load icon based on type
+        Select Case LCase$(sType)
+            Case "info": picBox.Picture = LoadPicture(App.Path & "\info.png")
+            Case "warning": picBox.Picture = LoadPicture(App.Path & "\warning.png")
+            Case "error": picBox.Picture = LoadPicture(App.Path & "\error.png")
+            Case "success": picBox.Picture = LoadPicture(App.Path & "\success.png")
+            Case "question": picBox.Picture = LoadPicture(App.Path & "\question.png")
+        End Select
+
+        buttonNumber = 0
+        
+        SetupCustomButton btnOk, sBtn1, CUST_BTN_BCOLOR, vbWhite, "", 20, True, False
+        SetupCustomButton btnCancel, sBtn2, CUST_BTN_BCOLOR, vbWhite, "", 20, True, False
+        btnCancel.Visible = Not sBtn2 = vbNullString
+        
+        lblMessage.Caption = sText
+        Me.Caption = sTitle
+        Me.Visible = True
+        Me.ZOrder 0
+        
+        Me.Show()
+    
+        ' wait for the user to click a button
+        Do Until buttonNumber <> 0
+            DoEvents
+        Loop
+        
+        ShowMessage = buttonNumber
+        Me.Close
+        
+    End Function
+    
+    Private Sub btnOk_Click()
+        buttonNumber = 1
+        
+    End Sub
+    
+    Private Sub btnCancel_Click()
+        buttonNumber = -1
+
+    End Sub
+    
+    Private Sub SetupCustomButton(theButton As ucCustomButton, buttonCaption As String, bkColor As OLE_COLOR, frColor As OLE_COLOR, _
+        pngImagePath As String, iconSize As Integer, startEnabled As Boolean, boldFont As Boolean, _
+        Optional borderColor As OLE_COLOR = 0, Optional borderWidth As Integer = 0)
+        
+        With theButton
+            .Caption = buttonCaption
+            .BackColor = bkColor
+            .ForeColor = frColor
+            If borderWidth > 0 Then
+                .BorderColor = borderColor
+                .BorderWidth = borderWidth
+            End If
+            .FontSize = 11
+            '.HoverColor = RGB(18, 40, 234) ' Darker blue   this can be set or let the automatic hover work
+            .BorderRadius = 3
+            .FontBold = boldFont
+            .PngIconPath = pngImagePath
+            .IconSize = iconSize
+            .IconSpacing = 8
+            .Enabled = startEnabled
+        End With
+    End Sub
+    
+End Class

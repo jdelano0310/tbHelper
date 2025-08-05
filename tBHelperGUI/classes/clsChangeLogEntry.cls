@@ -21,11 +21,11 @@ Private m_EntryHeight As Long
 
 ' colors for the type of changle log item
 Private Const COLOR_IMPORTANT = &HA2640C
-Private Const COLOR_IMPROVED = RGB(107, 142, 35)      ' other green  
-Private Const COLOR_FIXED = RGB(56, 118, 29) ' green
-Private Const COLOR_UPDATED = RGB(107, 45, 103)       ' Orange badge
-Private Const COLOR_TIP = RGB(22, 83, 126)           ' blueish
-Private Const COLOR_DEFAULT = &H808080       ' Gray badge  
+Private Const COLOR_IMPROVED = RGB(107, 142, 35)
+Private Const COLOR_FIXED = RGB(56, 118, 29)
+Private Const COLOR_UPDATED = RGB(107, 45, 103)
+Private Const COLOR_TIP = RGB(22, 83, 126)
+Private Const COLOR_DEFAULT = &H808080
 Private Const COLOR_KNOWN = vbBlack
 Private Const COLOR_ADDED = RGB(75, 0, 130)
 Private Const COLOR_WARNING = RGB(153, 0, 0)

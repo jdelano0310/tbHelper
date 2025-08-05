@@ -122,14 +122,14 @@ Public Function fsoFileRead(filePath As String) As String
             fsoFileRead = fileToRead.ReadAll()
 readError:
         If fsoFileRead = vbNullString Then
-            MsgBox("Unable to read " & filePath, vbExclamation, "FileRead")
+            frmMessageBox.ShowMessage("Unable to read " & filePath, "error", "FileRead")
         End If
         fileToRead.Close()
     Set fso = Nothing
     
 End Function
 
-Private Function GettBParentFolder() As String
+Public Function GettBParentFolder() As String
         
     Dim idx As Integer
     Dim slashCount As Integer
@@ -146,11 +146,12 @@ Private Function GettBParentFolder() As String
         
 End Function
 
-Public Sub InstallTwinBasic(zipLocation As String)
+Public Function InstallTwinBasic(zipLocation As String) As Boolean
         
     ' go through the steps of deleting the current files and unziping the new files
     ' to the folder that has been desgniated
-        
+    Dim result As Boolean
+    
     ' delete current files & recreate the folder
     Dim SHFileOp As SHFILEOPSTRUCT
     Dim RetVal As Long
@@ -170,20 +171,9 @@ Public Sub InstallTwinBasic(zipLocation As String)
     ' timing perhaps?
         
     ' check to make sure the twinBASIC folder exists after attempted installation
-    If fso.FolderExists(tbHelperSettings.twinBASICFolder) Then
-        'Form1.ShowStatusMessage("twinBASIC from " & zipLocation & " has been extracted and is ready to use.")
-        MsgBox("twinBASIC from " & zipLocation & " has been extracted and is ready to use.", vbInformation, "Completed")
-    Else
-        MsgBox("There was a problem recreating " & tbHelperSettings.twinBASICFolder & ". The parent folder and the zip file will be opened so that you can finish the process.", vbCritical, "Unable to complete")
-            
-        ShellExecute(0, "open", zipLocation, vbNullString, vbNullString, 1) ' open the zipfile for the user
-        ShellExecute(0, "open", GettBParentFolder, vbNullString, vbNullString, 1) ' open the folder where twinBASIC is supposed to be installed.
-            
-        MsgBox("Going forward, you can open this utility as administrator to avoid this extra step.")
-            
-    End If
+    result = fso.FolderExists(tbHelperSettings.twinBASICFolder)
         
-End Sub
+End Function
 
 Public Function IsCodeRunningInTheIDE() As Boolean
     
