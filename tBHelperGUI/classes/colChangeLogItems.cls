@@ -22,10 +22,15 @@ Private _githubReleasesPage As HTMLDocument
 Private _versionCheckResult As String
 Private _tBVersionGap As Integer
 Private _latestVersion As Integer
-Private _LogTypes As Scripting.Dictionary
+Private _logTypes As Scripting.Dictionary
+Private _tBVersions As Scripting.Dictionary
 
 Public Property Get LogTypes() As Scripting.Dictionary
-    Set LogTypes = _LogTypes
+    Set LogTypes = _logTypes
+End Property
+
+Public Property Get tBVersions() As Scripting.Dictionary
+    Set tBVersions = _tBVersions
 End Property
 
 Public Property Let LatestVersion(lv As Integer)
@@ -64,7 +69,7 @@ Public Function Add(tBVersion As String, clType As String, clDescription As Stri
     End If
 
     ' save a list of unique change log types to be used in filtering the log
-    If Not [_LogTypes].Exists(UCase(clType)) Then [_LogTypes].Add(UCase(clType), UCase(clType))
+    If Not [_logTypes].Exists(UCase(clType)) Then [_logTypes].Add(UCase(clType), UCase(clType))
     
     'return the object created
     Set Add = newCLI
@@ -109,12 +114,16 @@ Private Sub Class_Initialize()
     'creates the collection when this class is created
     Set _col = New Collection
     Set _githubReleasesPage = New HTMLDocument
-    Set _LogTypes = New Scripting.Dictionary
+    Set _logTypes = New Scripting.Dictionary
+    Set [_tBVersions] = New Scripting.Dictionary
 End Sub
 
 Private Sub Class_Terminate()
     'destroys collection when this class is terminated
     Set _col = Nothing
+    Set _githubReleasesPage = Nothing
+    Set _logTypes = Nothing
+    Set [_tBVersions] = Nothing
 End Sub
 
 Private Function GetChangeLogUL(versionGAP As Integer) As Boolean
@@ -156,6 +165,8 @@ Private Function GetChangeLogUL(versionGAP As Integer) As Boolean
                     clType = ""
                     clDesc = Trim(liElements(liIndex).innerText)
                 End If
+                
+                If Not _tBVersions.Exists(forVersion) Then [_tBVersions].Add(forVersion, forVersion)
                 
                 Me.Add forVersion, clType, clDesc
             Next

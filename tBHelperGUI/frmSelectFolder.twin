@@ -29,6 +29,11 @@ Class frmSelectFolder
         
         ConfigureButtons()
         
+        If Len(SelectedPath) > 0 Then
+            DrivePicker.Item = Left(SelectedPath, 2)
+            FolderList.Path = SelectedPath
+        End If
+        
     End Sub
 
     Private Sub ConfigureButtons()

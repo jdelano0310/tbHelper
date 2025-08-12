@@ -39,7 +39,7 @@ Class ucCustomButton
     Private m_IsHover As Boolean
     Private m_IsPressed As Boolean
     Private m_FontSize As Long
-    Private m_GdiplusToken As Long
+    'Private m_GdiplusToken As Long
     Private m_PngPath As String
     Private m_PngBitmap As Long
     Private m_Enabled As Boolean
@@ -179,11 +179,12 @@ Class ucCustomButton
     End Property
     
     Private Sub UserControl_Initialize()
-        ' Initialize GDI+
-        Dim gdipInput As GdiplusStartupInput
-        gdipInput.GdiplusVersion = 1
-        GdiplusStartup m_GdiplusToken, gdipInput
-    
+
+        If Not GDIPlus_EnsureStarted() Then
+            MsgBox("ucCustomButton Initialize Failure")
+            Exit Sub
+        End If
+        
         ' Set default values (existing code)
         m_Caption = "Button"
         m_BackColor = &HA2640C 'RGB(37, 99, 235)
@@ -199,7 +200,9 @@ Class ucCustomButton
         m_IsPressed = False
         
         m_DefaultCursor = GetCursor ' save the default mouse cursor
-        m_DisabledCursor = LoadCursorFromFile(App.Path & "\disabled.cur")  ' get the mouse cursor that indicates the button is disabled
+        
+        'get the mouse cursor that indicates the button is disabled
+        m_DisabledCursor = LoadCursorFromFile(App.Path & "\disabled.cur")  ' TODO: the disabled current cursor sucks and needs to be replaced 
         
         UserControl.BackColor = m_BackColor
         UserControl.Font.Bold = m_FontBold
@@ -210,7 +213,8 @@ Class ucCustomButton
 
         ' reasons to not run the paint routine
         If ScaleWidth <= 0 Or ScaleHeight <= 0 Then Exit Sub
-        
+        If Not GDIPlus_IsStarted() Then Exit Sub
+
         Cls
         
         ' Determine current background color
@@ -285,6 +289,7 @@ Class ucCustomButton
         CurrentX = textXTw
         CurrentY = textYTw
         Print m_Caption
+        
     End Sub
     
     Private Sub DrawPngIcon(ByVal iconX As Long, ByVal iconY As Long)
@@ -452,9 +457,14 @@ Class ucCustomButton
         If m_PngBitmap <> 0 Then
             GdipDisposeImage m_PngBitmap
         End If
-        If m_GdiplusToken <> 0 Then
-            GdiplusShutdown m_GdiplusToken
-        End If
+        
+        On Error Resume Next
+        GDIPlus_Release
+        On Error GoTo 0
+        
+        ' If m_GdiplusToken <> 0 Then
+        '     GdiplusShutdown m_GdiplusToken
+        ' End If
     End Sub
 
     ' Add method to load PNG file

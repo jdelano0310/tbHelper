@@ -8,7 +8,7 @@ Class Form1
     Dim activeTypeFilters As Scripting.Dictionary
     
     Private Sub Form_Load()
-
+        
         _downloadIcon = App.Path & "\download.png"
         _checkForNewIcon = App.Path & "\binoculars.png"
         
@@ -24,10 +24,11 @@ Class Form1
         
         Me.Show
         Me.MousePointer = vbHourglass
-        DoEvents()
+        'DoEvents()
         
         Set fso = New FileSystemObject
         Set activeTypeFilters = New Scripting.Dictionary
+        Set activityLog = actLog
         
         ShowStatusMessage "Checking for Settings file"
         
@@ -37,7 +38,7 @@ Class Form1
         Else
             ShowStatusMessage "Not found", True
         End If
-        DoEvents()
+        'DoEvents()
         loadingSettingsFromFile = False
 
         If FoldersAreValid Then
@@ -55,7 +56,7 @@ Class Form1
         ' enable or disable view log button
         btnViewLogHistory.Enabled = fso.FileExists(App.Path & "\log.txt")
         
-        DoEvents()
+        'DoEvents()
         
         ' this contiues to check for version info if the folders are valid
         If tbHelperSettings.CheckForNewVersionOnLoad Then
@@ -78,8 +79,7 @@ Class Form1
     End Sub
 
     Private Sub Form_Unload(Cancel As Integer)
-        
-        ShowStatusMessage "Exiting app"
+
         If tbHelperSettings.SettingsChanged Then tbHelperSettings.SaveSettings()
         
         If tbHelperSettings.LogActivity Then WriteToLogFile
@@ -87,6 +87,8 @@ Class Form1
         Set tbHelperSettings = Nothing
         Set tbHelperClass = Nothing
         Set activeTypeFilters = Nothing
+        
+        WriteToDebugFile "CLOSE" ' this tells the procedure to close the debug log file 
         
         Set fso = Nothing
         
@@ -98,14 +100,14 @@ Class Form1
         Dim Path As String
     
         Dlg.Caption = "Select Download folder"
+        If Len(tbHelperSettings.DownloadFolder) > 0 Then Dlg.SelectedPath = tbHelperSettings.DownloadFolder
         Path = Dlg.ShowAsDialog()
     
         If Len(Path) > 0 Then
             If Right(Path, 1) <> "\" Then Path = Path & "\"
             txtDownloadFolder.Text = Path
         Else
-            'MsgBox "Operation was cancelled."
-            MessageBox("Operation was cancelled", , "No selection")
+            MessageBox("You didn’t choose a folder, [b]so the operation was cancelled[/b].", , "No selection")
         End If
                 
         Dlg.Close()
@@ -116,14 +118,14 @@ Class Form1
         Dim Path As String
     
         Dlg.Caption = "Select twinBASIC folder"
+        If Len(tbHelperSettings.twinBASICFolder) > 0 Then Dlg.SelectedPath = tbHelperSettings.twinBASICFolder
         Path = Dlg.ShowAsDialog()
     
         If Len(Path) > 0 Then
             If Right(Path, 1) <> "\" Then Path = Path & "\"
             txttBFolderLocation.Text = Path
         Else
-            'MsgBox "Operation was cancelled."
-            MessageBox("Operation was cancelled", , "No selection")
+            MessageBox("You didn’t choose a folder, [b]so the operation was cancelled[/b].", , "No selection")
         End If
                 
         Dlg.Close()
@@ -131,23 +133,29 @@ Class Form1
     
     Private Sub btnRevert_Click()
         
+        WriteToDebugFile("btnRevert Click")
         Dim frm As New frmRevert
         frm.Show(vbModal)
+        Unload(frm)
+        WriteToDebugFile("Revert form closed and unloaded")
+        ShowStatusMessage "Closed revert form"
         
     End Sub
     
     Private Sub btnViewLogHistory_Click()
         
-        ShowStatusMessage("Loading log file")
-        
+        WriteToDebugFile("btnViewLogHistory Click")
         Dim frm As New frmViewHistoryLog
         frm.Show(vbModal)
-        
+        Unload(frm)
+        WriteToDebugFile("ViewLogHistory form closed and unloaded")
+        ShowStatusMessage "Closed View Log History form"
     End Sub
     
     Private Sub btnDownload_Click()
         
         ' is the download button captioned to check for which version is available on GitHub
+        WriteToDebugFile("btnDownload Click")
         Me.MousePointer = vbHourglass
         If btnDownload.Caption = "Check for new version" Then
             ShowStatusMessage "Manual check for new version"
@@ -173,6 +181,7 @@ Class Form1
             End If
         
             Me.MousePointer = vbDefault
+            WriteToDebugFile("Exiting Manual check for tb version")
             Exit Sub  ' leave the sub
         End If
     
@@ -209,7 +218,7 @@ Class Form1
         
         lblCurrentTBVersion.Caption = "version: " & chgLogs.LatestVersion
         Me.MousePointer = vbDefault
-        DoEvents()
+        'DoEvents()
          
     End Sub
     
@@ -329,14 +338,14 @@ Class Form1
                 On Error Resume Next
                 fso.CreateFolder(txttBFolderLocation.Text)
                 If Not fso.FolderExists(txttBFolderLocation.Text) Then
-                    ShowStatusMessage("Unable to create the twinBASIC folder " & txttBFolderLocation.Text & " as requested")
+                    ShowStatusMessage "Unable to create the twinBASIC folder " & txttBFolderLocation.Text & " as requested"
                     MessageBox("Unable to create the folder." & vbCrLf & Err.Description, "error", "Creation Error")
                     txttBFolderLocation.BackColor = vbRed
                     txttBFolderLocation.SetFocus()
                 Else
                     txttBFolderLocation.BackColor = vbWhite
                     newtBLocationFolder = True
-                    ShowStatusMessage("The twinBASIC folder " & txttBFolderLocation.Text & " was created")
+                    ShowStatusMessage "The twinBASIC folder " & txttBFolderLocation.Text & " was created"
                     EnableDownloadZipButton
                 End If
                 On Error GoTo 0
@@ -439,16 +448,6 @@ Class Form1
         
     End Sub
     
-    Private Function MessageBox(ByVal sText As String, _
-        Optional ByVal sType As String = "info", _
-        Optional ByVal sTitle As String = vbNullString, _
-        Optional ByVal sBtn1 As String = "OK", _
-        Optional ByVal sBtn2 As String = vbNullString) As Integer
-    
-        MessageBox = frmMessageBox.ShowMessage(sText, sType, sTitle, sBtn1, sBtn2)
-        
-    End Function
-    
     Private Sub EnableDownloadZipButton()
         
         ' should the download zip button be enabled?
@@ -462,8 +461,9 @@ Class Form1
         
     End Sub
     
-    Public Sub FilltBChangeLog(Optional fortBVersion As String = "")
+    Public Sub FilltBChangeLog()
         
+        ' inital write of entries to the changelog 
         Dim clItem As clsChangeLogItem
         
         lblNewVersions.Caption = ""
@@ -481,10 +481,8 @@ Class Form1
         End If
         
         For Each clItem In chgLogs
-            If Len(fortBVersion) = 0 Or clItem.tBVersion = Val(fortBVersion) Then
-                clgView.AddEntry(clItem.tBVersion, clItem.Type, clItem.Notes)
-            End If
-            DoEvents()
+            clgView.AddEntry(clItem.tBVersion, clItem.Type, clItem.Notes)
+            'DoEvents()
         Next
         
     End Sub
@@ -526,6 +524,16 @@ Class Form1
     
     End Sub
 
+    Private Function MessageBox(ByVal sText As String, _
+        Optional ByVal sType As String = "info", _
+        Optional ByVal sTitle As String = vbNullString, _
+        Optional ByVal sBtn1 As String = "OK", _
+        Optional ByVal sBtn2 As String = vbNullString) As Integer
+    
+        MessageBox = frmMessageBox.ShowMessage(sText, sType, sTitle, sBtn1, sBtn2)
+        
+    End Function
+    
     Private Function OptionSelection() As Integer
         
         ' return the selection for the post download process
@@ -550,12 +558,12 @@ Class Form1
         Select Case OptionSelection
             Case 1
                 ' download only - open the download folder
-                ShowStatusMessage(" of opening the download folder", True)
+                ShowStatusMessage " of opening the download folder", True
                 ShellExecute(0, "open", txtDownloadFolder.Text, vbNullString, vbNullString, 1)
                 
             Case 2
                 ' open the zip file using the default zip client
-                ShowStatusMessage(" of opening the zip file", True)
+                ShowStatusMessage " of opening the zip file", True
                 ShellExecute(0, "open", tBZipFile, vbNullString, vbNullString, 1)
                 
             Case 3
@@ -570,12 +578,12 @@ Class Form1
                     Exit Sub
                 End If
                 
-                ShowStatusMessage(" of installing twinBASIC", True)
+                ShowStatusMessage " of installing twinBASIC", True
                 If InstallTwinBasic(tBZipFile) Then
-                    Form1.ShowStatusMessage("twinBASIC from " & tBZipFile & " has been extracted and is ready to use.")
+                    ShowStatusMessage "twinBASIC from " & tBZipFile & " has been extracted and is ready to use."
                     MessageBox("twinBASIC from " & tBZipFile & " has been extracted and is ready to use.", "info", "Completed")
                 Else
-                    Form1.ShowStatusMessage("twinBASIC from " & tBZipFile & " could not be extracted to " & tbHelperSettings.twinBASICFolder)
+                    ShowStatusMessage "twinBASIC from " & tBZipFile & " could not be extracted to " & tbHelperSettings.twinBASICFolder
                     MessageBox("There was a problem recreating " & tbHelperSettings.twinBASICFolder & ". The parent folder and the zip file will be opened so that you can finish the process.", "error", "Unable to complete")
                 
                     ShellExecute(0, "open", tBZipFile, vbNullString, vbNullString, 1) ' open the zipfile for the user
@@ -614,7 +622,7 @@ Class Form1
             If activeTypeFilters.Exists(UCase(clItem.Type)) Then
                 clgView.AddEntry(clItem.tBVersion, clItem.Type, clItem.Notes)
             End If
-            DoEvents()
+            'DoEvents()
         Next
         
     End Sub
@@ -651,7 +659,7 @@ Class Form1
             tfName = UCase("tf" & Replace(clType, " ", "_"))
             For Each ctrl In Me.Controls
                 If UCase(ctrl.name) = tfName Then ctrl.enabled = True
-                DoEvents()
+                'DoEvents()
             Next
         Next
         
@@ -659,37 +667,14 @@ Class Form1
         
     End Sub
     
-    Private Sub SetupCustomButton(theButton As ucCustomButton, buttonCaption As String, bkColor As OLE_COLOR, frColor As OLE_COLOR, _
-        pngImagePath As String, iconSize As Integer, startEnabled As Boolean, boldFont As Boolean, _
-        Optional borderColor As OLE_COLOR = 0, Optional borderWidth As Integer = 0)
-        
-        With theButton
-            .Caption = buttonCaption
-            .BackColor = bkColor
-            .ForeColor = frColor
-            If borderWidth > 0 Then
-                .BorderColor = borderColor
-                .BorderWidth = borderWidth
-            End If
-            .FontSize = 11
-            '.HoverColor = RGB(18, 40, 234) ' Darker blue   this can be set or let the automatic hover work
-            .BorderRadius = 3
-            .FontBold = boldFont
-            .PngIconPath = pngImagePath
-            .IconSize = iconSize
-            .IconSpacing = 8
-            .Enabled = startEnabled
-        End With
-    End Sub
-    
     Private Sub SetupCustomButtons()
         
         'setup the custom button user controls on the form
-        SetupCustomButton btnDownload, "", CUST_BTN_BCOLOR, vbWhite, "", 20, True, False
-        SetupCustomButton btnSelectDownloadFolder, "", CUST_BTN_BCOLOR, vbWhite, App.Path & "\folder.png", 20, True, False
-        SetupCustomButton btnSelecttBFolderLocation, "", CUST_BTN_BCOLOR, vbWhite, App.Path & "\folder.png", 20, True, False
-        SetupCustomButton btnRevert, "Revert", CUST_BTN_BCOLOR, vbWhite, App.Path & "\revert.png", 20, True, False
-        SetupCustomButton btnViewLogHistory, "View Log History", CUST_BTN_BCOLOR, vbWhite, App.Path & "\logHistory.png", 20, True, False
+        ConfigureCustomButton btnDownload, "", CUST_BTN_BCOLOR, vbWhite, "", 20, True, False
+        ConfigureCustomButton btnSelectDownloadFolder, "", CUST_BTN_BCOLOR, vbWhite, App.Path & "\folder.png", 20, True, False
+        ConfigureCustomButton btnSelecttBFolderLocation, "", CUST_BTN_BCOLOR, vbWhite, App.Path & "\folder.png", 20, True, False
+        ConfigureCustomButton btnRevert, "Revert", CUST_BTN_BCOLOR, vbWhite, App.Path & "\revert.png", 20, True, False
+        ConfigureCustomButton btnViewLogHistory, "View Log History", CUST_BTN_BCOLOR, vbWhite, App.Path & "\logHistory.png", 20, True, False
          
     End Sub
         
@@ -713,19 +698,6 @@ Class Form1
         ConfigureTypeFilterButton tfTip, "Tip", RGB(22, 83, 126) ' blueish
         ConfigureTypeFilterButton tfWarning, "Warning", RGB(153, 0, 0) ' dark red
         ConfigureTypeFilterButton tfFixed, "Fixed", RGB(56, 118, 29) ' green
-        
-    End Sub
-    
-    Public Sub ShowStatusMessage(statMessage As String, Optional updatePreviousStatus As Boolean = False)
-        
-        ' write the message to the listbox on the form
-        If updatePreviousStatus Then
-            actLog.AddEntry "", statMessage, True
-        Else
-            actLog.AddEntry Format(Now, "MM/dd/yy hh:mm:ss AM/PM: "), statMessage
-        End If
-
-        DoEvents()
         
     End Sub
 
@@ -768,4 +740,6 @@ Class Form1
         Set logFile = Nothing
         
     End Sub
+   
+
 End Class

@@ -117,9 +117,13 @@ Class ucActivityLog
         
     End Sub
     
-
     Private Sub m_Canvas_Paint()
-        RedrawCanvas
+        If SafeToRedraw Then
+            RedrawCanvas
+        Else
+            InvalidateRect m_Canvas.hWnd, ByVal 0&, 0
+        End If
+        
         
     End Sub
 
@@ -161,7 +165,10 @@ Class ucActivityLog
             .Value = m_ScrollOffset ' Or clamp it if needed
         End With
         
+        ' instead of calling a refresh to force it to paint, this will refresh the control when the control 
+        ' is ready which should releave any UI blocking
         m_Canvas.Refresh
+        'InvalidateRect m_Canvas.hWnd, ByVal 0&, 1
                 
     End Sub
 
@@ -218,45 +225,25 @@ Class ucActivityLog
         SetTextColor hdc, TEXT_COLOR_DARK
         TextOut hdc, msgX, yPos + 12, entry.LogMessage, Len(entry.LogMessage)
     End Sub
-    
-    ' Private Sub DrawTypeBadge(ByVal hdc As Long, ByVal x As Long, ByVal y As Long, entry As ActivityLogEntry)
-    '     Dim badgeRect As RECT
-    '     Dim hBrush As Long
-    '     Dim textSize As Size
-    '     Dim badgeWidth As Long
-    
-    '     ' Calculate badge size
-    '     GetTextExtentPoint32 hdc, entry.TypeText, Len(entry.TypeText), textSize
-    '     badgeWidth = textSize.cx + 16
-    
-    '     ' Set badge rectangle
-    '     badgeRect.Left = x
-    '     badgeRect.Top = y
-    '     badgeRect.Right = x + badgeWidth
-    '     badgeRect.Bottom = y + 24
-    
-    '     ' Draw rounded rectangle background
-    '     hBrush = CreateSolidBrush(entry.TypeColor)
-    '     SelectObject hdc, hBrush
-    '     RoundRect hdc, badgeRect.Left, badgeRect.Top, badgeRect.Right, badgeRect.Bottom, 8, 8
-    '     DeleteObject hBrush
-    
-    '     ' Draw badge text (white)
-    '     SetBkMode hdc, 1 ' TRANSPARENT
-    '     SetTextColor hdc, TEXT_COLOR_WHITE
-    '     TextOut hdc, x + 8, y + 4, entry.TypeText, Len(entry.TypeText)
-    ' End Sub
 
     Private Sub m_Canvas_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
         Dim clickedIndex As Long
         Dim actualIndex As Long
     
+        'WriteToDebugFile("m_Canvas_MouseDown Button: " & Button)
         If Button = 1 Then ' Left click
             clickedIndex = Int(y / ROW_HEIGHT) + m_ScrollOffset
-        
+            
+            'WriteToDebugFile("m_Canvas_MouseDown actualIndex: " & actualIndex)
             If actualIndex <> -1 Then
+                'WriteToDebugFile("m_Canvas_MouseDown clickedIndex: " & clickedIndex)
                 m_SelectedIndex = clickedIndex
-                RedrawCanvas
+                If SafeToRedraw Then
+                    RedrawCanvas
+                Else
+                    InvalidateRect m_Canvas.hWnd, ByVal 0&, 0
+                End If
+                
                 RaiseEvent ItemClick(clickedIndex)
             End If
         End If
@@ -270,12 +257,19 @@ Class ucActivityLog
 
     Private Sub m_VScrollBar_Change()
         m_ScrollOffset = m_VScrollBar.Value
-        RedrawCanvas
+        If SafeToRedraw Then
+            RedrawCanvas
+        Else
+            InvalidateRect m_Canvas.hWnd, ByVal 0&, 0
+        End If
+        
     End Sub
 
     Public Sub AddEntry(ByVal dateTime As String, ByVal LogMessage As String, Optional ByVal UpdateLastEntry As Boolean = False)
         
+        'WriteToDebugFile("Enter Add Entry " & LogMessage)
         If UpdateLastEntry Then
+            'WriteToDebugFile("     Update last entry")
             If m_EntryCount = 0 Then Exit Sub ' Safety
             ' Append to the last entry’s message
             m_Entries(m_EntryCount - 1).LogMessage = m_Entries(m_EntryCount - 1).LogMessage & " - " & LogMessage
@@ -295,6 +289,7 @@ Class ucActivityLog
             End If
 
         Else
+            'WriteToDebugFile("     New entry")
             Dim newEntry As ActivityLogEntry
         
             newEntry.DateTime = dateTime
@@ -328,9 +323,24 @@ Class ucActivityLog
             
         End If
         
-        RedrawCanvas
+        'WriteToDebugFile "     ---Canvas hWnd: " & m_Canvas.hWnd
+        'WriteToDebugFile "     ---Canvas hDC: " & m_Canvas.hDC
+        
+        If SafeToRedraw Then
+            RedrawCanvas
+        Else
+            InvalidateRect m_Canvas.hWnd, ByVal 0&, 0
+        End If
+        
+        'WriteToDebugFile("Exit Add Entry")
     End Sub
 
+    Function SafeToRedraw() As Boolean
+        SafeToRedraw = Not (m_Canvas Is Nothing Or m_Canvas.hDC = 0 Or Ambient.UserMode = False)
+        'WriteToDebugFile("       SafeToRedraw is " & SafeToRedraw)
+        
+    End Function
+    
     Private Sub UpdateScrollBar()
 
         Dim filteredCount As Long
@@ -362,21 +372,6 @@ Class ucActivityLog
         RedrawCanvas
     End Sub
 
-    Public Sub LoadSampleData()
-        ClearEntries
-        AddEntry "07/05 11:10:23", "Searched for settings file"
-        AddEntry "07/05 11:10:33", "Loaded settings", True
-        AddEntry "07/05 11:10:43", "Checking for new version on load"
-        AddEntry "07/05 11:10:53", "found version 842", True
-        AddEntry "07/05 11:10:43", "Checking for new version on load"
-        AddEntry "07/05 11:10:43", "Checking for new version on load"
-        AddEntry "07/05 11:10:43", "Checking for new version on load"
-        AddEntry "07/05 11:10:43", "Checking for new version on load"
-        AddEntry "07/05 11:10:43", "Checking for new version on load"
-        AddEntry "07/05 11:10:43", "Checking for new version on load"
-                
-    End Sub
-
     Private Sub UserControl_Resize()
         If Not m_Canvas Is Nothing Then
         
@@ -387,7 +382,12 @@ Class ucActivityLog
             m_VScrollBar.Height = UserControl.ScaleHeight - HEADER_HEIGHT
         
             UpdateScrollBar
-            RedrawCanvas
+            If SafeToRedraw Then
+                RedrawCanvas
+            Else
+                InvalidateRect m_Canvas.hWnd, ByVal 0&, 0
+            End If
+            
         End If
     End Sub
 
@@ -416,7 +416,12 @@ Class ucActivityLog
         If newVal <> m_VScrollBar.Value Then
             m_VScrollBar.Value = newVal
             m_ScrollOffset = newVal
-            RedrawCanvas
+            If SafeToRedraw Then
+                RedrawCanvas
+            Else
+                InvalidateRect m_Canvas.hWnd, ByVal 0&, 0
+            End If
+            
         End If
     End Sub
 
@@ -429,6 +434,14 @@ Class ucActivityLog
             OriginalCanvasProc = 0
         End If
         
+    End Sub
+    
+    Private Sub Class_Initialize()
+        
+    End Sub
+    
+    Private Sub Class_Terminate()
+        'WriteToDebugFile("ucActivityLog Terminate")
     End Sub
 
 End Class

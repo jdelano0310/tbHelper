@@ -1,7 +1,5 @@
 Attribute VB_Name = "modtBHelper"
-Private Declare PtrSafe Function CallWindowProc Lib "user32" Alias "CallWindowProcA" ( _
-ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, _
-ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As LongPtr) As Long
+Private Declare PtrSafe Function CallWindowProc Lib "user32" Alias "CallWindowProcA" (ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As LongPtr) As Long
 
 Private Const WM_MOUSEWHEEL As Long = &H20A
 
@@ -63,14 +61,44 @@ Public Function Canvas_WindowProc(ByVal hwnd As Long, ByVal uMsg As Long, ByVal 
     Canvas_WindowProc = CallWindowProc(OriginalCanvasProc, hwnd, uMsg, wParam, lParam)
 End Function
 
+Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As String, bkColor As OLE_COLOR, frColor As OLE_COLOR, _
+    pngImagePath As String, iconSize As Integer, startEnabled As Boolean, boldFont As Boolean, _
+    Optional borderColor As OLE_COLOR = 0, Optional borderWidth As Integer = 0)
+        
+    With theButton
+        .Caption = buttonCaption
+        .BackColor = bkColor
+        .ForeColor = frColor
+        If borderWidth > 0 Then
+            .BorderColor = borderColor
+            .BorderWidth = borderWidth
+        End If
+        .FontSize = 11
+        '.HoverColor = RGB(18, 40, 234) ' Darker blue   this can be set or let the automatic hover work
+        .BorderRadius = 3
+        .FontBold = boldFont
+        .PngIconPath = pngImagePath
+        .IconSize = iconSize
+        .IconSpacing = 8
+        .Enabled = startEnabled
+    End With
+End Sub
+
 Public Sub WriteToDebugFile(logFileLine As String)
     
     Dim logFileName As String = App.Path & "\debug_log.txt"
-    Dim fso As New FileSystemObject
-    Dim debugLogFile As TextStream = fso.OpenTextFile(logFileName, ForAppending, True)
+    Static debugLogFile As TextStream
+    
+    ' it this was not used then no reason to close it
+    If logFileLine = "CLOSE" And debugLogFile Is Nothing Then Exit Sub
+
+    ' open this once during app run
+    If debugLogFile Is Nothing Then Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
     
     debugLogFile.WriteLine(Format(Now, "mm/dd/yy hh:MM:ss") & ": " & logFileLine)
-    debugLogFile.Close()
+    
+    ' only close it if this is received - which should only be during form1 unload
+    If logFileLine = "CLOSE" Then debugLogFile.Close()
     
 End Sub
 
@@ -84,9 +112,11 @@ Public tbHelperClass As clstBHelper
 Public fso As FileSystemObject
 Public chgLogs As New colChangeLogItems
 Public githubReleasesURL As String = "https://github.com/twinbasic/twinbasic/releases"
+Public activityLog As ucActivityLog
 
 Public Function GetCurrentTBVersion(tBFolder As String) As String
-        
+
+    WriteToDebugFile("GetCurrentTBVersion " & tBFolder)
     ' attempt to find the version number of twinBasic in use
     Dim fileWithVersionInfo As String = tBFolder & "ide\build.js"
     Dim versionIndicator As String = "BETA"
@@ -106,7 +136,8 @@ Public Function GetCurrentTBVersion(tBFolder As String) As String
     GetCurrentTBVersion = Mid(tempString, Len(versionIndicator) + 1, 4)
     
     tbHelperClass.InstalledtBVersion = GetCurrentTBVersion
-        
+    WriteToDebugFile("Exit GetCurrentTBVersion")
+    
 End Function
 
 Public Function fsoFileRead(filePath As String) As String
@@ -212,3 +243,16 @@ Public Function IsProcessRunning(ByVal ProcessName As String) As Boolean
     
 End Function
 
+Public Sub ShowStatusMessage(statMessage As String, Optional updatePreviousStatus As Boolean = False)
+    
+    'WriteToDebugFile("In ShowStatusMessage " & statMessage)
+    ' write the message to the listbox on the form
+    If updatePreviousStatus Then
+        activityLog.AddEntry "", statMessage, True
+    Else
+        activityLog.AddEntry Format(Now, "MM/dd/yy hh:mm:ss AM/PM: "), statMessage
+    End If
+
+    'DoEvents()
+    'WriteToDebugFile("Out ShowStatusMessage ")
+End Sub

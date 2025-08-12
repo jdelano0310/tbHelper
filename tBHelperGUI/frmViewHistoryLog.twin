@@ -7,37 +7,26 @@ Class frmViewHistoryLog
     End Sub
     
     Dim logContents As New colHistoryLogItems
+    Dim fillingLogDuringFormLoad As Boolean
     
     Private Sub Form_Load()
+        ShowStatusMessage "Opening log file view"
         
-        With btnDeleteLog
-            .Caption = "Delete Log"
-            .BackColor = &HA2640C
-            .ForeColor = vbWhite  ' White
-            .FontSize = 11
-            .HoverColor = RGB(18, 40, 234) ' Darker blue
-            .BorderRadius = 6
-            .FontBold = True
-            .PngIconPath = App.Path & "\delete.png"
-            .IconSize = 16
-            .IconSpacing = 8
-            .Enabled = False
-        End With
+        ConfigureCustomButton btnDeleteLog, "Delete Log", &HA2640C, vbWhite, App.Path & "\delete.png", 20, False, False
         
         SetupActivityLog
         
-        If Not FillLogHistoryGrid Then
-            'UpdateStatusPanel ""
-            btnDeleteLog.Enabled = False
-            Exit Sub
-        End If
+        fillingLogDuringFormLoad = True
+        btnDeleteLog.Enabled = FillLogHistoryGrid
+        fillingLogDuringFormLoad = False
         
-        Form1.ShowStatusMessage "- loaded", True
+        ShowStatusMessage "Ready"
+        
     End Sub
 
     Private Sub Form_Unload(Cancel As Integer)
         Set logContents = Nothing
-        Form1.ShowStatusMessage "View log closed"
+
     End Sub
     
     Private Sub btnDeleteLog_Click()
@@ -46,7 +35,7 @@ Class frmViewHistoryLog
         If MsgBox("Are you sure you want to delete the log.txt file?", vbYesNo, "Confirmation") = vbNo Then Exit Sub
         
         fso.DeleteFile(App.Path & "\log.txt")
-        Form1.ShowStatusMessage "Log.txt has been deleted."
+        ShowStatusMessage "Log.txt has been deleted."
         
         If tbHelperSettings.LogActivity Then
             tbHelperSettings.LogActivity = MsgBox("The setting to write to a log file is still active. Should this be turned off?", vbYesNo, "Write to log File") = vbNo
@@ -57,6 +46,7 @@ Class frmViewHistoryLog
         
         DatePicker.Cls()
         lbDropdown.Clear()
+        btnDeleteLog.Enabled = False
         
     End Sub
     
@@ -135,6 +125,13 @@ Class frmViewHistoryLog
     End Sub
     
     Private Sub lbDropdown_Click()
+        
+        If fillingLogDuringFormLoad Then
+            ' when loading the form there is no need to run this click
+            DatePicker.Item = "Show All"
+            Exit Sub
+        End If
+        
         If lbDropdown.ListIndex > -1 Then
             
             DatePicker.Item = lbDropdown.Text ' Update the picker display
@@ -142,6 +139,8 @@ Class frmViewHistoryLog
             
             ' Hide the list
             HideZipList
+            
+            FillLogHistoryGrid lbDropdown.Text
         End If
     End Sub
     
@@ -153,11 +152,12 @@ Class frmViewHistoryLog
     Public Function FillLogHistoryGrid(Optional ViewDate As String = "") As Boolean
     
         ' open the log text file and display it in the flexgrid
-
+        
         Dim logItem As clsHistoryLogItem
         Dim itemColor As Long
         Dim colNum As Integer
     
+        Me.MousePointer = vbHourglass
         If Not logContents.LoadLog Then
             MsgBox("There was an issue reading the log file", vbExclamation, "View log")
             FillLogHistoryGrid = False
@@ -178,7 +178,7 @@ Class frmViewHistoryLog
                 End If
             
             End With
-            DoEvents()
+            'DoEvents()
         
         Next
     
@@ -197,7 +197,10 @@ Class frmViewHistoryLog
             End With
         End If
     
+        Me.MousePointer = vbDefault
+        'DoEvents()
         FillLogHistoryGrid = True
+        
     End Function
     
 End Class

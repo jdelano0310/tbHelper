@@ -26,10 +26,10 @@ Class frmMessageBox
         buttonNumber = 0
         
         SetupCustomButton btnOk, sBtn1, CUST_BTN_BCOLOR, vbWhite, "", 20, True, False
-        SetupCustomButton btnCancel, sBtn2, CUST_BTN_BCOLOR, vbWhite, "", 20, True, False
+        SetupCustomButton btnCancel, sBtn2, vbWhite, CUST_BTN_BCOLOR, "", 20, True, False
         btnCancel.Visible = Not sBtn2 = vbNullString
         
-        lblMessage.Caption = sText
+        RTFMessage.Message = sText
         Me.Caption = sTitle
         Me.Visible = True
         Me.ZOrder 0
@@ -78,5 +78,11 @@ Class frmMessageBox
             .Enabled = startEnabled
         End With
     End Sub
+    
+    Private Sub Form_Unload(Cancel As Integer)
+        ' just closing using the form close button is the same as canceling
+        buttonNumber = -1
+    End Sub
+    
     
 End Class

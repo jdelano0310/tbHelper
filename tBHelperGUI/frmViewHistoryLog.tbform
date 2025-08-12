@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 290601955,
+		"__lastUpdateMarker": 1537152901,
 		"_children": [
 			{
 				"Alignment": "vbLeftJustify",
@@ -274,7 +274,7 @@
 				"DragIcon": "",
 				"DragMode": "vbManual",
 				"Enabled": true,
-				"Height": 24,
+				"Height": 25,
 				"Index": -1,
 				"InternalSectionId": -1,
 				"Left": 14,
@@ -289,7 +289,7 @@
 				"StretchMode": "vbStretchHalftone",
 				"Tag": null,
 				"ToolTipText": null,
-				"Top": 124,
+				"Top": 119,
 				"Visible": true,
 				"WhatsThisHelpID": 0,
 				"Width": 19,
@@ -372,7 +372,7 @@
 				"VerticalAlignment": "vbVerticalAlignTop",
 				"Visible": true,
 				"WhatsThisHelpID": 0,
-				"Width": 115,
+				"Width": 120,
 				"WordWrap": false,
 				"_className": "Label",
 				"_clsid": "{33AD4ED8-6699-11CF-B70C-00AA0060D393}"
@@ -412,7 +412,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 7408620
+				"canvashWnd": 200396
 			},
 			{
 				"Anchors": {

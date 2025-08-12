@@ -35,6 +35,7 @@ Private Declare PtrSafe Function CombineRgn Lib "gdi32" (ByVal hrgnDest As LongP
 Public Declare Function GetModuleFileName Lib "kernel32" Alias "GetModuleFileNameA" (ByVal hModule As Long, ByVal lpFileName As String, ByVal nSize As Long) As Long
 Public Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
 Public Declare Function ScreenToClient Lib "user32" (ByVal hWnd As Long, lpPoint As POINTAPI) As Long
+Public Declare Function InvalidateRect Lib "user32" (ByVal hWnd As Long, ByVal lpRect As Long, ByVal bErase As Long) As Long
 
 '-- GDI+ Types
 Private Type ColorMatrix
@@ -81,6 +82,7 @@ Private Const HWND_TOP As Long = 0
 Private Const SWP_NOMOVE As Long = &H2
 Private Const SWP_NOSIZE As Long = &H1
 
+Public m_GdiplusToken As Long
 Public GDIPlus_Ready As Boolean
 Private GdiPlusToken As Long
 

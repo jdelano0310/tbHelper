@@ -7,47 +7,36 @@ Class frmRevert
     Dim revertToCLs As New colChangeLogItems
     Dim revertToVersion As Integer
     Dim revertToVersionRequiresDownload As Boolean
+    Dim ignoreClickEvent As Boolean
+    Private Const maxVersions = 9
     
     Private Sub Form_Load()
+        
+        ShowStatusMessage "Opening Revert"
+        
+        ignoreClickEvent = True
         FillAvailableZips
+        ignoreClickEvent = False
         
         SetupButtons
+        SetChangeLogHeader
         
-        lblCurrentVersion.Caption = " version: " & tbHelperClass.InstalledtBVersion
+        lblCurrentVersion.Caption = tbHelperSettings.twinBASICFolder & "                containing: " & tbHelperClass.InstalledtBVersion
+        lblCurrentDownloadFolder.Caption = tbHelperSettings.DownloadFolder
         
-        
+        ShowStatusMessage "Ready"
     End Sub
 
+    Private Sub Form_Unload(Cancel As Integer)
+        
+        Set revertToCLs = Nothing
+        
+    End Sub
+    
     Private Sub SetupButtons()
-        
-        'setup the user control download button
-        With btnRevert
-            .Caption = "Revert"
-            .BackColor = &HA2640C
-            .ForeColor = vbWhite  ' White
-            .FontSize = 11
-            .HoverColor = RGB(18, 40, 234) ' Darker blue
-            .BorderRadius = 6
-            .FontBold = True
-            .PngIconPath = App.Path & "\revert_blue button.png"
-            .IconSize = 16
-            .IconSpacing = 8
-            .Enabled = False
-        End With
-        
-        'setup the user control download button
-        With btnGetVersionsFromGitHub
-            .Caption = "Get Versions From GitHub"
-            .BackColor = &HA2640C
-            .ForeColor = vbWhite  ' White
-            .FontSize = 11
-            .HoverColor = RGB(18, 40, 234) ' Darker blue
-            .BorderRadius = 6
-            .FontBold = True
-            .PngIconPath = App.Path & "\download.png"
-            .IconSize = 16
-            .IconSpacing = 8
-        End With
+                
+        ConfigureCustomButton btnRevert, "Revert", CUST_BTN_BCOLOR, vbWhite, App.Path & "\revert.png", 20, False, False
+        ConfigureCustomButton btnGetVersionsFromGitHub, "Get Versions From GitHub", CUST_BTN_BCOLOR, vbWhite, App.Path & "\download.png", 20, True, False
         
     End Sub
     
@@ -57,15 +46,15 @@ Class frmRevert
         Dim tBZipFiles As String
         Dim zipFileVersion As String
         Dim zipFileName As String
-        Dim fso As New FileSystemObject
-
+        
         tBZipFiles = Dir(tbHelperSettings.DownloadFolder & "twinBASIC_IDE_BETA_*.*")
 
         If Len(tBZipFiles) > 0 Then
-            lbDropdown.AddItem("Select previous version")
-            
+            ZipPicker.Item = "Select version to revert to"
         Else
-            lbDropdown.AddItem("No previous versions found")
+            ' TODO: ask the user if they want this to go to GitHub and get the versions from Pg1 of the releases
+            '       without them having to click the "Get from GitHub" button
+            ZipPicker.Item = "No local previous versions found"
             Exit Sub
         End If
 
@@ -80,34 +69,40 @@ Class frmRevert
                 zipFileVersion = Mid(zipFileName, InStr(zipFileName, "BETA_") + 5, 4)
                 If Right(zipFileVersion, 1) = "." Then zipFileVersion = Left(zipFileVersion, Len(zipFileVersion) - 1)
                 
-                ' keeping the list of revertable versions to with in 10 from the previous version 
+                ' keeping the list of revertable versions to with in 9 from the previous version 
                 ' of the current installed version
-                If tbHelperClass.InstalledtBVersion - 11 <= CInt(zipFileVersion) Then
+                If tbHelperClass.InstalledtBVersion - maxVersions <= CInt(zipFileVersion) Then
                     ' save a list of the versions of available in the local zip files
                     localVersions = localVersions & zipFileVersion & ";"
 
-                    lbDropdown.AddItem(zipFileName)
+                    lstZipFiles.AddItem(zipFileName)
                 End If
                 
             End If
             tBZipFiles = Dir()
         Loop
-
+        
+        ' if there are 9 locally to choose from, no need to grab any from GitHub
+        If lstZipFiles.ListCount = 9 Then
+            btnGetVersionsFromGitHub.Enabled = False
+            btnGetVersionsFromGitHub.ToolTipText = "The max number of versions to revert too are local"
+        End If
+        
     End Sub
     
     Private Sub ZipPicker_DropDown()
 
         ' toggle the dropdown if it is visible
-        If lbDropdown.Visible Then
+        If lstZipFiles.Visible Then
             HideZipList()
             Exit Sub
         End If
 
         ' Find the currently selected version in the list and highlight it
         Dim i As Long
-        For i = 0 To lbDropdown.ListCount - 1
-            If lbDropdown.List(i) = ZipPicker.Item Then
-                lbDropdown.ListIndex = i
+        For i = 0 To lstZipFiles.ListCount - 1
+            If lstZipFiles.List(i) = ZipPicker.Item Then
+                lstZipFiles.ListIndex = i
                 Exit For
             End If
         Next i
@@ -115,7 +110,7 @@ Class frmRevert
         Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
         Const LIST_HEIGHT As Long = 1200
         
-        With lbDropdown
+        With lstZipFiles
             .Width = ZipPicker.Width - (BORDER_SIZE * 2)
             .Height = LIST_HEIGHT
             .Left = ZipPicker.Left
@@ -124,40 +119,54 @@ Class frmRevert
         End With
 
         With picDropDownBorder
-            .Move lbDropdown.Left - BORDER_SIZE, _
-                    lbDropdown.Top - BORDER_SIZE, _
-                    lbDropdown.Width + (BORDER_SIZE * 2), _ 
-                    lbDropdown.Height + (BORDER_SIZE * 2)
+            .Move lstZipFiles.Left - BORDER_SIZE, _
+                    lstZipFiles.Top - BORDER_SIZE, _
+                    lstZipFiles.Width + (BORDER_SIZE * 2), _ 
+                    lstZipFiles.Height + (BORDER_SIZE * 2)
             .Visible = True
         End With
 
         ApplyBottomRoundedCorners picDropDownBorder, 4, 4 ' Apply to the border first
-        ApplyBottomRoundedCorners lbDropdown, 4, 4, True         ' Then apply to the listbox
+        ApplyBottomRoundedCorners lstZipFiles, 4, 4, True         ' Then apply to the listbox
             
         BringWindowToTop picDropDownBorder.hWnd ' Bring border to the top
-        BringWindowToTop lbDropdown.hWnd
+        BringWindowToTop lstZipFiles.hWnd
 
     End Sub
     
     Private Sub HideZipList()
     
-        lbDropdown.Visible = False
+        lstZipFiles.Visible = False
         picDropDownBorder.Visible = False
     
     End Sub
     
-    Private Sub lbDropdown_Click()
-        If lbDropdown.ListIndex > -1 Then
-            
-            ZipPicker.Item = lbDropdown.Text ' Update the picker display
+    Private Sub lstZipFiles_Click()
+        
+        If lstZipFiles.ListIndex > -1 Then
+            Me.MousePointer = vbHourglass
+            ZipPicker.Item = lstZipFiles.Text ' Update the picker display
             ZipPicker.Collapse()
             
             ' Hide the list
             HideZipList
+            
             ' Show Change Log for the select twinBASIC version
+            Dim selectedVersion As Integer
+            selectedVersion = Mid(lstZipFiles.List(lstZipFiles.ListIndex), InStr(lstZipFiles.List(lstZipFiles.ListIndex), "BETA_") + 5, 4)
+            If Right(selectedVersion, 1) = "." Then selectedVersion = Left(selectedVersion, Len(selectedVersion) - 1)
             
-            
+            ' is this version available locally?
+            ' compare the version selected against the list stored in a string when the dropdown was first filled
+            revertToVersionRequiresDownload = InStr(localVersions, ";" & selectedVersion & ";") > -1
+        
+            revertToVersion = CInt(selectedVersion)
+        
+            lblChangeLogTitle.Caption = "ChangeLog for version " & selectedVersion
+            FillChangeLogView()
+        
             btnRevert.Enabled = True
+            Me.MousePointer = vbDefault
         End If
     End Sub
     
@@ -166,52 +175,199 @@ Class frmRevert
         HideZipList
     End Sub
 
-    ' Private Sub FillChangeLogGrid()
+    Private Sub FillChangeLogView()
 
-    '     Dim revertToCL As clsChangeLogItem
-    '     Dim itemColor As Long
-    '     Dim colNum As Integer
+        Dim revertToCL As clsChangeLogItem
+        Dim itemColor As Long
+        Dim colNum As Integer
         
-    '      flgLog.Rows = 1
-    '     If revertToCLs.Count > 0 Then
-    '         ' the user clicked the get from github button
-    '         FillGridFrom()
-    '     Else
-    '         Dim localLogs As New colHistoryLogItems
+        rvtVersionChangeLog.ClearEntries()
+        If revertToCLs.Count > 0 Then
+            ' the user clicked the get from github button or selected a zip to view once
+            FillEntries()
+        Else
+            Dim localLogs As New colHistoryLogItems
             
-    '         ' check for the local log file
-    '         If Not localLogs.LoadLog() Then
-    '             ' there are no logs to use
-    '             If revertToCLs Is Nothing Then GetChangeLogsFromGitHub()
+            ' check for the local log file having the change log of the selected version to revert to
+            If Not localLogs.SearchLog() Then
+                ' there are no logs to use
+                If revertToCLs Is Nothing Then GetChangeLogsFromGitHub()
                     
-    '             FillGridFrom()
-    '         Else
-    '             ' there is a log file, search for the selected version change log
-    '             Dim Li As Integer
+                FillEntries()
+            Else
+                ' there is a log file, search for the selected version change log
+                Dim Li As Integer
                 
-    '             ' add the logs to the object the fill grid uses
-    '             For Li = 1 To localLogs.Count
-    '                 Set revertToCL = localLogs.Item(Li).LogCLI
-    '                 If revertToCL.tBVersion = revertToVersion Then
-    '                     revertToCLs.Add(revertToCL.tBVersion, revertToCL.Type, revertToCL.Notes)
-    '                 End If
-    '                 Set revertToCL = Nothing
-    '             Next
+                ' add the logs to the object the fill grid uses
+                For Li = 1 To localLogs.Count
+                    Set revertToCL = localLogs.Item(Li).LogCLI
+                    If revertToCL.tBVersion = revertToVersion Then
+                        revertToCLs.Add(revertToCL.tBVersion, revertToCL.Type, revertToCL.Notes)
+                    End If
+                    Set revertToCL = Nothing
+                Next
                 
-    '             If revertToCLs.Count = 0 Then
-    '                 ' the change log is not in the history log, fetch it from the releases page
-    '                 GetChangeLogsFromGitHub()
-    '             End If
+                If revertToCLs.Count = 0 Then
+                    ' the change log is not in the history log, fetch it from the releases page
+                    GetChangeLogsFromGitHub()
+                End If
                 
-    '             FillGridFrom()
+                FillEntries()
 
-    '         End If
+            End If
             
-    '         Set localLogs = Nothing
+            Set localLogs = Nothing
             
-    '     End If
+        End If
                 
-    '     Set revertToCL = Nothing
+        Set revertToCL = Nothing
         
-    ' End Sub
+    End Sub
+
+    Private Sub GetChangeLogsFromGitHub()
+        
+        ShowStatusMessage "Collecting data from Github"
+            tbHelperClass.InstalledtBVersion = tbHelperClass.InstalledtBVersion - maxVersions  ' set the code to get the 9 prev versions
+            revertToCLs.GetNewerReleasedVersions()
+            tbHelperClass.InstalledtBVersion = tbHelperClass.InstalledtBVersion + maxVersions  ' return the installed version back
+        ShowStatusMessage "done", True
+        
+    End Sub
+
+    Private Sub FillGitHubZips()
+        
+        ' display a like of the last 9 versions the user can to revert to
+        Dim revertToCL As clsChangeLogItem
+        Dim lastVersionAdded As Integer = 0
+       
+        ' load the change logs of the previous 10 twinBASIC versions, uses 10 because the newest will be ignored 
+        ' if it is the same as the one installed, if not then it'll be an available version to update to
+        ' just incase one is made available inbetween last check and now
+        GetChangeLogsFromGitHub()
+        
+        ZipPicker.Item = "Select version to revert to"
+        
+        lstZipFiles.Clear()
+        For Each revertToCL In revertToCLs
+            
+            If revertToCL.tBVersion <> tbHelperClass.InstalledtBVersion Then
+                ' only need to write the versions to the dropdown once
+                If revertToCL.tBVersion <> lastVersionAdded Then
+                
+                    ' indicate location of each version written 
+                    Dim versionNote As String
+                    
+                    If revertToCL.tBVersion > tbHelperClass.InstalledtBVersion Then
+                        versionNote = "[*NEW*]" ' found a new tB version
+                    ElseIf InStr(localVersions, ";" & revertToCL.tBVersion & ";") > 1 Then
+                        versionNote = "[local]" ' this is available locally
+                    Else
+                        versionNote = ""
+                    End If
+                    
+                    lstZipFiles.AddItem("twinBASIC_IDE_BETA_" & revertToCL.tBVersion & ".zip" & " " & versionNote)
+                    lastVersionAdded = revertToCL.tBVersion
+                End If
+            End If
+        Next
+        
+        ' check to make sure the last version is added, 
+        ' if this if statement fails then page 1 of the releases page doesn't have 11 to choose from
+        If lastVersionAdded = tbHelperClass.InstalledtBVersion Then
+            lstZipFiles.AddItem("twinBASIC_IDE_BETA_" & lastVersionAdded & ".zip") ' add the last one
+        End If
+'        ElseIf lastVersionAdded < tbHelperClass.InstalledtBVersion Then
+        ' 9 aren't available - adjust the caption above the dropdown list
+ '       lblAvailableZips.Caption = "Only 9 avail from Pg:1 Releases "
+    
+    End Sub
+    
+    Private Sub FillEntries()
+        
+        Dim revertToCL As clsChangeLogItem
+        For Each revertToCL In revertToCLs
+            If revertToCL.tBVersion = revertToVersion Then
+                rvtVersionChangeLog.AddEntry(revertToCL.Type, revertToCL.Notes)
+                'DoEvents()
+            End If
+        Next
+        
+    End Sub
+    
+    Private Sub SetChangeLogHeader()
+        
+        Dim clgColumns(1) As New clsChangeLogColumn
+        clgColumns(0).Name = "TYPE"
+        clgColumns(0).Width = 140
+        clgColumns(0).WrappedEnabled = False
+
+        clgColumns(1).Name = "DESCRIPTION"
+        clgColumns(1).Width = 550
+        clgColumns(1).WrappedEnabled = True
+
+        rvtVersionChangeLog.SetColumns = clgColumns
+
+    End Sub
+    
+    Private Sub btnGetVersionsFromGitHub_Click()
+        
+        ignoreClickEvent = True  ' don't run the click event code when the versions from GitHub are added to the dropdown 
+        'lblAvailableZips.Caption = "Last 9 versions to revert to "
+        lblCurrentDownloadFolder.Caption = lblCurrentDownloadFolder.Caption & " and GitHub"
+        ShowStatusMessage "Getting versions to revert to from GitHub"
+        FillGitHubZips
+        ShowStatusMessage "done", True
+        ignoreClickEvent = False
+        
+    End Sub
+    
+    Private Sub btnRevert_Click()
+        
+        If MsgBox("Are you sure you want to revert the current version of twinBASIC (" & tbHelperClass.InstalledtBVersion & ") to version " & _ 
+            revertToVersion & "?", vbYesNo, "Reverting twinBASIC") = vbNo Then Exit Sub
+        
+        ShowStatusMessage "Selected to revert from version " & tbHelperClass.InstalledtBVersion & " to " & revertToVersion
+        
+        ' check that the IDE is closed before attempting to revert
+        If Not IsCodeRunningInTheIDE Then
+            Do While IsProcessRunning("twinbasic.exe")
+                ShowStatusMessage "not allowed while the IDE is open", True
+                If MsgBox("The twinBASIC IDE is running, you can not revert to version " & revertToVersion & " while it is open." & vbCrLf & _ 
+                    "Please close the IDE or click cancel to abort.", vbOKCancel, "Reverting twinBASIC") = vbCancel Then
+                    btnRevert.Enabled = False
+                    Exit Sub
+                End If
+            Loop
+            
+        Else
+            ' this is for my dumb ass
+            MsgBox("You can not revert while running the project in the IDE", vbInformation, "Revert twinBASIC")
+            ShowStatusMessage "not allowed while in the IDE", True
+            Exit Sub
+
+        End If
+        
+        ' revert the version in the twinBASIC location
+        Dim revertToZipFileName As String
+        
+        revertToZipFileName = tbHelperSettings.DownloadFolder & "\" & ZipPicker.Item
+        revertToZipFileName = Replace(revertToZipFileName, "[local]", "")
+        
+        If revertToVersionRequiresDownload Then
+        
+            ' the user selected a version of twinBASIC that is not available locally
+            Dim revertToURL As String = githubReleasesURL & "/download/beta-x-" & IIf(revertToVersion < 1000, "0" & CStr(revertToVersion), revertToVersion)
+            
+            ShowStatusMessage "Revert requires downloading twinBASIC " & revertToVersion
+            URLDownloadToFile 0, revertToURL & "/" & ZipPicker.Item, revertToZipFileName, 0, 0
+            ShowStatusMessage " - done ", True
+                
+        End If
+        
+        ShowStatusMessage "Expanding twinBASIC " & revertToVersion
+        InstallTwinBasic(revertToZipFileName)
+        ShowStatusMessage "done", True
+    End Sub
+    
+
 End Class
