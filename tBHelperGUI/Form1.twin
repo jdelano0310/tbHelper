@@ -9,6 +9,8 @@ Class Form1
     
     Private Sub Form_Load()
         
+        Set fso = New FileSystemObject
+       
         _downloadIcon = App.Path & "\download.png"
         _checkForNewIcon = App.Path & "\binoculars.png"
         
@@ -26,7 +28,6 @@ Class Form1
         Me.MousePointer = vbHourglass
         'DoEvents()
         
-        Set fso = New FileSystemObject
         Set activeTypeFilters = New Scripting.Dictionary
         Set activityLog = actLog
         
@@ -80,6 +81,7 @@ Class Form1
 
     Private Sub Form_Unload(Cancel As Integer)
 
+        ' check for exit application procedures
         If tbHelperSettings.SettingsChanged Then tbHelperSettings.SaveSettings()
         
         If tbHelperSettings.LogActivity Then WriteToLogFile
@@ -88,7 +90,7 @@ Class Form1
         Set tbHelperClass = Nothing
         Set activeTypeFilters = Nothing
         
-        WriteToDebugFile "CLOSE" ' this tells the procedure to close the debug log file 
+        'WriteToDebugFile "CLOSE" ' this tells the procedure to close the debug log file 
         
         Set fso = Nothing
         
@@ -99,13 +101,15 @@ Class Form1
         Dim Dlg As New frmSelectFolder
         Dim Path As String
     
-        Dlg.Caption = "Select Download folder"
         If Len(tbHelperSettings.DownloadFolder) > 0 Then Dlg.SelectedPath = tbHelperSettings.DownloadFolder
+        Dlg.Caption = "Select Download folder"
+        
         Path = Dlg.ShowAsDialog()
     
         If Len(Path) > 0 Then
             If Right(Path, 1) <> "\" Then Path = Path & "\"
             txtDownloadFolder.Text = Path
+            tbHelperSettings.DownloadFolder = Path
         Else
             MessageBox("You didn’t choose a folder, [b]so the operation was cancelled[/b].", , "No selection")
         End If
@@ -117,13 +121,15 @@ Class Form1
         Dim Dlg As New frmSelectFolder
         Dim Path As String
     
-        Dlg.Caption = "Select twinBASIC folder"
         If Len(tbHelperSettings.twinBASICFolder) > 0 Then Dlg.SelectedPath = tbHelperSettings.twinBASICFolder
+        Dlg.Caption = "Select twinBASIC folder"
+        
         Path = Dlg.ShowAsDialog()
     
         If Len(Path) > 0 Then
             If Right(Path, 1) <> "\" Then Path = Path & "\"
             txttBFolderLocation.Text = Path
+            tbHelperSettings.twinBASICFolder = Path
         Else
             MessageBox("You didn’t choose a folder, [b]so the operation was cancelled[/b].", , "No selection")
         End If
@@ -133,29 +139,26 @@ Class Form1
     
     Private Sub btnRevert_Click()
         
-        WriteToDebugFile("btnRevert Click")
         Dim frm As New frmRevert
         frm.Show(vbModal)
         Unload(frm)
-        WriteToDebugFile("Revert form closed and unloaded")
         ShowStatusMessage "Closed revert form"
         
     End Sub
     
     Private Sub btnViewLogHistory_Click()
         
-        WriteToDebugFile("btnViewLogHistory Click")
+
         Dim frm As New frmViewHistoryLog
         frm.Show(vbModal)
         Unload(frm)
-        WriteToDebugFile("ViewLogHistory form closed and unloaded")
+
         ShowStatusMessage "Closed View Log History form"
     End Sub
     
     Private Sub btnDownload_Click()
         
         ' is the download button captioned to check for which version is available on GitHub
-        WriteToDebugFile("btnDownload Click")
         Me.MousePointer = vbHourglass
         If btnDownload.Caption = "Check for new version" Then
             ShowStatusMessage "Manual check for new version"
@@ -181,7 +184,6 @@ Class Form1
             End If
         
             Me.MousePointer = vbDefault
-            WriteToDebugFile("Exiting Manual check for tb version")
             Exit Sub  ' leave the sub
         End If
     
@@ -435,7 +437,7 @@ Class Form1
     End Sub
     
     Private Sub ConfigureTypeFilterButton(tfButton As ucTypeFilter, buttonCaption As String, buttonBackColor As Long, Optional FilterText As String = "")
-
+        
         If FilterText = "" Then FilterText = buttonCaption
         
         tfButton.BorderRadius = 3
@@ -449,7 +451,7 @@ Class Form1
     End Sub
     
     Private Sub EnableDownloadZipButton()
-        
+
         ' should the download zip button be enabled?
         btnDownload.Enabled = FoldersAreValid And (chgLogs.tBVersionGap > 0 Or btnDownload.Caption = "Check for new version")
         
@@ -487,7 +489,7 @@ Class Form1
         
     End Sub
     Private Function FoldersAreValid() As Boolean
-        
+    
         ' check to see if both folders are valid
         Dim theyAreValid As Boolean
         theyAreValid = (txtDownloadFolder.BackColor <> vbRed And Len(txtDownloadFolder.Text) > 0) And _ 
@@ -628,7 +630,7 @@ Class Form1
     End Sub
 
     Private Sub SetChangeLogHeader()
-        
+    
         Dim clgColumns(2) As New clsChangeLogColumn
         clgColumns(0).Name = "VERSION"
         clgColumns(0).Width = 70

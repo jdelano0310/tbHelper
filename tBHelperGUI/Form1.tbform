@@ -5,7 +5,7 @@
 		"AutoRedraw": false,
 		"BackColor": -2147483633,
 		"BorderStyle": "vbFixedSingle",
-		"Caption": "tB Helper alpha 2",
+		"Caption": "tB Helper beta 1",
 		"ClipControls": true,
 		"ControlBox": true,
 		"DrawMode": "vbCopyPen",
@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 691875548,
+		"__lastUpdateMarker": 1973570152,
 		"_children": [
 			{
 				"Anchors": {
@@ -1571,6 +1571,7 @@
 				"DragIcon": "",
 				"DragMode": "vbManual",
 				"Enabled": false,
+				"FilterText": null,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1612,6 +1613,7 @@
 				"DragIcon": "",
 				"DragMode": "vbManual",
 				"Enabled": false,
+				"FilterText": null,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1653,6 +1655,7 @@
 				"DragIcon": "",
 				"DragMode": "vbManual",
 				"Enabled": false,
+				"FilterText": null,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1694,6 +1697,7 @@
 				"DragIcon": "",
 				"DragMode": "vbManual",
 				"Enabled": false,
+				"FilterText": null,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1735,6 +1739,7 @@
 				"DragIcon": "",
 				"DragMode": "vbManual",
 				"Enabled": false,
+				"FilterText": null,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1776,6 +1781,7 @@
 				"DragIcon": "",
 				"DragMode": "vbManual",
 				"Enabled": false,
+				"FilterText": null,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1817,6 +1823,7 @@
 				"DragIcon": "",
 				"DragMode": "vbManual",
 				"Enabled": false,
+				"FilterText": null,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1858,6 +1865,7 @@
 				"DragIcon": "",
 				"DragMode": "vbManual",
 				"Enabled": false,
+				"FilterText": null,
 				"FontSize": 0,
 				"Height": 22,
 				"HelpContextID": 0,
@@ -1918,7 +1926,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 11274792
+				"canvashWnd": 1118064
 			},
 			{
 				"Anchors": {
@@ -2075,7 +2083,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 3213748
+				"canvashWnd": 1707902
 			},
 			{
 				"Anchors": {

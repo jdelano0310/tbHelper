@@ -231,8 +231,9 @@ Public Function GetNewerReleasedVersions(Optional isDuringFormLoad As Boolean = 
     Dim latesttBVersion As Integer
     
     tagText = GetTagText("h2", "twinBASIC BETA")
-    latesttBVersion = Trim(Right(tagText, 4))
- 
+    'latesttBVersion = Trim(Right(tagText, 4))
+    latesttBVersion = GetVersionNumber(tagText)
+    
     _latestVersion = CInt(latesttBVersion)
     
     If CInt(latesttBVersion) <= tbHelperClass.InstalledtBVersion Then
@@ -255,6 +256,26 @@ Public Function GetNewerReleasedVersions(Optional isDuringFormLoad As Boolean = 
     On Error GoTo 0
     
     GetNewerReleasedVersions = True
+    
+End Function
+
+Private Function GetVersionNumber(fromText As String) As String
+    
+    ' find the version number from the string passed
+    ' simply appending each number found
+    Dim versionNumber As String
+    Dim i As Integer
+    Dim aChar As String
+    
+    For i = 1 To Len(fromText)
+        aChar = Mid(fromText, i, 1)
+        If IsNumeric(aChar) Then
+            versionNumber = versionNumber & aChar
+        End If
+        
+    Next i
+
+    GetVersionNumber = versionNumber
     
 End Function
 

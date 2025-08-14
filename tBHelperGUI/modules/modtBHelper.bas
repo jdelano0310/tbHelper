@@ -64,7 +64,9 @@ End Function
 Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As String, bkColor As OLE_COLOR, frColor As OLE_COLOR, _
     pngImagePath As String, iconSize As Integer, startEnabled As Boolean, boldFont As Boolean, _
     Optional borderColor As OLE_COLOR = 0, Optional borderWidth As Integer = 0)
-        
+    
+    WriteToDebugFile "ConfigureCustomButton " & buttonCaption
+    
     With theButton
         .Caption = buttonCaption
         .BackColor = bkColor
@@ -93,7 +95,9 @@ Public Sub WriteToDebugFile(logFileLine As String)
     If logFileLine = "CLOSE" And debugLogFile Is Nothing Then Exit Sub
 
     ' open this once during app run
-    If debugLogFile Is Nothing Then Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
+    If debugLogFile Is Nothing Then
+        Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
+    End If
     
     debugLogFile.WriteLine(Format(Now, "mm/dd/yy hh:MM:ss") & ": " & logFileLine)
     
@@ -245,7 +249,7 @@ End Function
 
 Public Sub ShowStatusMessage(statMessage As String, Optional updatePreviousStatus As Boolean = False)
     
-    'WriteToDebugFile("In ShowStatusMessage " & statMessage)
+    WriteToDebugFile("In ShowStatusMessage " & statMessage)
     ' write the message to the listbox on the form
     If updatePreviousStatus Then
         activityLog.AddEntry "", statMessage, True
@@ -254,5 +258,5 @@ Public Sub ShowStatusMessage(statMessage As String, Optional updatePreviousStatu
     End If
 
     'DoEvents()
-    'WriteToDebugFile("Out ShowStatusMessage ")
+    WriteToDebugFile("Out ShowStatusMessage ")
 End Sub

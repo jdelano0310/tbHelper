@@ -17,6 +17,7 @@ Class ucFolderList
     Public Property Let Path(value As String)
 
         ShowDrive Left(value, 2)
+        HighlightPreviousFolder value
         
     End Property
     
@@ -121,4 +122,69 @@ Class ucFolderList
         RaiseEvent SelectionChanged(Node.FullPath)
     End Sub
     
+    Private Sub HighlightPreviousFolder(preivousFolder As String)
+        
+        Dim arrFolders() As String
+        Dim i As Long
+        Dim currentNode As Node
+        Dim childNode As Node
+        Dim bFound As Boolean
+        
+        arrFolders = Split(preivousFolder, "\")
+        
+        Set currentNode = Nothing
+        For Each childNode In tvFolders.Nodes
+            ' Using LCase$ for a case-insensitive comparison
+            If LCase$(childNode.Text) = LCase$(arrFolders(0)) Then
+                Set currentNode = childNode
+                Exit For
+            End If
+        Next childNode
+        
+        If currentNode Is Nothing Then Exit Sub
+
+        bFound = False
+        For i = 1 To UBound(arrFolders)
+            
+            ' Search the children of the currentNode for the next folder in the path
+            Set childNode = FindChildNode(currentNode, arrFolders(i))
+            
+            ' If a folder segment was found, set the next parent to search
+            If Not childNode Is Nothing Then
+                Set currentNode = childNode
+                currentNode.Expanded = True
+                bFound = True
+                Exit For
+            End If
+        Next i
+        
+        If bFound Then
+            ' if the folder name was found, highlight it in the treeview
+            currentNode.Selected = True
+            currentNode.EnsureVisible
+            tvFolders.SetFocus()
+        End If
+        
+    End Sub
+    
+    Private Function FindChildNode(ParentNode As Node, childNoteText As String) As Node
+        
+        ' find the child node that has the text passed in and return it
+        Dim cnIndex As Long
+        Dim childNode As Node
+        
+        Set childNode = ParentNode.Child
+        Set FindChildNode = Nothing
+        
+        Do While Not childNode Is Nothing
+            
+            If LCase$(childNode.Text) = LCase$(childNoteText) Then
+                Set FindChildNode = childNode
+                Exit Do
+            End If
+            
+            Set childNode = childNode.Next
+        Loop
+        
+    End Function
 End Class
