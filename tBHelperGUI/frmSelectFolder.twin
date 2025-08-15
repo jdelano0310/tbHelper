@@ -15,23 +15,28 @@ Class frmSelectFolder
     Private Const DRIVE_REMOVABLE As Long = 2
 
     Private Sub Form_Load()
+        
+        ConfigureButtons()
+                
         ' Populate the drives listbox and set the initial selection
         PopulateDrivesList
         
-        If lstDrives.ListCount > 0 Then
+        ' if there are drives found and there isn't a previous selection that needs to be highlighted
+        If lstDrives.ListCount > 0 And Len(SelectedPath) = 0 Then
             lstDrives.ListIndex = 0
             DrivePicker.Item = lstDrives.Text
             
             ' Explicitly populate the folder list with the initial drive.
             ' This ensures it happens after the drive is set and the control is ready.
             FolderList.ShowDrive DrivePicker.Item
-        End If
-        
-        ConfigureButtons()
-        
-        If Len(SelectedPath) > 0 Then
-            DrivePicker.Item = Left(SelectedPath, 2)
-            FolderList.Path = SelectedPath
+            
+        ElseIf Len(SelectedPath) > 0 Then
+            ' highlight the passed SelectedPath
+            DrivePicker.Item = Left(SelectedPath, 2) ' select the drive in the dropdown
+            FolderList.ShowDrive DrivePicker.Item    ' make sure that drive's folders are listed
+            
+            FolderList.Path = SelectedPath           ' highlight the previous folder
+            
         End If
         
     End Sub
@@ -140,6 +145,7 @@ Class frmSelectFolder
     End Sub
 
     Private Sub lstDrives_Click()
+        
         ' When a new drive is selected from the list...
         If lstDrives.ListIndex > -1 Then
             DrivePicker.Item = lstDrives.Text ' Update the picker display
