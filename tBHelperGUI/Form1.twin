@@ -23,13 +23,18 @@ Class Form1
         SetupSettingsToggleSliders
         SetupCustomButtons
         SetChangeLogHeader
-        
+          
         Me.Show
         Me.MousePointer = vbHourglass
         'DoEvents()
         
         Set activeTypeFilters = New Scripting.Dictionary
         Set activityLog = actLog
+ 
+        ' check for local html used while debugging
+        If fso.FileExists(App.Path & "\GitHubReleasesPage.html") Then
+            ShowStatusMessage "** using local html file **"
+        End If
         
         ShowStatusMessage "Checking for Settings file"
         
@@ -90,7 +95,7 @@ Class Form1
         Set tbHelperClass = Nothing
         Set activeTypeFilters = Nothing
         
-        'WriteToDebugFile "CLOSE" ' this tells the procedure to close the debug log file 
+        WriteToDebugFile "CLOSE" ' this tells the procedure to close the debug log file 
         
         Set fso = Nothing
         
@@ -111,7 +116,9 @@ Class Form1
             txtDownloadFolder.Text = Path
             tbHelperSettings.DownloadFolder = Path
         Else
-            MessageBox("You didn’t choose a folder, [b]so the operation was cancelled[/b].", , "No selection")
+            Dim tmp As Integer
+            
+            tmp = MessageBox("A folder wasn't chosen, [b]the operation was cancelled[/b].", , "No selection")
         End If
                 
         Dlg.Close()
@@ -131,7 +138,7 @@ Class Form1
             txttBFolderLocation.Text = Path
             tbHelperSettings.twinBASICFolder = Path
         Else
-            MessageBox("You didn’t choose a folder, [b]so the operation was cancelled[/b].", , "No selection")
+            MessageBox("A folder wasn't chosen, [b]the operation was cancelled[/b].", , "No selection")
         End If
                 
         Dlg.Close()
@@ -147,7 +154,6 @@ Class Form1
     End Sub
     
     Private Sub btnViewLogHistory_Click()
-        
 
         Dim frm As New frmViewHistoryLog
         frm.Show(vbModal)
@@ -168,7 +174,7 @@ Class Form1
             ' the result of checking is that no new version is available at this time
             If chgLogs.versionCheckResult = "Latest version already installed" Then
                 ShowStatusMessage "none available", True
-                Else
+            Else
                 FilltBChangeLog
                 SetInitialTypeFilters
                 
@@ -195,15 +201,31 @@ Class Form1
         Dim downloadTheZip As Boolean = True
     
         If fso.FileExists(localZipFileName) Then
+            WriteToDebugFile "file exisits"
             ' the zip has been downloaded already
             ShowStatusMessage "The zip exists in the download folder, redownload it?"
             'downloadTheZip = MsgBox("The file '" & localZipFileName & "' already exists. Download it again? (if no, then the current file will be used)", vbYesNo, "Previously Downloaded") = vbYes
-            downloadTheZip = MessageBox("The file '" & localZipFileName & "' already exists. Download it again? (if no, then the current file will be used)", _
-                "Question", "Previously Downloaded", "Yes", "No") = 1
-            ShowStatusMessage IIf(downloadTheZip, " - Yes", " - No"), True
+            WriteToDebugFile "show the message form"
+            
+            Dim msgResponse As Integer = MessageBox("The file [font color=vbblue]'" & localZipFileName & "'[/font] already exists. Download it again? [i](if no, then the current file will be used)[/i]", _
+                                            "Question", "Previously Downloaded", "Yes", "No", "Cancel")
+            downloadTheZip = False
+            Select Case msgResponse
+                Case -1 Or 3   ' closed the message with X button or clicked cancel
+                    ShowStatusMessage "The process has been cancelled by the user."
+                    Me.MousePointer = vbDefault
+                    Exit Sub
+                Case 2 ' no don't download
+                    downloadTheZip = False
+                Case 1  ' yes download the zip again
+                    downloadTheZip = True
+            End Select
+            
+            WriteToDebugFile "a button was selected"
             If downloadTheZip Then fso.DeleteFile(localZipFileName)
         End If
 
+        ShowStatusMessage IIf(downloadTheZip, "Yes", "No"), True
         If downloadTheZip Then
             ShowStatusMessage "Downloading twinBasic " & chgLogs.LatestVersion
             URLDownloadToFile 0, newReleaseURL & "/" & justTheFileName, localZipFileName, 0, 0
@@ -526,13 +548,17 @@ Class Form1
     
     End Sub
 
-    Private Function MessageBox(ByVal sText As String, _
-        Optional ByVal sType As String = "info", _
-        Optional ByVal sTitle As String = vbNullString, _
-        Optional ByVal sBtn1 As String = "OK", _
-        Optional ByVal sBtn2 As String = vbNullString) As Integer
+    Private Function MessageBox(ByVal msgText As String, _
+        Optional ByVal msgType As String = "info", _
+        Optional ByVal msgTitle As String = vbNullString, _
+        Optional ByVal btn1Caption As String = "OK", _
+        Optional ByVal btn2Caption As String = vbNullString, _
+        Optional ByVal btn3Caption As String = vbNullString) As Integer
     
-        MessageBox = frmMessageBox.ShowMessage(sText, sType, sTitle, sBtn1, sBtn2)
+        frmMessageBox.ShowMessage(msgText, msgType, msgTitle, btn1Caption, btn2Caption, btn3Caption)
+        frmMessageBox.Show(vbModal)
+        MessageBox = frmMessageBox.buttonNumber
+        frmMessageBox.Close()
         
     End Function
     
@@ -570,15 +596,15 @@ Class Form1
                 
             Case 3
                 ' ensure the IDE is not running before attempting to unzip the latest version
-                If Not IsCodeRunningInTheIDE Then
-                    Do While IsProcessRunning("twinbasic.exe")
-                        If MsgBox("The twinBASIC IDE is running, you can not install version " & chgLogs.LatestVersion & " while it Is open." & vbCrLf & _ 
-                            "Please close the IDE or click cancel to abort.", vbCancelTryAgainContinue, "Installing twinBASIC") = vbOKCancel Then Exit Sub
-                    Loop
-                Else
-                    MsgBox("You can not install a new version while running the project in the IDE", vbInformation, "Installing twinBASIC")
-                    Exit Sub
-                End If
+                ' If Not IsCodeRunningInTheIDE Then
+                '     Do While IsProcessRunning("twinbasic.exe")
+                '         If MsgBox("The twinBASIC IDE is running, you can not install version " & chgLogs.LatestVersion & " while it Is open." & vbCrLf & _ 
+                '             "Please close the IDE or click cancel to abort.", vbCancelTryAgainContinue, "Installing twinBASIC") = vbOKCancel Then Exit Sub
+                '     Loop
+                ' Else
+                '     MsgBox("You can not install a new version while running the project in the IDE", vbInformation, "Installing twinBASIC")
+                '     Exit Sub
+                ' End If
                 
                 ShowStatusMessage " of installing twinBASIC", True
                 If InstallTwinBasic(tBZipFile) Then
