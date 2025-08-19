@@ -56,7 +56,7 @@ Class ucCustomButton
     ' Properties
     Public Property Let ButtonWidth(ByVal Value As Long)
         m_ButtonWidth = Value
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get ButtonWidth() As Long
         ButtonWidth = m_ButtonWidth
@@ -64,7 +64,7 @@ Class ucCustomButton
     
     Public Property Let ButtonHeight(ByVal Value As Long)
         m_ButtonHeight = Value
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get ButtonHeight() As Long
         ButtonWidth = m_ButtonHeight
@@ -73,7 +73,7 @@ Class ucCustomButton
      Public Property Let Enabled(ByVal value As Boolean)
         m_Enabled = value
 
-        Refresh  ' Force visual update
+        UserControl.Refresh  ' Force visual update
     End Property
 
     Public Property Get Enabled() As Boolean
@@ -83,7 +83,7 @@ Class ucCustomButton
     Public Property Let PngIconPath(ByVal Value As String)
         m_PngPath = Value
         LoadPngIcon
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get PngIconPath() As String
         PngIconPath = m_PngPath
@@ -100,7 +100,7 @@ Class ucCustomButton
     Public Property Let FontSize(ByVal Value As Long)
         m_FontSize = Value
         UserControl.FontSize = m_FontSize
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get FontSize() As Long
         FontSize = m_FontSize
@@ -109,7 +109,7 @@ Class ucCustomButton
     Public Property Let BackColor(ByVal Value As OLE_COLOR)
         m_BackColor = Value
         m_HoverColor = DarkenColor(Value, 0.8) ' automatically calculate the hover color
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get BackColor() As OLE_COLOR
         BackColor = m_BackColor
@@ -117,7 +117,7 @@ Class ucCustomButton
     
     Public Property Let ForeColor(ByVal Value As OLE_COLOR)
         m_ForeColor = Value
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get ForeColor() As OLE_COLOR
         ForeColor = m_ForeColor
@@ -141,7 +141,7 @@ Class ucCustomButton
     Public Property Let BorderRadius(ByVal Value As Long)
         m_BorderRadius = Value
         ApplyRoundedRegion
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get BorderRadius() As Long
         BorderRadius = m_BorderRadius
@@ -149,7 +149,7 @@ Class ucCustomButton
     
     Public Property Let BorderWidth(ByVal Value As Long)
         m_BorderWidth = Value
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get BorderWidth() As Long
         BorderWidth = m_BorderWidth
@@ -157,7 +157,7 @@ Class ucCustomButton
     
     Public Property Let IconSize(ByVal Value As Long)
         m_IconSize = Value
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get IconSize() As Long
         IconSize = m_IconSize
@@ -165,7 +165,7 @@ Class ucCustomButton
     
     Public Property Let IconSpacing(ByVal Value As Long)
         m_IconSpacing = Value
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get IconSpacing() As Long
         IconSpacing = m_IconSpacing
@@ -174,7 +174,7 @@ Class ucCustomButton
     Public Property Let FontBold(ByVal Value As Boolean)
         m_FontBold = Value
         UserControl.Font.Bold = Value
-        Refresh
+        UserControl.Refresh
     End Property
     Public Property Get FontBold() As Boolean
         FontBold = m_FontBold
@@ -186,6 +186,8 @@ Class ucCustomButton
             MsgBox("ucCustomButton Initialize Failure")
             Exit Sub
         End If
+        
+        WriteToDebugFile("ucCustomButton - Initialize")
         
         ' Set default values (existing code)
         m_Caption = "Button"
@@ -337,12 +339,12 @@ Class ucCustomButton
     
     Private Sub UserControl_Resize()
         ApplyRoundedRegion
-        Refresh
+        UserControl.Refresh()
     End Sub
     
     Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
-        WriteToDebugFile("     ucCustomButton: MouseMove ")
+        WriteToDebugFile("        MouseMove m_Enabled: " & m_Enabled & " m_IsHover: " & m_IsHover & " button caption:                 " & IIf(m_Caption = "", m_PngPath, m_Caption))
         
         If Not m_Enabled Then
             ' if the button is disabled and the mouse hovers over it, then show the disabled mouse pointer
@@ -359,11 +361,12 @@ Class ucCustomButton
 
         ' If inside and not already hovering, trigger hover
         If Not m_IsHover Then
-            WriteToDebugFile("     ucCustomButton: MouseMove setting hover is true")
+            WriteToDebugFile("     ucCustomButton: MouseMove, set hover to true, currently timer.enabled is " & tmrMouseTracker.Enabled)
             m_IsHover = True
             RaiseEvent MouseEnter
-            Refresh
+            UserControl.Refresh
             tmrMouseTracker.Enabled = True
+            WriteToDebugFile("     ucCustomButton: MouseMove, hover is set to true, enabled timer, button caption:                 " & IIf(m_Caption = "", m_PngPath, m_Caption))
         End If
         
         ' If Not m_IsHover And tmrMouseTracker.Enabled Then
@@ -383,20 +386,22 @@ Class ucCustomButton
 
         If Button = vbLeftButton Then
             m_IsPressed = True
-            Refresh
+            UserControl.Refresh
+            WriteToDebugFile "            ucCustomButton: mousedown - set m_IsPressed to True, called UserControl.Refresh, caption                  " & IIf(m_Caption = "", m_PngPath, m_Caption)
         End If
     End Sub
     
     Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
         
-        WriteToDebugFile "     ucCustomButton: MouseUp"
+        WriteToDebugFile "     ucCustomButton: MouseUp caption                           " & IIf(m_Caption = "", m_PngPath, m_Caption)
         If Not m_Enabled Then Exit Sub
         
         If Button = vbLeftButton Then
             m_IsPressed = False
-            WriteToDebugFile "     ucCustomButton: MouseUp, is left mouse button"
             waitToDoClick = True
-            tmrDeferClick.Enabled = True
+            WriteToDebugFile "          ucCustomButton: MouseUp: set m_IsPressed = False and waitToDoClick = True, caption                           " & IIf(m_Caption = "", m_PngPath, m_Caption)
+            UserControl.Refresh()
+            tmrMouseTracker.Enabled = True
         End If
     End Sub
     
@@ -406,11 +411,10 @@ Class ucCustomButton
         If Not m_Enabled Then Exit Sub
         
         If m_IsHover Then
-            WriteToDebugFile("           ucCustomButton: MouseLeave m_IsHover is true and set to false")
+            WriteToDebugFile("           ucCustomButton: MouseLeave m_IsHover is true and set to false, caption                  " & IIf(m_Caption = "", m_PngPath, m_Caption))
             m_IsHover = False
             m_IsPressed = False
-            'RaiseEvent MouseLeave
-            'Refresh
+            UserControl.Refresh
         End If
     End Sub
     
@@ -494,48 +498,49 @@ Class ucCustomButton
             End If
         End If
     End Sub
-    
+        
     Private Sub tmrMouseTracker_Timer()
         Dim pt As POINTAPI
         Dim cx As Long, cy As Long
     
+        ' using this to fire either the mouseleave or the click event
+        WriteToDebugFile("            ucCustomButton: tmrMouseTracker_Timer waitToDoClick is " & waitToDoClick & " m_IsHover is " & m_IsHover & " caption                      " & IIf(m_Caption = "", m_PngPath, m_Caption))
+        
         ' where is the mouse
         GetCursorPos pt
-        ScreenToClient Me.hWnd, pt
-    
+        'ScreenToClient Me.hWnd, pt
+        ScreenToClient UserControl.hWnd, pt    ' this should be more precise
+        
         ' use twips of course
         cx = ScaleWidth \ Screen.TwipsPerPixelX
         cy = ScaleHeight \ Screen.TwipsPerPixelY
     
+        WriteToDebugFile("            ucCustomButton: coordinates, pt.X=" & pt.X & ", pt.Y=" & pt.Y & ", cx=" & cx & ", cy=" & cy)
+        
         ' compare where the mouse is to that of the location of the button
         If pt.X < 0 Or pt.Y < 0 Or pt.X >= cx Or pt.Y >= cy Then
+            WriteToDebugFile("           ucCustomButton: tmrMouseTracker_Timer m_IsHover is " & m_IsHover & " caption                   " & IIf(m_Caption = "", m_PngPath, m_Caption))
             If m_IsHover Then
-                WriteToDebugFile("           ucCustomButton: tmrMouseTracker_Timer m_IsHover is true and set to false")
                 m_IsHover = False
                 m_IsPressed = False
                 RaiseEvent MouseLeave
-                Refresh
+                UserControl.Refresh
                 tmrMouseTracker.Enabled = False
+                 WriteToDebugFile("           ucCustomButton: tmrMouseTracker_Timer - raised MouseLeave - disabled timer  caption                   " & IIf(m_Caption = "", m_PngPath, m_Caption))
             End If
-           
-            Exit Sub
+                        
         End If
-                
-    End Sub
-    
-    Private Sub tmrDeferClick_Timer()
-        
-        ' the thought is using the timer allows for the UI thread to do what 
-        ' it needs and then raise the click event
-        
-        WriteToDebugFile("       ucCustomButton: tmrDefer, waitToDoClick is " & waitToDoClick & " and m_IsHover is " & m_IsHover)
-        tmrDeferClick.Enabled = False
+
         If waitToDoClick Then
             waitToDoClick = False
-
-            WriteToDebugFile("       tmrDefer, raise click event")
             RaiseEvent Click
-
+            tmrMouseTracker.Enabled = False
+            WriteToDebugFile("               ucCustomButton: tmrMouseTracker_Timer, raise Click - disabled timer caption                  " & IIf(m_Caption = "", m_PngPath, m_Caption))
+        End If
+        
+        If Not m_IsHover And Not waitToDoClick Then
+            tmrMouseTracker.Enabled = False
+            WriteToDebugFile("           ucCustomButton: tmrMouseTracker_Timer disable timer, m_IsHover and waitToDoClick are false,     caption                  " & IIf(m_Caption = "", m_PngPath, m_Caption))
         End If
         
     End Sub
