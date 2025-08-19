@@ -65,7 +65,7 @@ Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As S
     pngImagePath As String, iconSize As Integer, startEnabled As Boolean, boldFont As Boolean, _
     Optional borderColor As OLE_COLOR = 0, Optional borderWidth As Integer = 0)
     
-    WriteToDebugFile "ConfigureCustomButton " & buttonCaption
+    WriteToDebugFile "ConfigureCustomButton " & theButton.Name & " with caption " & buttonCaption
     
     With theButton
         .Caption = buttonCaption
@@ -76,7 +76,6 @@ Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As S
             .BorderWidth = borderWidth
         End If
         .FontSize = 11
-        '.HoverColor = RGB(18, 40, 234) ' Darker blue   this can be set or let the automatic hover work
         .BorderRadius = 3
         .FontBold = boldFont
         .PngIconPath = pngImagePath
@@ -89,21 +88,29 @@ End Sub
 Public Sub WriteToDebugFile(logFileLine As String)
     
     Dim logFileName As String = App.Path & "\debug_log.txt"
-    Static debugLogFile As TextStream
+    'Static debugLogFile As TextStream
+    Dim debugLogFile As TextStream
     
     ' it this was not used then no reason to close it
-    If logFileLine = "CLOSE" And debugLogFile Is Nothing Then Exit Sub
+    'If logFileLine = "CLOSE" And debugLogFile Is Nothing Then Exit Sub
 
     ' open this once during app run
-    If debugLogFile Is Nothing Then
-        Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
-    End If
+    On Error GoTo errorHandler
+    ' If debugLogFile Is Nothing Then
+    '     Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
+    ' End If
+    
+    Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
     
     debugLogFile.WriteLine(Format(Now, "mm/dd/yy hh:MM:ss") & ": " & logFileLine)
     
     ' only close it if this is received - which should only be during form1 unload
-    If logFileLine = "CLOSE" Then debugLogFile.Close()
+    'If logFileLine = "CLOSE" Then debugLogFile.Close()
+    debugLogFile.Close()
     
+errorHandler:
+    ' just skip if there is an error 
+    If Err.Number <> 0 Then Debug.Print "WriteToDebugFile error " & Err.Description
 End Sub
 
 Public Function PixelsToTwips(pixels As Long) As Long
