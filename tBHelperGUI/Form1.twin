@@ -189,7 +189,6 @@ Class Form1
                     ShowStatusMessage "Version " & chgLogs.LatestVersion & " is available"
                     btnDownload.Caption = "Download version " & chgLogs.LatestVersion
                     btnDownload.PngIconPath = _downloadIcon
-                    btnDownload.ResetHoverTracking
                     WriteToDebugFile("Form1 - btnDownload: changed caption and icon. executed ResetHoverTracking")
                 End If
             End If
@@ -789,5 +788,6 @@ Class Form1
         
     End Sub
    
+
 
 End Class
