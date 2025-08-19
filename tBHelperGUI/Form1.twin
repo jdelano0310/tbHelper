@@ -31,6 +31,8 @@ Class Form1
         Set activeTypeFilters = New Scripting.Dictionary
         Set activityLog = actLog
  
+        WriteToDebugFile "Form1 load"
+        
         ' check for local html used while debugging
         If fso.FileExists(App.Path & "\GitHubReleasesPage.html") Then
             ShowStatusMessage "** using local html file **"
@@ -95,7 +97,8 @@ Class Form1
         Set tbHelperClass = Nothing
         Set activeTypeFilters = Nothing
         
-        WriteToDebugFile "CLOSE" ' this tells the procedure to close the debug log file 
+        'WriteToDebugFile "CLOSE" ' this tells the procedure to close the debug log file 
+        WriteToDebugFile "form1 closed"
         
         Set fso = Nothing
         
@@ -186,10 +189,13 @@ Class Form1
                     ShowStatusMessage "Version " & chgLogs.LatestVersion & " is available"
                     btnDownload.Caption = "Download version " & chgLogs.LatestVersion
                     btnDownload.PngIconPath = _downloadIcon
+                    btnDownload.ResetHoverTracking
+                    WriteToDebugFile("Form1 - btnDownload: changed caption and icon. executed ResetHoverTracking")
                 End If
             End If
         
             Me.MousePointer = vbDefault
+            WriteToDebugFile("Form1 - btnDownload: exiting")
             Exit Sub  ' leave the sub
         End If
     
@@ -200,20 +206,28 @@ Class Form1
         Dim localZipFileName As String = txtDownloadFolder.Text & justTheFileName
         Dim downloadTheZip As Boolean = True
     
+        WriteToDebugFile("Form1 - btnDownload: Click as Download function")
         If fso.FileExists(localZipFileName) Then
+            Me.MousePointer = vbDefault
+            
             WriteToDebugFile "file exisits"
             ' the zip has been downloaded already
             ShowStatusMessage "The zip exists in the download folder, redownload it?"
             'downloadTheZip = MsgBox("The file '" & localZipFileName & "' already exists. Download it again? (if no, then the current file will be used)", vbYesNo, "Previously Downloaded") = vbYes
             WriteToDebugFile "show the message form"
             
+            btnDownload.Refresh ' refesh the button to allow it to process anything it needs to do
+            DoEvents
+            
             Dim msgResponse As Integer = MessageBox("The file [font color=vbblue]'" & localZipFileName & "'[/font] already exists. Download it again? [i](if no, then the current file will be used)[/i]", _
                                             "Question", "Previously Downloaded", "Yes", "No", "Cancel")
+            WriteToDebugFile "returned from message form, response was " & msgResponse
+             
             downloadTheZip = False
             Select Case msgResponse
-                Case -1 Or 3   ' closed the message with X button or clicked cancel
+                Case -1, 3   ' closed the message with X button or clicked cancel
                     ShowStatusMessage "The process has been cancelled by the user."
-                    Me.MousePointer = vbDefault
+                    WriteToDebugFile "Exit btnDownload Click as the operation was cancelled by the user."
                     Exit Sub
                 Case 2 ' no don't download
                     downloadTheZip = False
@@ -223,6 +237,7 @@ Class Form1
             
             WriteToDebugFile "a button was selected"
             If downloadTheZip Then fso.DeleteFile(localZipFileName)
+            Me.MousePointer = vbHourglass
         End If
 
         ShowStatusMessage IIf(downloadTheZip, "Yes", "No"), True
@@ -243,7 +258,8 @@ Class Form1
         lblCurrentTBVersion.Caption = "version: " & chgLogs.LatestVersion
         Me.MousePointer = vbDefault
         'DoEvents()
-         
+        
+        WriteToDebugFile("Form1 - btnDownload: Done")
     End Sub
     
     Private Sub optOpenFolder_Click()
@@ -555,9 +571,13 @@ Class Form1
         Optional ByVal btn2Caption As String = vbNullString, _
         Optional ByVal btn3Caption As String = vbNullString) As Integer
     
+        WriteToDebugFile "form1 MessageBox: Setting the options on frmMessage ShowMessage"
         frmMessageBox.ShowMessage(msgText, msgType, msgTitle, btn1Caption, btn2Caption, btn3Caption)
+        WriteToDebugFile "form1 MessageBox: showing frmMessageBox as vbModal"
         frmMessageBox.Show(vbModal)
+        WriteToDebugFile "form1 MessageBox: frmMessageBox has returned with buttonNymber clicked: " & frmMessageBox.buttonNumber
         MessageBox = frmMessageBox.buttonNumber
+        WriteToDebugFile "form1 MessageBox: close frmMessageBox"
         frmMessageBox.Close()
         
     End Function
