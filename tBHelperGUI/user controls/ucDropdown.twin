@@ -23,13 +23,13 @@ Class ucDropdown
 
     Public Property Let Item(ByVal Value As String)
         m_SelectedItem = Value
-        UserControl.Refresh
+        RedrawUserControl
         RaiseEvent SelectionChanged(m_SelectedItem)
     End Property
     
     Public Sub Collapse()
         m_IsExpanded = False
-        UserControl.Refresh
+        RedrawUserControl
     End Sub
 
     Private Sub UserControl_Initialize()
@@ -43,11 +43,11 @@ Class ucDropdown
 
     Private Sub UserControl_Click()
         m_IsExpanded = Not m_IsExpanded
-        UserControl.Refresh
+        RedrawUserControl
         RaiseEvent DropDown()
     End Sub
 
-    Private Sub UserControl_Paint()
+    Private Sub RedrawUserControl()
         Const PADDING = 5
         Const BUTTON_WIDTH = 30
         Dim xMid As Long, yMid As Long
@@ -82,11 +82,17 @@ Class ucDropdown
         CurrentY = (ScaleHeight - TextHeight("S")) / 2
         Print m_SelectedItem
         
+        QueueRedraw(hWnd)
+    End Sub
+    
+    Private Sub UserControl_Paint()
+        RedrawUserControl
+        
     End Sub
 
     Private Sub UserControl_Resize()
         ApplyRoundedCorners UserControl, 4, 4
-        UserControl.Refresh
+        RedrawUserControl
     End Sub
 
     

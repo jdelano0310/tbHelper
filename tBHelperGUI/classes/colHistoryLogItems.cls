@@ -143,7 +143,7 @@ Public Function LoadLog() As Boolean
 
             If Val(tbVersion) = 0 Then
                 ' no version number, this is just a log message
-                logMessage = Mid(LogLine, 23)
+                logMessage = Mid(LogLine, 25)
                                 
                 historyLogItem.LogDateTime = LogDateTime
                 historyLogItem.LogMessage = logMessage

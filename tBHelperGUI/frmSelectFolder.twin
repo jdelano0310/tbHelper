@@ -39,6 +39,8 @@ Class frmSelectFolder
             
         End If
         
+        FlushRedraws
+        
     End Sub
 
     Private Sub ConfigureButtons()
@@ -155,6 +157,7 @@ Class frmSelectFolder
             
             ' Hide the list
             HideDriveList
+            FlushRedraws
         End If
     End Sub
 

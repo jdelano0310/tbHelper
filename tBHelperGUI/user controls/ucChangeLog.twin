@@ -11,9 +11,9 @@ Class ucChangeLog
     '************** 
     ' used to handle scrolling the change log user control better
     '*******************************
-    Private Declare Function SetTimer Lib "user32" (ByVal hWnd As Long, ByVal nIDEvent As Long, ByVal uElapse As Long, ByVal lpTimerFunc As Long) As Long
-    Private Declare Function KillTimer Lib "user32" (ByVal hWnd As Long, ByVal nIDEvent As Long) As Long
-    Private Const DEBOUNCE_TIMER_ID As Long = 1001
+    ' Private Declare Function SetTimer Lib "user32" (ByVal hWnd As Long, ByVal nIDEvent As Long, ByVal uElapse As Long, ByVal lpTimerFunc As Long) As Long
+    ' Private Declare Function KillTimer Lib "user32" (ByVal hWnd As Long, ByVal nIDEvent As Long) As Long
+    ' Private Const DEBOUNCE_TIMER_ID As Long = 1001
         
     Private Const GWL_WNDPROC As Long = -4
     Private Const WM_MOUSEWHEEL As Long = &H20A
@@ -28,12 +28,13 @@ Class ucChangeLog
     Public Event ItemClick(ByVal ItemIndex As Long)
     Public Event ItemDoubleClick(ByVal ItemIndex As Long)
 
-    'Private m_Entries() As ChangeLogEntry
     Private m_Entries() As clsChangeLogEntry
     Private m_EntryCount As Long
     Private m_FilterType As String
     Private m_SelectedIndex As Long
     Private m_ScrollOffset As Long
+    'Private m_LastCanvasRedrawTime As Double
+    Private m_RedrawQueued As Boolean
     
     ' Drawing surface
     Private WithEvents m_Canvas As PictureBox
@@ -135,10 +136,37 @@ Class ucChangeLog
         
     End Sub
 
-    Sub OnDebouncedScroll(ByVal hwnd As Long, ByVal uMsg As Long, ByVal idEvent As Long, ByVal dwTime As Long)
-        '8-1-25 modify scrolling to not redraw on every wheel roll
-        KillTimer hwnd, DEBOUNCE_TIMER_ID
-        RedrawCanvas
+    ' Sub OnDebouncedScroll(ByVal hwnd As Long, ByVal uMsg As Long, ByVal idEvent As Long, ByVal dwTime As Long)
+    '     '8-1-25 modify scrolling to not redraw on every wheel roll
+    '     KillTimer hwnd, DEBOUNCE_TIMER_ID
+    '     RedrawCanvas
+    ' End Sub
+    Public Sub RequestHeaderRedraw()
+        ' tell the system to update this uc 
+        
+        If Not (m_Canvas Is Nothing Or m_Canvas.hDC = 0) Then
+            'WriteToDebugLogFile("   Change Log:  RequestHeaderRedraw for " & Me.Name & " on parent: " & Me.Parent.name)
+            QueueRedraw m_Canvas.hWnd
+        Else
+            'WriteToDebugLogFile("   Change Log:  RequestHeaderRedraw criteria failed *************")
+        End If
+    End Sub
+    
+    Public Sub RequestCanvasRedraw()
+        ' tell the system to update this uc 
+        
+        ' If Timer - m_LastCanvasRedrawTime < 0.05 Then Exit Sub
+        ' m_LastCanvasRedrawTime = Timer
+        
+        If m_RedrawQueued Then Exit Sub
+        m_RedrawQueued = True
+                        
+        If Not (m_Canvas Is Nothing Or m_Canvas.hDC = 0) Then
+            'WriteToDebugLogFile("   Change Log:  RequestCanvasRedraw for " & Me.Name & " on parent: " & Me.Parent.name)
+            QueueRedraw m_Canvas.hWnd
+        Else
+            'WriteToDebugLogFile("   Change Log:  RequestCanvasRedraw: m_Canvas Is Nothing Or m_Canvas.hDC = 0")
+        End If
     End Sub
     
     Public Property Let SetColumns(value() As clsChangeLogColumn)
@@ -198,12 +226,13 @@ Class ucChangeLog
             DeleteObject hFont
         End If
 
-        m_HeaderCanvas.Refresh
+        'm_HeaderCanvas.Refresh
+        RequestHeaderRedraw
 
         Exit Sub
         
     DrawError:
-    MsgBox("The column header values passed could not be used!" & vbCrLf & Err.Description, vbCritical, "Changle Log")
+        'WriteToDebugLogFile("The column header values passed could not be used!" & vbCrLf & Err.Description)
         
     End Sub
 
@@ -213,6 +242,7 @@ Class ucChangeLog
     End Sub
 
     Private Sub RedrawCanvas()
+        
         Dim i As Long
         Dim yPos As Long
         Dim visibleEntries As Long
@@ -226,6 +256,9 @@ Class ucChangeLog
         visibleEntries = Int(m_Canvas.Height / ROW_HEIGHT) + 1
         startIndex = m_ScrollOffset
         endIndex = startIndex + visibleEntries
+    
+        'WriteToDebugLogFile("      ucChanglog: RedrawCanvas, endIndex: " & endIndex)
+        
         If endIndex > GetFilteredEntryCount() Then endIndex = GetFilteredEntryCount()
     
         yPos = 0
@@ -235,7 +268,8 @@ Class ucChangeLog
             yPos = yPos + m_Entries(i).EntryHeight
         Next i
     
-        m_Canvas.Refresh
+        'm_Canvas.Refresh
+        RequestCanvasRedraw
         
     End Sub
 
@@ -260,7 +294,9 @@ Class ucChangeLog
         Set entry = m_Entries(actualIndex)
         isSelected = (actualIndex = m_SelectedIndex)
         hdc = m_Canvas.hDC
-
+        
+        'WriteToDebugLogFile("      ucChanglog: DrawRow no entry found, entryIndex is " & entryIndex & " actualIndex: " & actualIndex)
+                
         ' does the description field exists in this row
         ' needed to create the rect that the row needs to display properly
         Dim includesDescription As Boolean = False
@@ -308,6 +344,7 @@ Class ucChangeLog
             ' use select case on col.name - add description - do a hack split into to lines to try the wrap 
             ' in a more controlled manner
             value = entry.Values(col.Name)
+            'WriteToDebugLogFile("      ucChanglog: DrawRow, entryIndex is " & entryIndex & " value: " & value)
             Select Case UCase(col.Name)
                 Case "VERSION"
                     SetTextColor hdc, TEXT_COLOR_VERSION
@@ -338,6 +375,7 @@ Class ucChangeLog
 
             xPos = xPos + col.Width
         Next
+        
     End Sub
 
     Private Sub DrawTypeBadge(ByVal hdc As Long, ByVal x As Long, ByVal y As Long, entry As clsChangeLogEntry)
@@ -438,7 +476,7 @@ Class ucChangeLog
     Public Sub AddEntry(ParamArray ColumnValues() As Variant)
         
         Dim entry As New clsChangeLogEntry
-
+        
         ' Initialize the entry using current column definitions and incoming data
         entry.Initialize m_Columns, ColumnValues
 
@@ -447,6 +485,8 @@ Class ucChangeLog
         Set m_Entries(m_EntryCount) = entry
         m_EntryCount = m_EntryCount + 1
 
+        'WriteToDebugLogFile("       ucChanglog: AddEntry,  count is " & m_EntryCount & "  data " & ColumnValues(0) & ", " & ColumnValues(1) & ", " & ColumnValues(2) & ", " & ColumnValues(3))
+        
         UpdateScrollBar
         RedrawCanvas
     End Sub
@@ -470,6 +510,9 @@ Class ucChangeLog
             m_VScrollBar.Visible = False
             m_ScrollOffset = 0
         End If
+        
+        UpdateScrollOwnership m_Canvas.hWnd, (m_VScrollBar.Value * ROW_HEIGHT)
+        
     End Sub
 
     Public Sub ClearEntries()
@@ -538,9 +581,9 @@ Class ucChangeLog
         If newVal <> m_VScrollBar.Value Then
             m_VScrollBar.Value = newVal
             m_ScrollOffset = newVal
-            'RedrawCanvas                  8-1-25 modify scrolling to not redraw on every wheel roll
-            KillTimer canvashWnd, DEBOUNCE_TIMER_ID
-            SetTimer canvashWnd, DEBOUNCE_TIMER_ID, 120, AddressOf OnDebouncedScroll
+            RedrawCanvas                 ' 8-1-25 modify scrolling to not redraw on every wheel roll
+            'KillTimer canvashWnd, DEBOUNCE_TIMER_ID
+            'SetTimer canvashWnd, DEBOUNCE_TIMER_ID, 120, AddressOf OnDebouncedScroll
         End If
     End Sub
 

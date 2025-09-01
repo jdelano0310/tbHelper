@@ -10,7 +10,8 @@ Class ucRTFMessage
 	End Sub
 
     ' Simple GDI based text area that allows for simple HTML style font styling
-    ' currently supports <b> <i> <font family, size, color> with their closing tags
+    ' currently supports [b] [i] [font family, size, color] with their closing tags
+    ' color supported are strictly the color constants
     Type StyledSegment
         Text As String
         FontName As String
@@ -62,6 +63,8 @@ Class ucRTFMessage
     
     Public Property Let BackColor(value As OLE_COLOR)
         m_BackColor = value
+        'm_Canvas.Refresh()
+        DrawMessage
     End Property
     
     Public Property Get BackColor() As OLE_COLOR
@@ -84,7 +87,7 @@ Class ucRTFMessage
             .AutoRedraw = True
             .ScaleMode = vbPixels
             .Font.Name = "Segoe UI"
-            .Font.Size = 11.25
+            .Font.Size = DEF_FONT_SIZE
             .Visible = True
         End With
         
@@ -120,7 +123,8 @@ Class ucRTFMessage
             m_Canvas.Width = UserControl.ScaleWidth - 25
             m_Canvas.Height = UserControl.ScaleHeight - 25
         
-            m_Canvas.Refresh()
+            'm_Canvas.Refresh()
+            DrawMessage
         End If
     End Sub
     
@@ -216,6 +220,8 @@ Class ucRTFMessage
         ' Optional: store required height for autosizing
         m_RequiredHeight = y + lineHeight
         
+        'm_Canvas.Refresh()
+        QueueRedraw(m_Canvas.hWnd)
     End Sub
      
     Function ParseStyledMessage(ByVal rawText As String) As Collection
@@ -288,6 +294,10 @@ Class ucRTFMessage
                                                     Case "vbred": currentColor = vbRed
                                                     Case "vbblue": currentColor = vbBlue
                                                     Case "vbgreen": currentColor = vbGreen
+                                                    Case "vbmagenta": currentColor = vbMagenta
+                                                    Case "vbcyan": currentColor = vbCyan
+                                                    Case "vbwhite": currentColor = vbWhite
+                                                    Case "vbyellow": currentColor = vbYellow
                                                     Case Else: currentColor = vbBlack
                                                 End Select
                                         End Select

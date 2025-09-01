@@ -14,7 +14,7 @@ Attribute VB_Exposed = False
 
 ' add your member fields and procedures here
 Private _installedtBVersion As Integer    ' this didn't fit in the change log items collection
-Private _sessionLog As Collection         ' thinking write the log here instead of to the listbox on form1 
+Private _sessionLog As Collection         ' keep an internal list of items the user has done to write to the log file instead of reading the activity
 
 Public Property Let InstalledtBVersion(installedVersion As Integer)
     _installedtBVersion = installedVersion

@@ -1,71 +1,30 @@
 Attribute VB_Name = "modtBHelper"
-Private Declare PtrSafe Function CallWindowProc Lib "user32" Alias "CallWindowProcA" (ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As LongPtr) As Long
-
-Private Const WM_MOUSEWHEEL As Long = &H20A
-
-Public Declare Function GetCursorPos Lib "user32" (lpPoint As POINTAPI) As Long
-Private Declare Function WindowFromPoint Lib "user32" (ByVal xPoint As Long, ByVal yPoint As Long) As Long
-Public Type POINTAPI
-    X As Long
-    Y As Long
-End Type
-
-Private Const GWL_WNDPROC As Long = -4
-
-Private CallbackOwner As Object
-Public OriginalCanvasProc As Long
-
-Public ucDictionary As New Scripting.Dictionary   ' my own dictionary to hold window handle to object (user controls) 
-
-Public Sub RegisterScrollableCanvas(ByVal hWnd As Long, ByVal ownerCtrl As Object)
-    Call SetWindowLong(hWnd, GWL_WNDPROC, AddressOf Canvas_WindowProc)
-    ucDictionary.Add hWnd, ownerCtrl
-End Sub
-
-Public Const ROW_ALT_COLOR = &HF8F8F8
-Public Const CUST_BTN_BCOLOR = &HA2640C
-
-
-Private Sub UpdateScrollOwnership()
+Declare Function SHFileOperation Lib "shell32.dll" Alias "SHFileOperationA" (lpFileOp As SHFILEOPSTRUCT) As Long
     
-    ' which control needs to scroll?
-    Dim pt As POINTAPI
-    GetCursorPos pt
+Public FO_DELETE As Long = &H3
+Public FOF_ALLOWUNDO As Long = &H40
 
-    Dim hOver As Long
-    hOver = WindowFromPoint(pt.X, pt.Y)
+Public Const FO_COPY = &H2
+Public Const FOF_SILENT = &H4
+Public Const FOF_NOCONFIRMATION = &H10
 
-    ' the which user control is trying to scroll 
-    If ucDictionary.Exists(hOver) Then
-        Set CallbackOwner = ucDictionary(hOver)
-    End If
+Public Declare Function SHFO_UnZip Lib "shell32" Alias "SHFileOperationW" (ByVal lpFileOp As Long) As Long
+
+Declare Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, _
+ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
+
+Public BINDF_GETNEWESTVERSION As Long = &H10
     
-End Sub
-
-Public Function Canvas_WindowProc(ByVal hwnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-
-    ' this must reside in a bas file and not in the user control for it to be found, it seems
-    If uMsg = WM_MOUSEWHEEL Then
-        
-        ' where is the mouse
-        UpdateScrollOwnership
-        
-        ' Use a callback interface or global reference to your control
-        If Not CallbackOwner Is Nothing Then
-            CallByName CallbackOwner, "HandleMouseScroll", vbMethod, wParam
-        End If
-
-        Exit Function
-    End If
-
-    Canvas_WindowProc = CallWindowProc(OriginalCanvasProc, hwnd, uMsg, wParam, lParam)
-End Function
+Declare Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" (ByVal hwnd As Long, ByVal lpOperation As String, _
+ByVal lpFile As String, ByVal lpParameters As String, ByVal lpDirectory As String, ByVal nShowCmd As Long) As Long
+    
+Public SW_HIDE As Integer = 0
 
 Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As String, bkColor As OLE_COLOR, frColor As OLE_COLOR, _
     pngImagePath As String, iconSize As Integer, startEnabled As Boolean, boldFont As Boolean, _
     Optional borderColor As OLE_COLOR = 0, Optional borderWidth As Integer = 0)
     
-    WriteToDebugFile "ConfigureCustomButton " & theButton.Name & " with caption " & buttonCaption
+    'WriteToDebugLogFile "       ConfigureCustomButton identifier " & IIf(buttonCaption = "", pngImagePath, buttonCaption)
     
     With theButton
         .Caption = buttonCaption
@@ -83,34 +42,35 @@ Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As S
         .IconSpacing = 8
         .Enabled = startEnabled
     End With
+    
 End Sub
 
-Public Sub WriteToDebugFile(logFileLine As String)
+Public Sub WriteToDebugLogFile(logFileLine As String)
     
     Dim logFileName As String = App.Path & "\debug_log.txt"
-    'Static debugLogFile As TextStream
-    Dim debugLogFile As TextStream
+    Static debugLogFile As TextStream
+    'Dim debugLogFile As TextStream
     
     ' it this was not used then no reason to close it
-    'If logFileLine = "CLOSE" And debugLogFile Is Nothing Then Exit Sub
+    If logFileLine = "CLOSE" And debugLogFile Is Nothing Then Exit Sub
 
     ' open this once during app run
     On Error GoTo errorHandler
-    ' If debugLogFile Is Nothing Then
-    '     Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
-    ' End If
+    If debugLogFile Is Nothing Then
+        Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
+    End If
     
-    Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
+    'Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
     
     debugLogFile.WriteLine(Format(Now, "mm/dd/yy hh:MM:ss") & ": " & logFileLine)
     
     ' only close it if this is received - which should only be during form1 unload
-    'If logFileLine = "CLOSE" Then debugLogFile.Close()
-    debugLogFile.Close()
+    If logFileLine = "CLOSE" Then debugLogFile.Close()
+    'debugLogFile.Close()
     
 errorHandler:
     ' just skip if there is an error 
-    If Err.Number <> 0 Then Debug.Print "WriteToDebugFile error " & Err.Description
+    If Err.Number <> 0 Then Debug.Print "WriteToDebugLogFile error " & Err.Description
 End Sub
 
 Public Function PixelsToTwips(pixels As Long) As Long
@@ -127,7 +87,7 @@ Public activityLog As ucActivityLog
 
 Public Function GetCurrentTBVersion(tBFolder As String) As String
 
-    WriteToDebugFile("GetCurrentTBVersion " & tBFolder)
+    'WriteToDebugLogFile("GetCurrentTBVersion " & tBFolder)
     ' attempt to find the version number of twinBasic in use
     Dim fileWithVersionInfo As String = tBFolder & "ide\build.js"
     Dim versionIndicator As String = "BETA"
@@ -147,7 +107,7 @@ Public Function GetCurrentTBVersion(tBFolder As String) As String
     GetCurrentTBVersion = Mid(tempString, Len(versionIndicator) + 1, 4)
     
     tbHelperClass.InstalledtBVersion = GetCurrentTBVersion
-    WriteToDebugFile("Exit GetCurrentTBVersion")
+    'WriteToDebugLogFile("Exit GetCurrentTBVersion")
     
 End Function
 
@@ -164,7 +124,7 @@ Public Function fsoFileRead(filePath As String) As String
             fsoFileRead = fileToRead.ReadAll()
 readError:
         If fsoFileRead = vbNullString Then
-            frmMessageBox.ShowMessage("Unable to read " & filePath, "error", "FileRead")
+            MsgBox("Unable to read " & filePath, "error", "FileRead")
         End If
         fileToRead.Close()
     Set fso = Nothing
@@ -188,10 +148,11 @@ Public Function GettBParentFolder() As String
         
 End Function
 
-Public Function InstallTwinBasic(zipLocation As String) As Boolean
+Public Function InstallTwinBasic(tBZipFile As String) As Boolean
         
     ' go through the steps of deleting the current files and unziping the new files
     ' to the folder that has been desgniated
+    'WriteToDebugLogFile("           InstallTwinBasic " & tBZipFile & " - start")
     Dim result As Boolean
     
     ' delete current files & recreate the folder
@@ -206,15 +167,19 @@ Public Function InstallTwinBasic(zipLocation As String) As Boolean
         
     'unzip to the twinBasic folder
     With New cZipArchive
-        .OpenArchive zipLocation
+        .OpenArchive tBZipFile
         .Extract tbHelperSettings.twinBASICFolder
     End With
+    
+    'DoEvents()
     ' ************************** this asks for admin rights, the complete zip isn't decompressed 2-24-25
     ' timing perhaps?
         
     ' check to make sure the twinBASIC folder exists after attempted installation
     result = fso.FolderExists(tbHelperSettings.twinBASICFolder)
-        
+    
+    WriteToDebugLogFile("           InstallTwinBasic - end")
+    InstallTwinBasic = result
 End Function
 
 Public Function IsCodeRunningInTheIDE() As Boolean
@@ -254,9 +219,9 @@ Public Function IsProcessRunning(ByVal ProcessName As String) As Boolean
     
 End Function
 
-Public Sub ShowStatusMessage(statMessage As String, Optional updatePreviousStatus As Boolean = False)
+Public Sub UpdateActivityLog(statMessage As String, Optional updatePreviousStatus As Boolean = False)
     
-    WriteToDebugFile("In ShowStatusMessage " & statMessage)
+    WriteToDebugLogFile("In ShowStatusMessage " & statMessage)
     ' write the message to the listbox on the form
     If updatePreviousStatus Then
         activityLog.AddEntry "", statMessage, True
@@ -264,6 +229,5 @@ Public Sub ShowStatusMessage(statMessage As String, Optional updatePreviousStatu
         activityLog.AddEntry Format(Now, "MM/dd/yy hh:mm:ss AM/PM: "), statMessage
     End If
 
-    'DoEvents()
-    WriteToDebugFile("Out ShowStatusMessage ")
+    WriteToDebugLogFile("Out ShowStatusMessage ")
 End Sub

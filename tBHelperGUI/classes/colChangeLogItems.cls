@@ -262,7 +262,7 @@ End Function
 Private Function GetVersionNumber(fromText As String) As String
     
     ' find the version number from the string passed
-    ' simply appending each number found
+    ' simply appending each number found - needed after re-release of 870
     Dim versionNumber As String
     Dim i As Integer
     Dim aChar As String

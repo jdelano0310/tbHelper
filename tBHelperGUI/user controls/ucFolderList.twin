@@ -8,6 +8,7 @@ Class ucFolderList
 
     ' --- Public API ---
     Public Event SelectionChanged(SelectedPath As String)
+    
     Public Property Get Path() As String
         If Not tvFolders.SelectedItem Is Nothing Then
             Path = tvFolders.SelectedItem.FullPath
@@ -26,11 +27,16 @@ Class ucFolderList
     Private Const FOLDER_OPEN_ICON = 2
     
     Private Sub UserControl_Initialize()
+        
         ' Setup ImageList using our own bundled icon files.
-       ' On Error GoTo IconErrorHandler
-       Dim icoFolderClosed As StdPicture
-       Dim icoFolderOpen As StdPicture
+
+        Dim icoFolderClosed As StdPicture
+        Dim icoFolderOpen As StdPicture
        
+        ' Style the TreeView to match your UI
+        tvFolders.BorderStyle = vbBSNone
+        tvFolders.LineStyle = tvwRootLines
+        
         ' Load pictures from files located in the same folder as the app
         Set icoFolderClosed = LoadPicture(App.Path & "\folder_closed.ico")
         Set icoFolderOpen = LoadPicture(App.Path & "\folder_open.ico")
@@ -41,38 +47,34 @@ Class ucFolderList
         ' Assign ImageList to TreeView
         Set tvFolders.ImageList = ilIcons
 
-        ' Style the TreeView to match your UI
-        'tvFolders.BackColor = RGB(30, 30, 30)
-        'tvFolders.ForeColor = RGB(220, 220, 220)
-        tvFolders.BorderStyle = vbBSNone
-        tvFolders.LineStyle = tvwRootLines
-
         'ApplyBottomRoundedCorners tvFolders, 4, 4, True         ' Then apply to the tree
-        
-        'Exit Sub
 
-    ' IconErrorHandler:
-    '     MsgBox "Error loading icon files." & vbCrLf & vbCrLf & "Please ensure 'folder_closed.ico' and 'folder_open.ico' are in the application directory: " & App.Path, vbCritical, "Icon Load Error"
     End Sub
     
     Public Sub ShowDrive(ByVal DrivePath As String)
+        
         tvFolders.Nodes.Clear
         On Error Resume Next ' In case of unready drives
-        Dim RootNode As Node
-        Set RootNode = tvFolders.Nodes.Add(, , DrivePath, DrivePath)
-        RootNode.Image = FOLDER_CLOSED_ICON
-        AddSubFolders RootNode
-        RootNode.Expanded = True ' Auto-expand the root
+        
+            Dim RootNode As Node
+            Set RootNode = tvFolders.Nodes.Add(, , DrivePath, DrivePath)
+            RootNode.Image = FOLDER_CLOSED_ICON
+            AddSubFolders RootNode
+            RootNode.Expanded = True ' Auto-expand the root
+            
         On Error GoTo 0
+        
     End Sub
 
     Private Sub AddSubFolders(ParentNode As Node)
+        
         Dim SubFolder As String
         Dim FullPath As String
         Dim NewNode As Node
+        Static dummyCounter As Long
     
         On Error Resume Next ' Ignore permission errors on folders
-    
+        
         FullPath = ParentNode.FullPath
         If Right$(FullPath, 1) <> "\" Then FullPath = FullPath & "\"
     
@@ -80,27 +82,34 @@ Class ucFolderList
         Do While Len(SubFolder) > 0
             If SubFolder <> "." And SubFolder <> ".." Then
                 If (GetAttr(FullPath & SubFolder) And vbDirectory) = vbDirectory Then
+                
                     Set NewNode = tvFolders.Nodes.Add(ParentNode, tvwChild, FullPath & SubFolder, SubFolder)
                     NewNode.Image = FOLDER_CLOSED_ICON
                     NewNode.SelectedImage = FOLDER_OPEN_ICON
+                    
                     ' Add a dummy node so the '+' appears. This is key for performance.
-                    tvFolders.Nodes.Add NewNode, tvwChild, "dummy", "dummy"
+                    dummyCounter = dummyCounter + 1
+                    tvFolders.Nodes.Add NewNode, tvwChild, "dummy" & dummyCounter, "dummy"
+
                 End If
             End If
             SubFolder = Dir
         Loop
+        
     End Sub
 
     Private Sub tvFolders_Expand(ByVal Node As Node)
+        
         ' This is the "on-demand" loading part.
         ' Remove the dummy node and load the real subfolders.
         If Node.Children > 0 Then
-            If Node.Child.Key = "dummy" Then
+            If Node.Child.Text = "dummy" Then
                 tvFolders.Nodes.Remove Node.Child.Index
                 AddSubFolders Node
             End If
         End If
         Node.Image = FOLDER_OPEN_ICON
+        
     End Sub
 
     Private Sub tvFolders_Collapse(ByVal Node As Node)
@@ -119,6 +128,12 @@ Class ucFolderList
     End Sub
     
     Private Sub tvFolders_NodeClick(ByVal Node As Node)
+        
+        If Node.Children = 1 And Node.Child.Text = "dummy" Then
+            tvFolders.Nodes.Remove Node.Child.Index
+            AddSubFolders Node
+        End If
+        
         RaiseEvent SelectionChanged(Node.FullPath)
     End Sub
     
@@ -152,7 +167,7 @@ Class ucFolderList
             ' If a folder segment was found, set the next parent to search
             If Not childNode Is Nothing Then
                 Set currentNode = childNode
-                currentNode.Expanded = True
+                'currentNode.Expanded = True
                 bFound = True
                 Exit For
             End If

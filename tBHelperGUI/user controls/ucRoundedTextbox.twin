@@ -8,34 +8,29 @@ Class ucRoundedTextbox
 
 	Sub New()
 	End Sub
-
-    Private Declare Function CreateRoundRectRgn Lib "gdi32" ( _
-    ByVal X1 As Long, ByVal Y1 As Long, _
-    ByVal X2 As Long, ByVal Y2 As Long, _
-    ByVal X3 As Long, ByVal Y3 As Long) As Long
-    
-    Private Declare Function SetWindowRgn Lib "user32" ( _
-    ByVal hWnd As Long, ByVal hRgn As Long, _
-    ByVal bRedraw As Boolean) As Long
     
     Private m_BackColor As OLE_COLOR
     Private m_BorderColor As OLE_COLOR
     Private m_BorderRadius As Long
     Private m_BorderWidth As Long
+    Private hWnd As LongPtr
     
     Public Property Let BorderColor(ByVal Value As OLE_COLOR)
         m_BorderColor = Value
-        Refresh
+        'Refresh
+        ApplyRoundedRegion
     End Property
 
     Public Property Let BorderRadius(ByVal Value As Long)
         m_BorderRadius = Value
-        Refresh
+        'Refresh
+        ApplyRoundedRegion
     End Property
 
     Public Property Let BorderWidth(ByVal Value As Long)
         m_BorderWidth = Value
-        Refresh
+        'Refresh
+        ApplyRoundedRegion
     End Property
     
     Public Property Get Text() As String
@@ -61,6 +56,8 @@ Class ucRoundedTextbox
         m_BorderRadius = 6
         m_BorderWidth = 1
         
+        hWnd = UserControl.hWnd
+        
         ApplyRoundedRegion
         
     End Sub
@@ -72,7 +69,8 @@ Class ucRoundedTextbox
         
         ApplyRoundedRegion
         
-        Refresh
+        'Refresh
+        
     End Sub
     
     Private Sub ApplyRoundedRegion()
@@ -95,6 +93,7 @@ Class ucRoundedTextbox
             ' Note: Don't delete the region object here - Windows takes ownership
         End If
         
+        QueueRedraw(hWnd)
     End Sub
     
     Private Sub UserControl_Show()
