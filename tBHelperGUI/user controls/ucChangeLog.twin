@@ -35,6 +35,7 @@ Class ucChangeLog
     Private m_ScrollOffset As Long
     'Private m_LastCanvasRedrawTime As Double
     Private m_RedrawQueued As Boolean
+    Private m_DrawTheEntries As Boolean
     
     ' Drawing surface
     Private WithEvents m_Canvas As PictureBox
@@ -59,6 +60,16 @@ Class ucChangeLog
         LogEntries = m_Entries
     End Property
 
+    Public Sub BeginUpdate()
+        ' tell the control to not draw entries to the canvas
+        m_DrawTheEntries = False
+    End Sub
+    
+    Public Sub EndUpdate()
+        ' tell the control it is now time to draw the entries
+        m_DrawTheEntries = True
+        RedrawCanvas
+    End Sub
     
     Private Sub UserControl_Initialize()
     
@@ -73,7 +84,8 @@ Class ucChangeLog
         m_ColumnCount = 0
         m_SelectedIndex = -1
         m_ScrollOffset = 0
-                
+        m_DrawTheEntries = True
+        
         'capture mouse scroll
         canvashWnd = m_Canvas.hWnd
         ucDictionary.Add canvashWnd, Me
@@ -92,7 +104,7 @@ Class ucChangeLog
             .ScaleMode = vbPixels
             .Width = UserControl.ScaleWidth - 200
             .Height = HEADER_HEIGHT
-            .BackColor = ROW_ALT_COLOR
+            .BackColor = RGB(189, 189, 189)
             .BorderStyle = 0 ' None
             .AutoRedraw = True
             .Font.Name = "Segoe UI"
@@ -243,6 +255,9 @@ Class ucChangeLog
 
     Private Sub RedrawCanvas()
         
+        ' if this is false, then don't draw the entries right away.
+        If Not m_DrawTheEntries Then Exit Sub
+        
         Dim i As Long
         Dim yPos As Long
         Dim visibleEntries As Long
@@ -264,11 +279,9 @@ Class ucChangeLog
         yPos = 0
         For i = startIndex To endIndex - 1
             DrawRow i, yPos
-            'yPos = yPos + ROW_HEIGHT
             yPos = yPos + m_Entries(i).EntryHeight
         Next i
     
-        'm_Canvas.Refresh
         RequestCanvasRedraw
         
     End Sub

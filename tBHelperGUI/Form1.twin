@@ -225,7 +225,6 @@ Class Form1
             
             lblCurrentTBVersion.Caption = "version: " & chgLogs.LatestVersion
             Me.MousePointer = vbDefault
-            'DoEvents()
             
             'WriteToDebugLogFile("Form1 - btnDownload: Done")
         End If
@@ -573,10 +572,11 @@ Class Form1
             Label9.Caption = "Change Log"
         End If
         
+        rvtVersionChangeLog.BeginUpdate()
         For Each clItem In chgLogs
             clgView.AddEntry(clItem.tBVersion, clItem.Type, clItem.Notes)
-            'DoEvents()
         Next
+        rvtVersionChangeLog.EndUpdate()
         
     End Sub
     Private Function FoldersAreValid() As Boolean
@@ -651,9 +651,8 @@ Class Form1
         lblMessageTitle.Caption = msgTitle
         RTFMsg.Message = msgText
         
-        'ToggleOtherClickableItems
-        CenterPanel pnlMessageBox
-        pnlMessageBox.Visible = True
+        ShowPanelView frmInnerMsgBox
+
         pnlMessageBox.MousePointer = vbDefault
         
         ' wait until the user clicks a button
@@ -665,14 +664,6 @@ Class Form1
         buttonNumber = -1
         
     End Function
-    
-    Private Sub CenterPanel(pnlToCenter As Frame)
-        Dim x As Long, y As Long
-        x = (Me.ScaleWidth - pnlToCenter.Width) \ 2
-        y = (Me.ScaleHeight - pnlToCenter.Height) \ 2
-        pnlToCenter.Left = x
-        pnlToCenter.Top = y
-    End Sub
     
     Private Sub btnNum1_Click()
         buttonClick 1
@@ -703,25 +694,25 @@ Class Form1
                 
     End Sub
     
-    Private Sub ToggleOtherClickableItems()
+    ' Private Sub ToggleOtherClickableItems()
         
-        Dim ctl As Control
-        'Dim cb As ucCustomButton
-        Dim controlIsTarget As Boolean
+    '     Dim ctl As Control
+    '     'Dim cb As ucCustomButton
+    '     Dim controlIsTarget As Boolean
         
-        For Each ctl In Me.Controls
+    '     For Each ctl In Me.Controls
             
-            ' if the control is one of the clickable controls, but not one used in the message box panel - toggle enabled property
-            If (TypeOf ctl Is ucCustomButton Or TypeOf ctl Is OptionButton Or TypeOf ctl Is TextBox Or TypeOf ctl Is ucToggleSlider) And InStr(ctl.name, "btnNum") = 0 Then
+    '         ' if the control is one of the clickable controls, but not one used in the message box panel - toggle enabled property
+    '         If (TypeOf ctl Is ucCustomButton Or TypeOf ctl Is OptionButton Or TypeOf ctl Is TextBox Or TypeOf ctl Is ucToggleSlider) And InStr(ctl.name, "btnNum") = 0 Then
 
-                ' toggle the enabled state
-                ctl.enabled = Not ctl.enabled
-            End If
+    '             ' toggle the enabled state
+    '             ctl.enabled = Not ctl.enabled
+    '         End If
             
-        Next
-        Set ctl = Nothing
+    '     Next
+    '     Set ctl = Nothing
         
-    End Sub
+    ' End Sub
     
     Private Function OptionSelection() As Integer
         
@@ -811,6 +802,7 @@ Class Form1
         End If
         
         clgView.ClearEntries
+        rvtVersionChangeLog.BeginUpdate()
         
         ' apply a filter to the listed change log
         Dim clItem As clsChangeLogItem
@@ -818,8 +810,9 @@ Class Form1
             If activeTypeFilters.Exists(UCase(clItem.Type)) Then
                 clgView.AddEntry(clItem.tBVersion, clItem.Type, clItem.Notes)
             End If
-            'DoEvents()
+
         Next
+        rvtVersionChangeLog.EndUpdate()
         
     End Sub
 
@@ -957,16 +950,14 @@ Class Form1
         SetupActivityLog
         HideDateList()
         
-        FlushRedraws
-        
         fillingLogDuringInitialView = True
         btnDeleteLog.Enabled = FillLogHistoryGrid
         fillingLogDuringInitialView = False
         
         UpdateActivityLog "Ready"
-        
-        CenterPanel pnlViewHistoryLog
-        pnlViewHistoryLog.Visible = True
+       
+        ShowPanelView frmInnerViewLog, 10
+
         Form1.MousePointer = vbDefault
         
         FlushRedraws
@@ -1013,6 +1004,7 @@ Class Form1
         End If
     
         clgHistoryView.ClearEntries()
+        clgHistoryView.BeginUpdate() ' hold drawing to the canvas until all the entries required have been set
         For Each logItem In logContents
             With clgHistoryView
                 If Len(ViewDate) = 0 Or logItem.LogDate = ViewDate Or ViewDate = "Show All" Then
@@ -1028,7 +1020,8 @@ Class Form1
             End With
         
         Next
-    
+        clgHistoryView.EndUpdate()  ' draw the canvas not that all the entries required have been set
+        
         If Len(ViewDate) = 0 Then
             ' fill the dropdown with the unique dates from the log file
             ' just during the first time through this
@@ -1129,35 +1122,28 @@ Class Form1
         If fillingLogDuringInitialView Then
             ' when loading the form there is no need to run this click
             DatePicker.Item = "Show All"
-            Exit Sub
-        End If
         
-        If lbDropdown.ListIndex > -1 Then
+        ElseIf lbDropdown.ListIndex > -1 Then
             
             DatePicker.Item = lbDropdown.Text ' Update the picker display
             DatePicker.Collapse()
             
             ' Hide the list
-            HideZipList
+            HideDateList
             
+            WriteToDebugLogFile "    lbDropdown_Click, selected date: " & lbDropdown.Text & " HideDateList called"
+                        
             FillLogHistoryGrid lbDropdown.Text
-
+            
         End If
+        FlushRedraws()
+        
     End Sub
     
     Private Sub frmInnerViewLog_Click()
         DatePicker.Collapse()
-        HideZipList
+        HideDateList
     End Sub
-    
-    Private Sub lblClose_Click()
-        
-        pnlViewHistoryLog.Visible = False
-        isAPanelDisplayed = False
-        WriteToDebugLogFile(" Hiding panel with history log displayed")
-        
-    End Sub
-    
     
     '***********************************
     '****  View Revert twinBASIC
@@ -1190,8 +1176,8 @@ Class Form1
         lblCurrentDownloadFolder.Caption = tbHelperSettings.DownloadFolder
         UpdateActivityLog "Ready"
         
-        CenterPanel pnlRevert
-        pnlRevert.Visible = True
+        ShowPanelView frmInnerRevertView
+        
         Form1.MousePointer = vbDefault
         
         FlushRedraws
@@ -1437,20 +1423,19 @@ Class Form1
         If lastVersionAdded = tbHelperClass.InstalledtBVersion Then
             lstZipFiles.AddItem("twinBASIC_IDE_BETA_" & lastVersionAdded & ".zip") ' add the last one
         End If
-'        ElseIf lastVersionAdded < tbHelperClass.InstalledtBVersion Then
-        ' 9 aren't available - adjust the caption above the dropdown list
- '       lblAvailableZips.Caption = "Only 9 avail from Pg:1 Releases "
     
     End Sub
     
     Private Sub FillEntries()
-        
+    
+        rvtVersionChangeLog.BeginUpdate()
         Dim revertToCL As clsChangeLogItem
         For Each revertToCL In revertToCLs
             If revertToCL.tBVersion = revertToVersion Then
                 rvtVersionChangeLog.AddEntry(revertToCL.Type, revertToCL.Notes)
             End If
         Next
+        rvtVersionChangeLog.EndUpdate()
         
     End Sub
     
@@ -1561,8 +1546,39 @@ Class Form1
         
         isAPanelDisplayed = False
         pnlRevert.Visible = False
+        
+        ' put the frame back off the screen
+        pnlRevert.Top = currentPanelTop
+        pnlRevert.Left = currentPanelLeft
+        
         FlushRedraws()
         
     End Sub
     
+    Private Sub lblCloseLogHistoryView_Click()
+        
+        isAPanelDisplayed = False
+        pnlViewLogHistory.Visible = False
+        
+        ' put the frame back off the screen
+        pnlViewLogHistory.Top = currentPanelTop
+        pnlViewLogHistory.Left = currentPanelLeft
+        
+        FlushRedraws()
+        
+    End Sub
+    
+    Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+        
+        ' this doesn't work currently as once a fame is displayed and hid
+        ' the form no longer run this event, will revisit in beta 2 (TODO) 
+        If KeyCode = vbKeyEscape Then
+            If isAPanelDisplayed Then
+                pnlMessageBox.Visible = False
+                pnlRevert.Visible = False
+                pnlViewLogHistory.Visible = False
+            End If
+        End If
+    End Sub
+
 End Class

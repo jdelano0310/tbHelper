@@ -70,7 +70,9 @@ Public Sub WriteToDebugLogFile(logFileLine As String)
     
 errorHandler:
     ' just skip if there is an error 
-    If Err.Number <> 0 Then Debug.Print "WriteToDebugLogFile error " & Err.Description
+    If Err.Number <> 0 Then
+        Debug.Print "WriteToDebugLogFile error " & Err.Description & " " & Err.Source
+    End If
 End Sub
 
 Public Function PixelsToTwips(pixels As Long) As Long
@@ -230,4 +232,57 @@ Public Sub UpdateActivityLog(statMessage As String, Optional updatePreviousStatu
     End If
 
     WriteToDebugLogFile("Out ShowStatusMessage ")
+End Sub
+
+Private Sub CenterPanel(pnlToCenter As Frame, Optional inObject As Object)
+    
+    ' default the object to center the panel in to Form1 if
+    ' none is supplied
+    If inObject Is Nothing Then
+        Set inObject = Form1
+    End If
+        
+    Dim x As Long, y As Long
+    x = (inObject.Width - pnlToCenter.Width) \ 2
+    y = (inObject.Height - pnlToCenter.Height) \ 2
+    pnlToCenter.Left = x
+    pnlToCenter.Top = y
+        
+End Sub
+
+Public currentPanelTop As Long
+Public currentPanelLeft As Long
+
+Public Sub ShowPanelView(innerPanel As Frame, Optional radius As Long = 10)
+    
+    ' this will be called to display a hidden panel / frames 
+    ' use the parent "frame panel" as the drop shadow for the "frame form"
+    Dim parentPanel As Frame
+    If TypeOf innerPanel Is Frame Then
+        Set parentPanel = innerPanel.Container
+    End If
+    
+    currentPanelTop = parentPanel.Top
+    currentPanelLeft = parentPanel.Left
+    
+    ApplyRoundedRegion parentPanel, radius
+    parentPanel.BackColor = RGB(180, 180, 180)  ' light gray shadow
+    
+    innerPanel.BackColor = RGB(240, 240, 240)   ' lighter background
+    
+    ' ensure the size creates a border around the inner panel
+    innerPanel.Left = 100
+    innerPanel.Top = 120
+        
+    parentPanel.Width = innerPanel.Width + 90
+    parentPanel.Height = innerPanel.Height + 100
+    
+    ApplyRoundedRegion innerPanel, 12
+    
+    CenterPanel parentPanel
+    CenterPanel innerPanel, parentPanel
+    
+    parentPanel.Visible = True
+    parentPanel.ZOrder 0
+
 End Sub

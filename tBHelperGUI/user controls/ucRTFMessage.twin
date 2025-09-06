@@ -91,6 +91,7 @@ Class ucRTFMessage
             .Visible = True
         End With
         
+        canvashWnd = m_Canvas.hWnd
         OriginalCanvasProc = SetWindowLong(canvashWnd, GWL_WNDPROC, AddressOf Canvas_WindowProc)
 
         ' set defaults for the segments
@@ -104,6 +105,7 @@ Class ucRTFMessage
             .Underline = False
         End With
         
+        ucDictionary.Add canvashWnd, Me
     End Sub
 
     Private Sub UserControl_Terminate()

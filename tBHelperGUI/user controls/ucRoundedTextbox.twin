@@ -49,30 +49,6 @@ Class ucRoundedTextbox
         Set txtInput.Font = Value
     End Property
     
-    Private Sub UserControl_Initialize()
-        
-        m_BackColor = &HFFFFFF
-        m_BorderColor = &HCCCCCC
-        m_BorderRadius = 6
-        m_BorderWidth = 1
-        
-        hWnd = UserControl.hWnd
-        
-        ApplyRoundedRegion
-        
-    End Sub
-    
-    Private Sub UserControl_Resize()
-        
-        Const padding As Long = 120
-        txtInput.Move padding, padding \ 2, ScaleWidth - (padding * 2), ScaleHeight - padding
-        
-        ApplyRoundedRegion
-        
-        'Refresh
-        
-    End Sub
-    
     Private Sub ApplyRoundedRegion()
         
         ' Claude version
@@ -94,6 +70,31 @@ Class ucRoundedTextbox
         End If
         
         QueueRedraw(hWnd)
+    End Sub
+    
+    Private Sub UserControl_Initialize()
+        
+        m_BackColor = &HFFFFFF
+        m_BorderColor = &HCCCCCC
+        m_BorderRadius = 6
+        m_BorderWidth = 1
+        
+        hWnd = UserControl.hWnd
+        
+        ApplyRoundedRegion
+        
+        ucDictionary.Add Me.hWnd, Me
+    End Sub
+    
+    Private Sub UserControl_Resize()
+        
+        Const padding As Long = 120
+        txtInput.Move padding, padding \ 2, ScaleWidth - (padding * 2), ScaleHeight - padding
+        
+        ApplyRoundedRegion
+        
+        'Refresh
+        
     End Sub
     
     Private Sub UserControl_Show()

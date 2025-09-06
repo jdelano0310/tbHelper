@@ -45,6 +45,67 @@ End Sub
 Public Const ROW_ALT_COLOR = &HF8F8F8
 Public Const CUST_BTN_BCOLOR = &HA2640C
 
+Public Sub ApplyRoundedRegion(toWhichControl As Control, borderRadius As Long)
+    
+    On Error GoTo AddRoundedError
+    
+    WriteToDebugLogFile "   ApplyRoundedRegion: to " & toWhichControl.name
+        
+    Dim ctrl As Object
+    Dim ctrlName As String
+    Dim ctrlWidth As Long
+    Dim ctrlHeight As Long
+    
+    ' is this a user control?
+    If ucDictionary.Exists(toWhichControl.hWnd) Then
+        Set ctrl = ucDictionary(toWhichControl.hWnd)
+        If Not ctrl Is Nothing Then
+            ctrlName = ctrl.name
+        End If
+    Else
+        ' it is not a user control
+        ctrlName = toWhichControl.name
+    End If
+    
+    ctrlWidth = toWhichControl.Width
+    ctrlHeight = toWhichControl.Height
+    
+    If ctrlWidth <= 0 Or ctrlHeight <= 0 Then Exit Sub
+    If borderRadius <= 0 Then Exit Sub
+    
+    Dim w As Long: w = ctrlWidth \ Screen.TwipsPerPixelX
+    Dim h As Long: h = ctrlHeight \ Screen.TwipsPerPixelY
+    Dim r As Long: r = borderRadius
+        
+    Dim rgn As Long
+    rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, r * 2, r * 2)
+        
+    If rgn <> 0 Then
+        SetWindowRgn toWhichControl.hWnd, rgn, True
+    End If
+    
+    Set ctrl = Nothing
+    Exit Sub
+AddRoundedError:
+
+    Debug.Print "ApplyRoundedRegion: unable to apply to " & ctrlName & " due to: " & Err.Description
+End Sub
+
+Public Sub DrawShadowBehind(ctrl As Control)
+    ' Dim g As StdGraphics
+    ' Set g = GetGraphics(ctrl.Parent.hWnd)
+
+    ' Dim x As Long: x = ctrl.Left - 6
+    ' Dim y As Long: y = ctrl.Top - 6
+    ' Dim w As Long: w = ctrl.Width + 12
+    ' Dim h As Long: h = ctrl.Height + 12
+
+    ' g.FillRectangle ARGB(60, 0, 0, 0), x, y, w, h
+    ' g.Dispose
+End Sub
+
+
+
 Public Sub UpdateScrollOwnership(ByVal hWnd As LongPtr, ByVal newPos As Long)
         
     If ucDictionary.Exists(hWnd) Then
@@ -237,18 +298,19 @@ Public Sub FlushRedraws()
         If now - req.LastRequested > 0.05 And InStr(hWnds, "|" & req.hWnd & "|") = 0 Then
             If req.Region <> 0 Then
                 RedrawWindow req.hWnd, req.Region, 0, RDW_INVALIDATE
+                WriteToDebugLogFile "     FlushRedraws: request #" & countRedrawItems & " RedrawWindow called"
             Else
                 InvalidateRect req.hWnd, ByVal 0&, True
+                WriteToDebugLogFile "     FlushRedraws: request #" & countRedrawItems & " InvalidateRect called"
             End If
             
             hWnds = hWnds & CStr(req.hWnd) & "|"
-            WriteToDebugLogFile("   FlushRedraws, request #" & countRedrawItems & " RedrawQueue called RedrawWindow")
             
             ' if this flush is for a custom button, then tell it the redraw via flushredraws is done.
             If ucDictionary.Exists(req.hWnd) Then
                 On Error Resume Next
                 CallByName ucDictionary(req.hWnd), "FlushRedrawComplete", vbMethod
-                If Err = 0 Then WriteToDebugLogFile("   FlushRedraws: request #" & countRedrawItems & " this is a button, so call its FlushRedrawComplete ")
+                If Err.Number = 0 Then WriteToDebugLogFile("   FlushRedraws: request #" & countRedrawItems & " this is a button, so call its FlushRedrawComplete ")
                 On Error GoTo 0
             End If
             countRedrawItems += 1

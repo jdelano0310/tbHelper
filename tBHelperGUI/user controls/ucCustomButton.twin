@@ -5,27 +5,10 @@
 [EventInterfaceId("3D66B76E-7CB0-45D1-A5B0-CB961394FDAD")]
 [COMControl]
 Class ucCustomButton
-    
-    ' API declarations for drawing
-    Private Declare Function CreateRoundRectRgn Lib "gdi32" ( _
-        ByVal X1 As Long, ByVal Y1 As Long, _
-        ByVal X2 As Long, ByVal Y2 As Long, _
-        ByVal X3 As Long, ByVal Y3 As Long) As Long
-    
-    Private Declare Function SetWindowRgn Lib "user32" ( _
-        ByVal hWnd As Long, ByVal hRgn As Long, _
-        ByVal bRedraw As Boolean) As Long
-    
-    ' adding a mouse cursor to visually indicate that the button is disabled
-    Private Declare Function LoadCursorFromFile Lib "user32" Alias "LoadCursorFromFileA" (ByVal lpFileName As String) As Long
-    Private Declare Function SetCursor Lib "user32" (ByVal hCursor As Long) As Long
-    Private Declare Function GetCursor Lib "user32" () As Long
-    
+ 
     Private m_DisabledCursor As Long
     Private m_DefaultCursor As Long
     Private m_CurrentCursor As Long
-    
-    'Private waitToDoClick As Boolean
     
     ' Private variables for properties
     Private m_Caption As String
@@ -41,7 +24,7 @@ Class ucCustomButton
     Private m_IsHover As Boolean
     Private m_IsPressed As Boolean
     Private m_FontSize As Long
-    'Private m_GdiplusToken As Long
+
     Private m_PngPath As String
     Private m_PngBitmap As Long
     Private m_Enabled As Boolean
@@ -154,7 +137,7 @@ Class ucCustomButton
     Public Property Let BorderRadius(ByVal Value As Long)
         'WriteToDebugLogFile " ucCustomButton: BorderRadius set to " & Value
         m_BorderRadius = Value
-        ApplyRoundedRegion
+        ApplyRoundedRegion UserControl, m_BorderRadius
         RequestRedraw
     End Property
     Public Property Get BorderRadius() As Long
@@ -228,7 +211,8 @@ Class ucCustomButton
         
         UserControl.BackColor = m_BackColor
         UserControl.Font.Bold = m_FontBold
-                
+        
+        ucDictionary.Add Me.hWnd, Me
     End Sub
     
     Public Sub FlushRedrawComplete()
@@ -400,7 +384,7 @@ Class ucCustomButton
     End Sub
     
     Private Sub UserControl_Resize()
-        ApplyRoundedRegion
+        ApplyRoundedRegion UserControl, m_BorderRadius
         RequestRedraw()
     End Sub
     
@@ -486,22 +470,6 @@ Class ucCustomButton
         End If
     End Sub
     
-    Private Sub ApplyRoundedRegion()
-        If Width <= 0 Or Height <= 0 Then Exit Sub
-        If m_BorderRadius <= 0 Then Exit Sub
-        
-        Dim w As Long: w = Width \ Screen.TwipsPerPixelX
-        Dim h As Long: h = Height \ Screen.TwipsPerPixelY
-        Dim r As Long: r = m_BorderRadius
-        
-        Dim rgn As Long
-        rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, r * 2, r * 2)
-        
-        If rgn <> 0 Then
-            SetWindowRgn UserControl.hWnd, rgn, True
-        End If
-    End Sub
-    
     Private Function DarkenColor(ByVal Color As OLE_COLOR, ByVal Factor As Double) As OLE_COLOR
         
         ' Simple color darkening function used to create the mouse over color (if it isn't supplied)
@@ -537,7 +505,7 @@ Class ucCustomButton
     End Function
     
     Private Sub UserControl_Show()
-        ApplyRoundedRegion
+        ApplyRoundedRegion UserControl, m_BorderRadius
     End Sub
 
     Private Sub UserControl_Terminate()

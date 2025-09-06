@@ -27,9 +27,9 @@
 		"Height": 760,
 		"HelpContextID": 0,
 		"Icon": "",
-		"InternalScaleHeightFull": 760,
-		"InternalScaleWidthFull": 1206,
-		"KeyPreview": false,
+		"InternalScaleHeightFull": 11400,
+		"InternalScaleWidthFull": 14565,
+		"KeyPreview": true,
 		"Left": 0,
 		"LinkMode": "vbLinkNone",
 		"LinkTopic": null,
@@ -52,11 +52,11 @@
 		"Picture": "",
 		"PictureDpiScaling": false,
 		"RightToLeft": false,
-		"ScaleHeight": 758,
+		"ScaleHeight": 11370,
 		"ScaleLeft": 0,
-		"ScaleMode": "vbPixels",
+		"ScaleMode": "vbTwips",
 		"ScaleTop": 0,
-		"ScaleWidth": 1204,
+		"ScaleWidth": 14535,
 		"ShowInTaskbar": true,
 		"StartUpPosition": "vbStartUpScreen",
 		"TabFocusAutoSelect": false,
@@ -78,7 +78,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 794305927,
+		"__lastUpdateMarker": 1407376602,
 		"_children": [
 			{
 				"Anchors": {
@@ -1928,7 +1928,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 9244668
+				"canvashWnd": 5966712
 			},
 			{
 				"Anchors": {
@@ -2085,7 +2085,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 5377220
+				"canvashWnd": 1639772
 			},
 			{
 				"Anchors": {
@@ -2813,7 +2813,7 @@
 					"Top": true,
 					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
 				},
-				"Appearance": "vbAppear3d",
+				"Appearance": "vbAppearFlat",
 				"BackColor": 12369084,
 				"BorderStyle": "vbNoBorder",
 				"Caption": "",
@@ -2837,7 +2837,7 @@
 				"MousePointer": "vbDefault",
 				"MultiFramePosition": -1,
 				"MultiFrameSize": 0,
-				"Name": "pnlViewHistoryLog",
+				"Name": "pnlViewLogHistory",
 				"OLEDropMode": "vbOLEDropNone",
 				"Opacity": 100,
 				"RightToLeft": false,
@@ -2859,7 +2859,7 @@
 							"Top": true,
 							"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
 						},
-						"Appearance": "vbAppear3d",
+						"Appearance": "vbAppearFlat",
 						"BackColor": -2147483633,
 						"BorderStyle": "vbNoBorder",
 						"Caption": "",
@@ -2932,7 +2932,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 4460530
+								"canvashWnd": 3212886
 							},
 							{
 								"Anchors": {
@@ -3531,7 +3531,7 @@
 								"Angle": 0,
 								"Appearance": "vbAppear3d",
 								"AutoSize": false,
-								"BackColor": 3556340,
+								"BackColor": 153,
 								"BackStyle": "vbBFOpaque",
 								"BorderCustomOptions": {
 									"Bottom": {
@@ -3576,7 +3576,7 @@
 								"Height": 22,
 								"Index": -1,
 								"InternalSectionId": -1,
-								"Left": 876,
+								"Left": 863,
 								"LineSpacing": 0,
 								"LinkItem": null,
 								"LinkMode": "vbLinkNone",
@@ -3584,13 +3584,13 @@
 								"LinkTopic": null,
 								"MouseIcon": "",
 								"MousePointer": "vbDefault",
-								"Name": "lblClose",
+								"Name": "lblCloseLogHistoryView",
 								"OLEDropMode": "vbOLEDropNone",
 								"RightToLeft": false,
 								"TabIndex": 62,
 								"Tag": null,
 								"ToolTipText": null,
-								"Top": 1,
+								"Top": 2,
 								"UseMnemonic": true,
 								"VerticalAlignment": "vbVerticalAlignMiddle",
 								"Visible": true,
@@ -3637,7 +3637,7 @@
 				"Height": 506,
 				"HelpContextID": 0,
 				"Index": -1,
-				"Left": 358,
+				"Left": 855,
 				"MouseIcon": "",
 				"MousePointer": "vbDefault",
 				"MultiFramePosition": -1,
@@ -3688,7 +3688,7 @@
 						"MousePointer": "vbDefault",
 						"MultiFramePosition": -1,
 						"MultiFrameSize": 0,
-						"Name": "frmRevertView",
+						"Name": "frmInnerRevertView",
 						"OLEDropMode": "vbOLEDropNone",
 						"Opacity": 100,
 						"RightToLeft": false,
@@ -4484,7 +4484,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 7211092
+								"canvashWnd": 8587304
 							},
 							{
 								"Anchors": {
@@ -4547,7 +4547,7 @@
 								"Angle": 0,
 								"Appearance": "vbAppear3d",
 								"AutoSize": false,
-								"BackColor": 3556340,
+								"BackColor": 153,
 								"BackStyle": "vbBFOpaque",
 								"BorderCustomOptions": {
 									"Bottom": {
@@ -4592,7 +4592,7 @@
 								"Height": 22,
 								"Index": -1,
 								"InternalSectionId": -1,
-								"Left": 790,
+								"Left": 780,
 								"LineSpacing": 0,
 								"LinkItem": null,
 								"LinkMode": "vbLinkNone",
