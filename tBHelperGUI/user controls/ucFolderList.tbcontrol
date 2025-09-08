@@ -36,6 +36,8 @@
 		"Height": 239,
 		"HitBehavior": "vbHitTestUseRegion",
 		"Index": -1,
+		"InternalScaleHeightFull": 3585,
+		"InternalScaleWidthFull": 4005,
 		"InvisibleAtRuntime": false,
 		"KeyPreview": false,
 		"Left": 0,
@@ -71,7 +73,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 3056459364,
+		"__lastUpdateMarker": 1602321197,
 		"_children": [
 			{
 				"Anchors": {
@@ -98,11 +100,11 @@
 				"FullRowSelect": false,
 				"Height": 156,
 				"HideSelection": true,
-				"HotTracking": false,
+				"HotTracking": true,
 				"ImageList": null,
 				"Indentation": 20,
 				"Index": -1,
-				"LabelEdit": "tvwAutomatic",
+				"LabelEdit": "tvwDisabled",
 				"Left": 23,
 				"LineStyle": "tvwRootLines",
 				"MouseIcon": "",

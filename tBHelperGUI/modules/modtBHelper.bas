@@ -285,4 +285,19 @@ Public Sub ShowPanelView(innerPanel As Frame, Optional radius As Long = 10)
     parentPanel.Visible = True
     parentPanel.ZOrder 0
 
+    Form1.isAPanelDisplayed = True
+End Sub
+
+Public Sub HidePanelView(parentPanel As Frame)
+    
+    ' hide the panel and put it back where it was
+    Form1.isAPanelDisplayed = False
+    parentPanel.Visible = False
+        
+    ' put the frame back off the screen
+    parentPanel.Top = currentPanelTop
+    parentPanel.Left = currentPanelLeft
+        
+    FlushRedraws()
+    
 End Sub

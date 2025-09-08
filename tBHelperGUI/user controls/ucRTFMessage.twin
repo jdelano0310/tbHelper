@@ -45,6 +45,7 @@ Class ucRTFMessage
     Private WithEvents m_Canvas As PictureBox
     
     Public Property Let Message(value As String)
+        m_Canvas.Cls
         m_Message = value
         DrawMessage
     End Property
@@ -152,8 +153,7 @@ Class ucRTFMessage
         End If
         
     End Function
-    
-    
+        
     Private Sub DrawMessage()
         
         Dim hDC As Long
@@ -166,7 +166,7 @@ Class ucRTFMessage
         
         hDC = m_Canvas.hDC
         canvasWidth = m_Canvas.Width \ Screen.TwipsPerPixelX
-        x = 0: y = 0
+        x = 0: y = 10 ' give a little padding at the top of the message area
 
         Dim segments As Collection
         Set segments = ParseStyledMessage(m_Message)
@@ -295,7 +295,7 @@ Class ucRTFMessage
                                                 Select Case LCase(kv(1))
                                                     Case "vbred": currentColor = vbRed
                                                     Case "vbblue": currentColor = vbBlue
-                                                    Case "vbgreen": currentColor = vbGreen
+                                                    Case "vbgreen": currentColor = &H006400  'vbGreen dark green
                                                     Case "vbmagenta": currentColor = vbMagenta
                                                     Case "vbcyan": currentColor = vbCyan
                                                     Case "vbwhite": currentColor = vbWhite

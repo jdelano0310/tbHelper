@@ -103,11 +103,12 @@ Class Form1
 
     Private Sub Form_Click()
         
-        ' if one of the panels is displayed and the form is clicked
-        ' hide the dropdown list
+        ' if one of the panels with a dropdown is displayed and the form is clicked
+        ' hide the dropdown
         If isAPanelDisplayed Then
             HideDateList
             HideZipList
+            HideDriveList
         End If
         
     End Sub
@@ -184,7 +185,7 @@ Class Form1
                 UpdateActivityLog "The zip exists in the download folder, redownload it?"
                 'WriteToDebugLogFile "show the message form"
                 
-                btnDownload.Refresh ' refesh the button to allow it to process anything it needs to do
+                FlushRedraws ' refesh the button to allow it to process anything it needs to do()
                 DoEvents
                 
                 Dim msgResponse As Integer = MessageBox("The file [font color=vbblue]'" & localZipFileName & "'[/font] already exists. Download it again? [i](if no, then the current file will be used)[/i]", _
@@ -204,7 +205,10 @@ Class Form1
                 End Select
                 
                 'WriteToDebugLogFile "a button was selected"
-                If downloadTheZip Then fso.DeleteFile(localZipFileName)
+                If downloadTheZip Then
+                    fso.DeleteFile(localZipFileName)
+                    UpdateActivityLog "Deleted the previous zip file " & localZipFileName, False
+                End If
                 Me.MousePointer = vbHourglass
             End If
 
@@ -223,7 +227,7 @@ Class Form1
             btnDownload.Caption = "Check for new version"
             btnDownload.PngIconPath = checkForNewIcon
             
-            lblCurrentTBVersion.Caption = "version: " & chgLogs.LatestVersion
+            If tbHelperSettings.PostDownloadAction = 3 Then lblCurrentTBVersion.Caption = "version: " & chgLogs.LatestVersion
             Me.MousePointer = vbDefault
             
             'WriteToDebugLogFile("Form1 - btnDownload: Done")
@@ -234,54 +238,72 @@ Class Form1
     
     Private Sub btnSelectDownloadFolder_Click()
         
-        ' check for the message box displaying
+        ' check for a panel already displayed
         If isAPanelDisplayed Then Exit Sub
         
-        Dim Dlg As New frmSelectFolder
-        Dim Path As String
-    
-        If Len(tbHelperSettings.DownloadFolder) > 0 Then Dlg.SelectedPath = tbHelperSettings.DownloadFolder
-        Dlg.Caption = "Select Download folder"
+        ConfigureSelectFolderButtons()
+                
+        ' Populate the drives listbox and set the initial selection
+        PopulateDrivesList
         
-        Path = Dlg.ShowAsDialog()
-    
-        Dlg.Close()
-        
-        If Len(Path) > 0 Then
-            If Right(Path, 1) <> "\" Then Path = Path & "\"
-            txtDownloadFolder.Text = Path
-            tbHelperSettings.DownloadFolder = Path
-        Else
-          
-            MessageBox("A folder wasn't chosen, [b]the operation was cancelled[/b].", , "No selection")
+        ' if there are drives found and there isn't a previous selection that needs to be highlighted
+        If lstDrives.ListCount > 0 And Len(txtDownloadFolder.Text) = 0 Then
+            lstDrives.ListIndex = 0
+            DrivePicker.Item = lstDrives.Text
+            
+            ' Explicitly populate the folder list with the initial drive.
+            ' This ensures it happens after the drive is set and the control is ready.
+            FolderList.ShowDrive DrivePicker.Item
+            
+        ElseIf Len(txtDownloadFolder.Text) > 0 Then
+            ' highlight the passed SelectedPath
+            DrivePicker.Item = Left(txtDownloadFolder.Text, 2) ' select the drive in the dropdown
+            FolderList.ShowDrive DrivePicker.Item    ' make sure that drive's folders are listed
+            
+            FolderList.Path = txtDownloadFolder.Text           ' highlight the previous folder
+            
         End If
         
+        ShowPanelView frmInnerSelectFolder
+        lblSelectFolderTitle.Caption = "Select a download folder"
+        
         FlushRedraws
+
     End Sub
     
     Private Sub btnSelecttBFolderLocation_Click()
         
-        ' check for the message box displaying
+        ' check for a panel already displayed
         If isAPanelDisplayed Then Exit Sub
         
-        Dim Dlg As New frmSelectFolder
-        Dim Path As String
-    
-        If Len(tbHelperSettings.twinBASICFolder) > 0 Then Dlg.SelectedPath = tbHelperSettings.twinBASICFolder
-        Dlg.Caption = "Select twinBASIC folder"
+        ConfigureSelectFolderButtons()
+                
+        ' Populate the drives listbox and set the initial selection
+        PopulateDrivesList
         
-        Path = Dlg.ShowAsDialog()
-        Dlg.Close()
-        
-        If Len(Path) > 0 Then
-            If Right(Path, 1) <> "\" Then Path = Path & "\"
-            txttBFolderLocation.Text = Path
-            tbHelperSettings.twinBASICFolder = Path
-        Else
-            MessageBox("A folder wasn't chosen, [b]the operation was cancelled[/b].", , "No selection")
+        ' if there are drives found and there isn't a previous selection that needs to be highlighted
+        If lstDrives.ListCount > 0 And Len(txttBFolderLocation.Text) = 0 Then
+            lstDrives.ListIndex = 0
+            DrivePicker.Item = lstDrives.Text
+            
+            ' Explicitly populate the folder list with the initial drive.
+            ' This ensures it happens after the drive is set and the control is ready.
+            FolderList.ShowDrive DrivePicker.Item
+            
+        ElseIf Len(txtDownloadFolder.Text) > 0 Then
+            ' highlight the passed SelectedPath
+            DrivePicker.Item = Left(txttBFolderLocation.Text, 2) ' select the drive in the dropdown
+            FolderList.ShowDrive DrivePicker.Item    ' make sure that drive's folders are listed
+            
+            FolderList.Path = txttBFolderLocation.Text           ' highlight the previous folder
+            
         End If
         
+        ShowPanelView frmInnerSelectFolder
+        lblSelectFolderTitle.Caption = "Select a twinBASIC folder"
+        
         FlushRedraws
+
     End Sub
     
     Private Sub optOpenFolder_Click()
@@ -630,8 +652,6 @@ Class Form1
             
         buttonNumber = 0
         
-        isAPanelDisplayed = True
-        
         ' Load icon based on type
         Select Case LCase$(msgType)
             Case "info": picIcon.Picture = LoadPicture(App.Path & "\info.png")
@@ -693,26 +713,6 @@ Class Form1
         RTFMsg.Cls()
                 
     End Sub
-    
-    ' Private Sub ToggleOtherClickableItems()
-        
-    '     Dim ctl As Control
-    '     'Dim cb As ucCustomButton
-    '     Dim controlIsTarget As Boolean
-        
-    '     For Each ctl In Me.Controls
-            
-    '         ' if the control is one of the clickable controls, but not one used in the message box panel - toggle enabled property
-    '         If (TypeOf ctl Is ucCustomButton Or TypeOf ctl Is OptionButton Or TypeOf ctl Is TextBox Or TypeOf ctl Is ucToggleSlider) And InStr(ctl.name, "btnNum") = 0 Then
-
-    '             ' toggle the enabled state
-    '             ctl.enabled = Not ctl.enabled
-    '         End If
-            
-    '     Next
-    '     Set ctl = Nothing
-        
-    ' End Sub
     
     Private Function OptionSelection() As Integer
         
@@ -785,6 +785,8 @@ Class Form1
         
         UpdateActivityLog "Post download action done"
         'WriteToDebugLogFile("ProcessDownloadedZip " & tBZipFile & " end")
+        
+         
     End Sub
     
     Private Sub RefreshChangeLog(FilterText As String, itsState As Boolean)
@@ -940,10 +942,12 @@ Class Form1
 
         ' check for the message box displaying
         If isAPanelDisplayed Then Exit Sub
-        isAPanelDisplayed = True
+        'isAPanelDisplayed = True
         
         Form1.MousePointer = vbHourglass
         UpdateActivityLog "Loading log file view"
+        FlushRedraws
+        DoEvents()
                 
         ConfigureCustomButton btnDeleteLog, "Delete Log", &HA2640C, vbWhite, App.Path & "\delete.png", 20, False, False
         
@@ -970,13 +974,16 @@ Class Form1
     Private Sub btnDeleteLog_Click()
         
         ' user wishes to delete the current log.txt file
-        If MsgBox("Are you sure you want to delete the log.txt file?", vbYesNo, "Confirmation") = vbNo Then Exit Sub
+        'If MsgBox("Are you sure you want to delete the log.txt file?", vbYesNo, "Confirmation") = vbNo Then Exit Sub
         
+        If MessageBox("Are you [b]sure[/b] you want to delete the log file?", "question", "Confirmation", "Yes", "No") = 2 Then Exit Sub
+
         fso.DeleteFile(App.Path & "\log.txt")
         UpdateActivityLog "Log.txt has been deleted."
         
         If tbHelperSettings.LogActivity Then
-            tbHelperSettings.LogActivity = MsgBox("The setting to write to a log file is still active. Should this be turned off?", vbYesNo, "Write to log File") = vbNo
+            'tbHelperSettings.LogActivity = MsgBox("The setting to write to a log file is still active. Should this be turned off?", vbYesNo, "Write to log File") = vbNo
+            tbHelperSettings.LogActivity = MessageBox("The setting to [b]write to a log file[/b] is still active. Should this be turned off?", "question", "log File Setting", "Yes", "No") = 2
             Form1.tsLogActivity = tbHelperSettings.LogActivity
         End If
         
@@ -998,7 +1005,7 @@ Class Form1
     
         Me.MousePointer = vbHourglass
         If Not logContents.LoadLog Then
-            MsgBox("There was an issue reading the log file", vbExclamation, "View log")
+            MessageBox("There was an issue reading the log file, can not continue", "error", "View log Failed")
             FillLogHistoryGrid = False
             Exit Function
         End If
@@ -1112,6 +1119,7 @@ Class Form1
     
     Private Sub HideDateList()
     
+        DatePicker.Collapse()
         lbDropdown.Visible = False
         picDropDownBorder.Visible = False
     
@@ -1126,7 +1134,6 @@ Class Form1
         ElseIf lbDropdown.ListIndex > -1 Then
             
             DatePicker.Item = lbDropdown.Text ' Update the picker display
-            DatePicker.Collapse()
             
             ' Hide the list
             HideDateList
@@ -1159,7 +1166,7 @@ Class Form1
         
         ' check for the message box displaying or 
         If isAPanelDisplayed Then Exit Sub
-        isAPanelDisplayed = True
+        'isAPanelDisplayed = True
         
         Form1.MousePointer = vbHourglass
         UpdateActivityLog "Loading revert twinBASIC view"
@@ -1286,9 +1293,11 @@ Class Form1
     
     Private Sub HideZipList()
     
+        ZipPicker.Collapse()
+        
         lstZipFiles.Visible = False
         picDropDownBorder.Visible = False
-    
+        
     End Sub
     
     Private Sub lstZipFiles_Click()
@@ -1296,7 +1305,6 @@ Class Form1
         If lstZipFiles.ListIndex > -1 Then
             Me.MousePointer = vbHourglass
             ZipPicker.Item = lstZipFiles.Text ' Update the picker display
-            ZipPicker.Collapse()
             
             ' Hide the list
             HideZipList
@@ -1494,8 +1502,8 @@ Class Form1
     
     Private Sub btnReverttB_Click()
         
-        If MsgBox("Are you sure you want to revert the current version of twinBASIC (" & tbHelperClass.InstalledtBVersion & ") to version " & _ 
-            revertToVersion & "?", vbYesNo, "Reverting twinBASIC") = vbNo Then Exit Sub
+        If MessageBox("Are you [b]sure[/b] you want to revert the current version of twinBASIC ([font color=vbblue]" & tbHelperClass.InstalledtBVersion & "[/font]) to version [font color=vbgreen]" & _ 
+            revertToVersion & "[/font]?", "question", "Reverting twinBASIC", "Yes", "No") = 2 Then Exit Sub
         
         UpdateActivityLog "Selected to revert from version " & tbHelperClass.InstalledtBVersion & " to " & revertToVersion
         
@@ -1544,27 +1552,13 @@ Class Form1
     
     Private Sub lblCloseRevert_Click()
         
-        isAPanelDisplayed = False
-        pnlRevert.Visible = False
-        
-        ' put the frame back off the screen
-        pnlRevert.Top = currentPanelTop
-        pnlRevert.Left = currentPanelLeft
-        
-        FlushRedraws()
+        HidePanelView pnlRevert
         
     End Sub
     
     Private Sub lblCloseLogHistoryView_Click()
         
-        isAPanelDisplayed = False
-        pnlViewLogHistory.Visible = False
-        
-        ' put the frame back off the screen
-        pnlViewLogHistory.Top = currentPanelTop
-        pnlViewLogHistory.Left = currentPanelLeft
-        
-        FlushRedraws()
+        HidePanelView pnlViewLogHistory
         
     End Sub
     
@@ -1580,5 +1574,189 @@ Class Form1
             End If
         End If
     End Sub
+    
+    Private Sub frmInnerRevertView_Click()
+        
+        HideZipList()
+    End Sub
+    
+    '***********************************************
+    '*****  Select Folder
+    '******************************************
+    Private Sub ConfigureSelectFolderButtons()
+        
+        'setup the user control download button
+        With btnOkay
+            .Caption = "Okay"
+            .BackColor = CUST_BTN_BCOLOR  ' Blue
+            .ForeColor = vbWhite  ' White
+            .FontSize = 11
+            '.HoverColor = RGB(18, 40, 234) ' Darker blue
+            .BorderRadius = 3
+            .FontBold = False
+            .PngIconPath = ""
+            .IconSize = 0
+            .IconSpacing = 0
+            .Enabled = True
+        End With
+        
+        With btnCancel
+            .Caption = "Cancel"
+            .BackColor = CUST_BTN_BCOLOR  ' darker grey
+            .ForeColor = vbWhite
+            .FontSize = 11
+            '.HoverColor = RGB(37, 99, 235)
+            .BorderRadius = 3
+            .FontBold = False
+            .PngIconPath = ""
+            .IconSize = 0
+            .IconSpacing = 0
+            .Enabled = True
+        End With
+        
+    End Sub
+    
+    Private Sub PopulateDrivesList()
+        
+        'TODO: add volume label to the drive list
+        Dim drives As Long
+        Dim i As Long
+        Dim driveLetter As String
+        Dim driveType As Long
+        Dim volumeLabel As String
+        
+        drives = GetLogicalDrives()
+        lstDrives.Clear
 
+        For i = 0 To 25
+            If (drives And (2 ^ i)) <> 0 Then
+                driveLetter = Chr$(65 + i) & ":"
+                driveType = GetDriveType(driveLetter & "\")
+                If driveType = DRIVE_FIXED Or driveType = DRIVE_REMOVABLE Then
+                    'volumeLabel = Dir(driveLetter & ":\", vbVolume)
+                    lstDrives.AddItem driveLetter
+                End If
+            End If
+        Next i
+    End Sub
+
+    Private Sub DrivePicker_DropDown()
+        
+        ' toggle the dropdown if it is visible
+        If lstDrives.Visible Then
+            HideDriveList()
+            Exit Sub
+        End If
+        
+        ' Find the currently selected drive in the list and highlight it
+        Dim i As Long
+        For i = 0 To lstDrives.ListCount - 1
+            If lstDrives.List(i) = DrivePicker.Item Then
+                lstDrives.ListIndex = i
+                Exit For
+            End If
+        Next i
+
+        Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
+        Const LIST_HEIGHT As Long = 1200
+          
+        ' listbox for the available drives
+        With lstDrives
+            .Width = DrivePicker.Width - (BORDER_SIZE * 2)
+            .Height = LIST_HEIGHT
+            .Left = DrivePicker.Left
+            .Top = DrivePicker.Top + DrivePicker.Height
+            .Visible = True
+        End With
+
+        ' the border for the listbox
+        With picDropDownBorder
+            .Move lstDrives.Left - BORDER_SIZE, _
+                  lstDrives.Top - BORDER_SIZE, _
+                  lstDrives.Width + (BORDER_SIZE * 2), _ 
+                  lstDrives.Height + (BORDER_SIZE * 2)
+            .Visible = True
+        End With
+        
+        ApplyBottomRoundedCorners picDropDownBorder, 4, 4 ' Apply to the border first
+        ApplyBottomRoundedCorners lstDrives, 4, 4, True         ' Then apply to the listbox
+                
+        BringWindowToTop picDropDownBorder.hWnd ' Bring border to the top
+        BringWindowToTop lstDrives.hWnd
+        
+    End Sub
+
+    Private Sub lstDrives_Click()
+        
+        ' When a new drive is selected from the list...
+        If lstDrives.ListIndex > -1 Then
+            DrivePicker.Item = lstDrives.Text ' Update the picker display
+            
+            FolderList.ShowDrive lstDrives.Text
+                        
+            ' Hide the list
+            HideDriveList
+            FlushRedraws
+        End If
+    End Sub
+
+    Private Sub HideDriveList()
+        
+        DrivePicker.Collapse()
+        lstDrives.Visible = False
+        picDropDownBorder.Visible = False
+        
+    End Sub
+    
+    Private Sub btnOkay_Click()
+        
+        ' assign the selection to the proper textbox
+
+        If Len(FolderList.Path) > 0 Then
+            ' there was a selection
+            Dim txtBox As Control
+            
+            If InStr(lblSelectFolderTitle.Caption, "download") > 0 Then
+                Set txtBox = txtDownloadFolder
+                tbHelperSettings.DownloadFolder = FolderList.Path
+            Else
+                If Val(GetCurrentTBVersion(FolderList.Path)) = 0 Then
+                    ' twinBASIC is not in the selected location
+                    MessageBox("The folder chosen, [font color=vbBlue]'" & FolderList.Path & "' [/font][b]does not contain twinBASIC[/b].", "error", "Invalid twinBASIC folder selection")
+                    Exit Sub
+                End If
+                
+                Set txtBox = txttBFolderLocation
+                tbHelperSettings.twinBASICFolder = FolderList.Path
+                
+            End If
+            
+            txtBox.Text = FolderList.Path
+            If Right(txtBox.Text, 1) <> "\" Then txtBox.Text = txtBox.Text & "\"
+            
+        End If
+        
+        Set txtBox = Nothing
+        
+        HidePanelView pnlSelectFolder
+    End Sub
+
+    Private Sub btnCancel_Click()
+        
+        HidePanelView pnlSelectFolder
+        MessageBox("A folder wasn't chosen, [b]the operation was cancelled[/b].", , "No selection")
+        
+    End Sub
+    
+    Private Sub lblCloseSelectFolder_Click()
+        
+        HidePanelView pnlSelectFolder
+        MessageBox("A folder wasn't chosen, [b]the operation was cancelled[/b].", , "No selection")
+        
+    End Sub
+    
+    Private Sub frmInnerSelectFolder_Click()
+        
+        HideDriveList
+    End Sub
 End Class
