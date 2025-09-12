@@ -498,7 +498,7 @@ Class ucChangeLog
         Set m_Entries(m_EntryCount) = entry
         m_EntryCount = m_EntryCount + 1
 
-        'WriteToDebugLogFile("       ucChanglog: AddEntry,  count is " & m_EntryCount & "  data " & ColumnValues(0) & ", " & ColumnValues(1) & ", " & ColumnValues(2) & ", " & ColumnValues(3))
+        ''WriteToDebugLogFile("       ucChanglog: AddEntry,  count is " & m_EntryCount & "  data " & ColumnValues(0) & ", " & ColumnValues(1) & ", " & ColumnValues(2) & ", " & ColumnValues(3))
         
         UpdateScrollBar
         RedrawCanvas

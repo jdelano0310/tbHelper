@@ -1,4 +1,15 @@
 Attribute VB_Name = "modtBHelper"
+Type SHFILEOPSTRUCT
+    hWnd As Long
+    wFunc As Long
+    pFrom As String
+    pTo As String
+    fFlags As Integer
+    fAnyOperationsAborted As Boolean
+    hNameMappings As Long
+    lpszProgressTitle As String
+End Type
+
 Declare Function SHFileOperation Lib "shell32.dll" Alias "SHFileOperationA" (lpFileOp As SHFILEOPSTRUCT) As Long
     
 Public FO_DELETE As Long = &H3
@@ -71,7 +82,7 @@ Public Sub WriteToDebugLogFile(logFileLine As String)
 errorHandler:
     ' just skip if there is an error 
     If Err.Number <> 0 Then
-        Debug.Print "WriteToDebugLogFile error " & Err.Description & " " & Err.Source
+        Debug.Print "WriteToDebugLogFile error " & Err.Description
     End If
 End Sub
 
@@ -157,6 +168,12 @@ Public Function InstallTwinBasic(tBZipFile As String) As Boolean
     'WriteToDebugLogFile("           InstallTwinBasic " & tBZipFile & " - start")
     Dim result As Boolean
     
+    ' WriteToDebugLogFile "*******************  skipping InstalltwinBASIC  ***********************"
+    ' InstallTwinBasic = True
+    ' Exit Function
+    
+    On Error GoTo ErrorUnZiping
+    
     ' delete current files & recreate the folder
     Dim SHFileOp As SHFILEOPSTRUCT
     Dim RetVal As Long
@@ -180,8 +197,16 @@ Public Function InstallTwinBasic(tBZipFile As String) As Boolean
     ' check to make sure the twinBASIC folder exists after attempted installation
     result = fso.FolderExists(tbHelperSettings.twinBASICFolder)
     
-    WriteToDebugLogFile("           InstallTwinBasic - end")
+    'WriteToDebugLogFile("           InstallTwinBasic - end")
     InstallTwinBasic = result
+    
+    Exit Function
+    
+    ErrorUnZiping:
+    InstallTwinBasic = False
+    UpdateActivityLog "Error: " & Err.Description & " during InstalltwinBASIC"
+    'WriteToDebugLogFile "Error: " & Err.Description & " during InstalltwinBASIC"
+    
 End Function
 
 Public Function IsCodeRunningInTheIDE() As Boolean
@@ -223,7 +248,7 @@ End Function
 
 Public Sub UpdateActivityLog(statMessage As String, Optional updatePreviousStatus As Boolean = False)
     
-    WriteToDebugLogFile("In ShowStatusMessage " & statMessage)
+    'WriteToDebugLogFile("In ShowStatusMessage " & statMessage)
     ' write the message to the listbox on the form
     If updatePreviousStatus Then
         activityLog.AddEntry "", statMessage, True
@@ -231,7 +256,7 @@ Public Sub UpdateActivityLog(statMessage As String, Optional updatePreviousStatu
         activityLog.AddEntry Format(Now, "MM/dd/yy hh:mm:ss AM/PM: "), statMessage
     End If
 
-    WriteToDebugLogFile("Out ShowStatusMessage ")
+    'WriteToDebugLogFile("Out ShowStatusMessage ")
 End Sub
 
 Private Sub CenterPanel(pnlToCenter As Frame, Optional inObject As Object)

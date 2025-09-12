@@ -40,7 +40,7 @@ Class ucCustomButton
     
     ' Properties
     Public Property Let ButtonWidth(ByVal Value As Long)
-        'WriteToDebugLogFile " ucCustomButton: ButtonWidth set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: ButtonWidth set to " & Value
         m_ButtonWidth = Value
         RequestRedraw
     End Property
@@ -49,7 +49,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let ButtonHeight(ByVal Value As Long)
-        'WriteToDebugLogFile " ucCustomButton: ButtonHeight set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: ButtonHeight set to " & Value
         m_ButtonHeight = Value
         RequestRedraw
     End Property
@@ -58,7 +58,7 @@ Class ucCustomButton
     End Property
     
      Public Property Let Enabled(ByVal value As Boolean)
-        'WriteToDebugLogFile " ucCustomButton: Enabled set to " & value
+        ''WriteToDebugLogFile " ucCustomButton: Enabled set to " & value
         m_Enabled = value
         ApplyVisualState
         
@@ -70,7 +70,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let PngIconPath(ByVal Value As String)
-        'WriteToDebugLogFile " ucCustomButton: PngIconPath set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: PngIconPath set to " & Value
         m_PngPath = Value
         LoadPngIcon
         RequestRedraw
@@ -80,7 +80,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let Caption(ByVal Value As String)
-        'WriteToDebugLogFile " ucCustomButton: Caption set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: Caption set to " & Value
         m_Caption = Value
         RequestRedraw
     End Property
@@ -89,7 +89,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let FontSize(ByVal Value As Long)
-        'WriteToDebugLogFile " ucCustomButton: FontSize set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: FontSize set to " & Value
         m_FontSize = Value
         UserControl.FontSize = m_FontSize
         RequestRedraw
@@ -99,7 +99,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let BackColor(ByVal Value As OLE_COLOR)
-        'WriteToDebugLogFile " ucCustomButton: BackColor set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: BackColor set to " & Value
         m_BackColor = Value
         m_HoverColor = DarkenColor(Value, 0.8) ' automatically calculate the hover color
         RequestRedraw
@@ -109,7 +109,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let ForeColor(ByVal Value As OLE_COLOR)
-        'WriteToDebugLogFile " ucCustomButton: ForeColor set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: ForeColor set to " & Value
         m_ForeColor = Value
         RequestRedraw
     End Property
@@ -118,7 +118,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let HoverColor(ByVal Value As OLE_COLOR)
-        'WriteToDebugLogFile " ucCustomButton: HoverColor set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: HoverColor set to " & Value
         m_HoverColor = Value
     End Property
     Public Property Get HoverColor() As OLE_COLOR
@@ -126,7 +126,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let BorderColor(ByVal Value As OLE_COLOR)
-        'WriteToDebugLogFile " ucCustomButton: BorderColor set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: BorderColor set to " & Value
         m_BorderColor = Value
         Refresh
     End Property
@@ -135,7 +135,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let BorderRadius(ByVal Value As Long)
-        'WriteToDebugLogFile " ucCustomButton: BorderRadius set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: BorderRadius set to " & Value
         m_BorderRadius = Value
         ApplyRoundedRegion UserControl, m_BorderRadius
         RequestRedraw
@@ -145,7 +145,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let BorderWidth(ByVal Value As Long)
-        'WriteToDebugLogFile " ucCustomButton: BorderWidth set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: BorderWidth set to " & Value
         m_BorderWidth = Value
         RequestRedraw
     End Property
@@ -154,7 +154,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let IconSize(ByVal Value As Long)
-        'WriteToDebugLogFile " ucCustomButton: IconSize set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: IconSize set to " & Value
         m_IconSize = Value
         RequestRedraw
     End Property
@@ -163,7 +163,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let IconSpacing(ByVal Value As Long)
-        'WriteToDebugLogFile " ucCustomButton: IconSpacing set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: IconSpacing set to " & Value
         m_IconSpacing = Value
         RequestRedraw
     End Property
@@ -172,7 +172,7 @@ Class ucCustomButton
     End Property
     
     Public Property Let FontBold(ByVal Value As Boolean)
-        'WriteToDebugLogFile " ucCustomButton: FontBold set to " & Value
+        ''WriteToDebugLogFile " ucCustomButton: FontBold set to " & Value
         m_FontBold = Value
         UserControl.Font.Bold = Value
         RequestRedraw
@@ -188,7 +188,9 @@ Class ucCustomButton
             Exit Sub
         End If
         
-        'WriteToDebugLogFile("ucCustomButton - Initialize")
+        ucDictionary.Add Me.hWnd, Me
+        
+        ''WriteToDebugLogFile("ucCustomButton - Initialize")
         
         ' Set default values (existing code)
         m_Caption = "Button"
@@ -212,7 +214,6 @@ Class ucCustomButton
         UserControl.BackColor = m_BackColor
         UserControl.Font.Bold = m_FontBold
         
-        ucDictionary.Add Me.hWnd, Me
     End Sub
     
     Public Sub FlushRedrawComplete()
@@ -221,7 +222,7 @@ Class ucCustomButton
         
     Private Sub RequestRedraw()
         
-        'WriteToDebugLogFile "ucCustomButton: RequestRedraw, m_RedrawQueued is " & m_RedrawQueued
+        'WriteToDebugLogFile "ucCustomButton: RequestRedraw, m_RedrawQueued is " & m_RedrawQueued & " caption: " & m_Caption
         If Not m_RedrawQueued And UserControl.hDC <> 0 Then
             QueueRedraw UserControl.hWnd
             m_RedrawQueued = True
@@ -235,7 +236,7 @@ Class ucCustomButton
         If ScaleWidth <= 0 Or ScaleHeight <= 0 Then Exit Sub
         If Not GDIPlus_IsStarted() Then Exit Sub
 
-        'WriteToDebugLogFile "     ucCustomButton: RedrawCanvas - start for:                " & IIf(m_Caption = "", m_PngPath, m_Caption)
+        ''WriteToDebugLogFile "     ucCustomButton: RedrawCanvas - start for: " & IIf(m_Caption = "", m_PngPath, m_Caption)
         Cls
         
         ' Calculate positions for icon and text, all in twips
@@ -278,7 +279,7 @@ Class ucCustomButton
         CurrentX = textXTw
         CurrentY = textYTw
         Print m_Caption
-        'WriteToDebugLogFile "     ucCustomButton: RedrawCanvas -end"
+        ''WriteToDebugLogFile "     ucCustomButton: RedrawCanvas -end"
         
     End Sub
     
@@ -289,15 +290,15 @@ Class ucCustomButton
         Dim newForeColor As OLE_COLOR
         Dim newborderColor As OLE_COLOR
         
-        'WriteToDebugLogFile "     ucCustomButton: ApplyVisualState - identifier " & IIf(m_Caption = "", m_PngPath, m_Caption)
+        ''WriteToDebugLogFile "     ucCustomButton: ApplyVisualState - identifier " & IIf(m_Caption = "", m_PngPath, m_Caption)
                 
         If Not m_Enabled Then
-            'WriteToDebugLogFile "     ucCustomButton: ApplyVisualState - disabled"
+            ''WriteToDebugLogFile "     ucCustomButton: ApplyVisualState - button is disabled"
             newBackColor = LightenColor(m_BackColor, 1.2)
             newForeColor = RGB(160, 160, 160)      ' softened gray for caption
             
         Else
-            'WriteToDebugLogFile "     ucCustomButton: ApplyVisualState m_IsPressed is " & m_IsPressed & " m_IsHover is " & m_IsHover
+            ''WriteToDebugLogFile "     ucCustomButton: ApplyVisualState m_IsPressed is " & m_IsPressed & " m_IsHover is " & m_IsHover
             newBackColor = IIf(m_IsPressed, LightenColor(m_BackColor, 1.2), IIf(m_IsHover, m_HoverColor, m_BackColor))
             newForeColor = m_ForeColor
         End If
@@ -315,31 +316,11 @@ Class ucCustomButton
             Line (0, 0)-(ScaleWidth - 1, ScaleHeight - 1), m_BorderColor, B
         End If
                 
-        ' Dim newBackColor As OLE_COLOR
-        ' Dim newForeColor As OLE_COLOR
-
-        ' If Not m_Enabled Then
-        '     newBackColor = LightenColor(m_BackColor, 1.2)
-        '     newForeColor = RGB(160, 160, 160)
-        ' ElseIf m_IsPressed Then
-        '     newBackColor = LightenColor(m_BackColor, 1.2)
-        '     newForeColor = m_ForeColor
-        ' ElseIf m_IsHover Then
-        '     newBackColor = m_HoverColor
-        '     newForeColor = m_ForeColor
-        ' Else
-        '     newBackColor = m_BackColor
-        '     newForeColor = m_ForeColor
-        ' End If
-
-        ' If UserControl.BackColor <> newBackColor Then UserControl.BackColor = newBackColor
-        ' If UserControl.ForeColor <> newForeColor Then UserControl.ForeColor = newForeColor
-        ' If UserControl.Font.Bold <> m_FontBold Then UserControl.Font.Bold = m_FontBold
     End Sub
     
         
     Private Sub UserControl_Paint()
-        'WriteToDebugLogFile "     ucCustomButton: Paint - calling RedrawCanvas"
+        ''WriteToDebugLogFile "     ucCustomButton: Paint - calling RedrawCanvas"
         RedrawCanvas
     End Sub
     
@@ -390,7 +371,7 @@ Class ucCustomButton
     
     Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
-        'WriteToDebugLogFile("        MouseMove m_Enabled: " & m_Enabled & " m_IsHover: " & m_IsHover & " button caption:                 " & IIf(m_Caption = "", m_PngPath, m_Caption))
+        ''WriteToDebugLogFile("        MouseMove m_Enabled: " & m_Enabled & " m_IsHover: " & m_IsHover & " button caption:  " & IIf(m_Caption = "", m_PngPath, m_Caption))
         
         ApplyVisualState
         
@@ -409,16 +390,16 @@ Class ucCustomButton
 
         ' If inside and not already hovering, trigger hover
         If Not m_IsHover Then
-            'WriteToDebugLogFile("     ucCustomButton: MouseMove, set hover to true, currently timer.enabled is " & tmrMouseTracker.Enabled)
+            ''WriteToDebugLogFile("     ucCustomButton: MouseMove, set hover to true, currently timer.enabled is " & tmrMouseTracker.Enabled)
             m_IsHover = True
             RaiseEvent MouseEnter
             RequestRedraw
             tmrMouseTracker.Enabled = True
-            'WriteToDebugLogFile("     ucCustomButton: MouseMove, hover is set to true, enabled timer, button caption:                 " & IIf(m_Caption = "", m_PngPath, m_Caption))
+            ''WriteToDebugLogFile("     ucCustomButton: MouseMove, hover is set to true, enabled timer, button caption:  " & IIf(m_Caption = "", m_PngPath, m_Caption))
         End If
         
         ' If Not m_IsHover And tmrMouseTracker.Enabled Then
-        '     'WriteToDebugLogFile("     ucCustomButton: check for out of hover")
+        '     ''WriteToDebugLogFile("     ucCustomButton: check for out of hover")
         '     m_IsHover = False
         '     m_IsPressed = False
         '     Refresh
@@ -429,27 +410,27 @@ Class ucCustomButton
     
     Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         
-        'WriteToDebugLogFile "     ucCustomButton: mousedown"
+        ''WriteToDebugLogFile "     ucCustomButton: mousedown"
         ApplyVisualState
         If Not m_Enabled Then Exit Sub
 
         If Button = vbLeftButton Then
             m_IsPressed = True
             RequestRedraw
-            'WriteToDebugLogFile "            ucCustomButton: mousedown - set m_IsPressed to True, called RequestRedraw, caption  " & IIf(m_Caption = "", m_PngPath, m_Caption)
+            ''WriteToDebugLogFile "            ucCustomButton: mousedown - set m_IsPressed to True, called RequestRedraw, caption  " & IIf(m_Caption = "", m_PngPath, m_Caption)
         End If
     End Sub
     
     Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
         
-        'WriteToDebugLogFile "     ucCustomButton: MouseUp caption                           " & IIf(m_Caption = "", m_PngPath, m_Caption)
+        ''WriteToDebugLogFile "     ucCustomButton: MouseUp caption                           " & IIf(m_Caption = "", m_PngPath, m_Caption)
         ApplyVisualState
         If Not m_Enabled Then Exit Sub
         
         If Button = vbLeftButton Then
             m_IsPressed = False
             RaiseEvent Click
-            'WriteToDebugLogFile "          ucCustomButton: MouseUp: set m_IsPressed = False and waitToDoClick = True, caption                           " & IIf(m_Caption = "", m_PngPath, m_Caption)
+            ''WriteToDebugLogFile "          ucCustomButton: MouseUp: set m_IsPressed = False; caption                           " & IIf(m_Caption = "", m_PngPath, m_Caption)
             RequestRedraw
             FlushRedraws
             tmrMouseTracker.Enabled = True
@@ -463,7 +444,7 @@ Class ucCustomButton
         If Not m_Enabled Then Exit Sub
                 
         If m_IsHover Then
-            'WriteToDebugLogFile("           ucCustomButton: MouseLeave m_IsHover is true and set to false, caption                  " & IIf(m_Caption = "", m_PngPath, m_Caption))
+            ''WriteToDebugLogFile("           ucCustomButton: MouseLeave m_IsHover is true and set to false, caption                  " & IIf(m_Caption = "", m_PngPath, m_Caption))
             m_IsHover = False
             m_IsPressed = False
             RequestRedraw
@@ -540,8 +521,8 @@ Class ucCustomButton
         Dim cx As Long, cy As Long
     
         ' using this to fire either the mouseleave or the click event
-        ''WriteToDebugLogFile("            ucCustomButton: tmrMouseTracker_Timer waitToDoClick is " & waitToDoClick & " m_IsHover is " & m_IsHover & " caption                      " & IIf(m_Caption = "", m_PngPath, m_Caption))
-        'WriteToDebugLogFile("            ucCustomButton: tmrMouseTracker_Timer m_IsHover is " & m_IsHover & " caption                      " & IIf(m_Caption = "", m_PngPath, m_Caption))
+        '''WriteToDebugLogFile("            ucCustomButton: tmrMouseTracker_Timer waitToDoClick is " & waitToDoClick & " m_IsHover is " & m_IsHover & " caption                      " & IIf(m_Caption = "", m_PngPath, m_Caption))
+        ''WriteToDebugLogFile("            ucCustomButton: tmrMouseTracker_Timer m_IsHover is " & m_IsHover & " caption                      " & IIf(m_Caption = "", m_PngPath, m_Caption))
         
         ' where is the mouse
         GetCursorPos pt
@@ -551,13 +532,13 @@ Class ucCustomButton
         cx = ScaleWidth \ Screen.TwipsPerPixelX
         cy = ScaleHeight \ Screen.TwipsPerPixelY
     
-        'WriteToDebugLogFile("            ucCustomButton: coordinates, pt.X=" & pt.X & ", pt.Y=" & pt.Y & ", cx=" & cx & ", cy=" & cy)
+        ''WriteToDebugLogFile("            ucCustomButton: coordinates, pt.X=" & pt.X & ", pt.Y=" & pt.Y & ", cx=" & cx & ", cy=" & cy)
         
         ' compare where the mouse is to that of the location of the button
         If pt.X < 0 Or pt.Y < 0 Or pt.X >= cx Or pt.Y >= cy Then
-            'WriteToDebugLogFile("           ucCustomButton: tmrMouseTracker_Timer m_IsHover is " & m_IsHover & " caption                   " & IIf(m_Caption = "", m_PngPath, m_Caption))
+            ''WriteToDebugLogFile("           ucCustomButton: tmrMouseTracker_Timer m_IsHover is " & m_IsHover & " caption                   " & IIf(m_Caption = "", m_PngPath, m_Caption))
             If m_IsHover Then
-                'WriteToDebugLogFile("       ucCustomButton: tmrMouseTracker_Timer set m_IsHover to false, m_IsPressed to false, raise MouseLeave, RequestRedraw, stop timer")
+                ''WriteToDebugLogFile("       ucCustomButton: tmrMouseTracker_Timer set m_IsHover to false, m_IsPressed to false, raise MouseLeave, RequestRedraw, stop timer")
                 m_IsHover = False
                 m_IsPressed = False
                 RaiseEvent MouseLeave
@@ -569,30 +550,6 @@ Class ucCustomButton
                         
         End If
 
-        ' If waitToDoClick Then
-        '     waitToDoClick = False
-        '     RaiseEvent Click
-        '     tmrMouseTracker.Enabled = False
-        '     'WriteToDebugLogFile("               ucCustomButton: tmrMouseTracker_Timer, raise Click - disabled timer caption                  " & IIf(m_Caption = "", m_PngPath, m_Caption))
-        ' End If
-        
-        ' If Not m_IsHover And Not waitToDoClick Then
-        '     tmrMouseTracker.Enabled = False
-        '     'WriteToDebugLogFile("           ucCustomButton: tmrMouseTracker_Timer disable timer, m_IsHover and waitToDoClick are false,     caption                  " & IIf(m_Caption = "", m_PngPath, m_Caption))
-        ' End If
-        
     End Sub
-    
-    ' Public Sub ResetHoverTracking()
         
-    '     'WriteToDebugLogFile("              ucCustomButton: ResetHoverTracking - for caption: " & m_Caption)
-        
-    '     m_IsHover = False
-    '     m_IsPressed = False
-    '     'waitToDoClick = False
-    '     'tmrMouseTracker.Enabled = False
-    '     RequestRedraw
-        
-    ' End Sub
-    
 End Class

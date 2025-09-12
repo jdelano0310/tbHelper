@@ -36,6 +36,8 @@
 		"Height": 55,
 		"HitBehavior": "vbHitTestUseRegion",
 		"Index": -1,
+		"InternalScaleHeightFull": 825,
+		"InternalScaleWidthFull": 3705,
 		"InvisibleAtRuntime": false,
 		"KeyPreview": false,
 		"Left": 0,
@@ -43,7 +45,7 @@
 		"MaskPicture": "",
 		"MouseIcon": "",
 		"MousePointer": "vbDefault",
-		"Name": "MyUserControl",
+		"Name": "ucCustomButton",
 		"OLEDropMode": "vbOLEDropNone",
 		"Palette": "",
 		"PaletteMode": "vbPaletteModeContainer",
@@ -71,7 +73,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 1126284620,
+		"__lastUpdateMarker": 3055246388,
 		"_children": [
 			{
 				"Enabled": false,

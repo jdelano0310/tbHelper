@@ -143,15 +143,9 @@ Class ucRTFMessage
         asciiVal = Asc(segmentText)
 
         ' Check common ASCII ranges for punctuation
-        If (asciiVal >= 33 And asciiVal <= 47) Or _
-           (asciiVal >= 58 And asciiVal <= 64) Or _
-           (asciiVal >= 91 And asciiVal <= 96) Or _
-           (asciiVal >= 123 And asciiVal <= 126) Then
-            IsJustPunctuation = True
-        Else
-            IsJustPunctuation = False
-        End If
-        
+        IsJustPunctuation = (asciiVal >= 33 And asciiVal <= 47) Or (asciiVal >= 58 And asciiVal <= 64) Or _
+           (asciiVal >= 91 And asciiVal <= 96) Or (asciiVal >= 123 And asciiVal <= 126)
+
     End Function
         
     Private Sub DrawMessage()
@@ -300,7 +294,16 @@ Class ucRTFMessage
                                                     Case "vbcyan": currentColor = vbCyan
                                                     Case "vbwhite": currentColor = vbWhite
                                                     Case "vbyellow": currentColor = vbYellow
-                                                    Case Else: currentColor = vbBlack
+                                                    Case Else
+                                                        ' add the ability to send an RGB color   tagContent:   "font color=rgb(4, 55, 242)"
+                                                        If Left(UCase(kv(1)), 3) = "RGB" Then
+                                                            Dim extractRGB As String = Mid(UCase(tagContent), InStr(UCase(tagContent), "=RGB") + 5)
+                                                            extractRGB = Left(extractRGB, Len(extractRGB) - 1) ' remove the last )
+                                                            Dim rgbColor() As String = Split(extractRGB, ",")
+                                                           currentColor = RGB(CInt(rgbColor(0)), CInt(rgbColor(1)), CInt(rgbColor(2)))
+                                                        Else
+                                                            currentColor = vbBlack
+                                                        End If
                                                 End Select
                                         End Select
                                     End If

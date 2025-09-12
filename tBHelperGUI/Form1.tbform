@@ -78,7 +78,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 427866098,
+		"__lastUpdateMarker": 64915290,
 		"_children": [
 			{
 				"Anchors": {
@@ -1928,7 +1928,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 5704950
+				"canvashWnd": 3999142
 			},
 			{
 				"Anchors": {
@@ -2085,7 +2085,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 5573288
+				"canvashWnd": 8326694
 			},
 			{
 				"Anchors": {
@@ -2932,7 +2932,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 6685390
+								"canvashWnd": 199828
 							},
 							{
 								"Anchors": {
@@ -3093,7 +3093,7 @@
 								"TabStop": true,
 								"Tag": null,
 								"ToolTipText": null,
-								"Top": 154.333333333333,
+								"Top": 154,
 								"TransparencyKey": -1,
 								"UseIViewObjectSnapshots": false,
 								"Visible": true,
@@ -4484,7 +4484,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 8193300
+								"canvashWnd": 199882
 							},
 							{
 								"Anchors": {
@@ -5280,6 +5280,19 @@
 				"_className": "Frame",
 				"_clsid": "{33AD4EE8-6699-11CF-B70C-00AA0060D393}",
 				"_isFrame": true
+			},
+			{
+				"Enabled": false,
+				"Height": 27,
+				"Index": -1,
+				"Interval": 50,
+				"Left": 359,
+				"Name": "tmrCatchUp",
+				"Tag": null,
+				"Top": 22,
+				"Width": 27,
+				"_className": "Timer",
+				"_clsid": "{33AD4F28-6699-11CF-B70C-00AA0060D393}"
 			}
 		],
 		"_className": "Form",

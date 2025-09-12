@@ -124,7 +124,7 @@ Class Form1
         Set tbHelperClass = Nothing
         Set activeTypeFilters = Nothing
         
-        WriteToDebugLogFile "CLOSE" ' this tells the procedure to close the debug log file 
+        'WriteToDebugLogFile "CLOSE" ' this tells the procedure to close the debug log file 
         'WriteToDebugLogFile "form1 closed"
         
         Set fso = Nothing
@@ -188,7 +188,7 @@ Class Form1
                 FlushRedraws ' refesh the button to allow it to process anything it needs to do()
                 DoEvents
                 
-                Dim msgResponse As Integer = MessageBox("The file [font color=vbblue]'" & localZipFileName & "'[/font] already exists. Download it again? [i](if no, then the current file will be used)[/i]", _
+                Dim msgResponse As Integer = MessageBox("The file [font color=rgb(4, 55, 242)]'" & localZipFileName & "'[/font] already exists. Download it again? [i](if no, then the current file will be used)[/i]", _
                                                 "Question", "Previously Downloaded", "Yes", "No", "Cancel")
                 'WriteToDebugLogFile "returned from message form, response was " & msgResponse
                 
@@ -224,16 +224,22 @@ Class Form1
             UpdateActivityLog "process complete"
 
             ' after the latest has been downloaded, set the download button to a manual check
+            'WriteToDebugLogFile "Update btnDownlod to say 'Check for new version'"
             btnDownload.Caption = "Check for new version"
             btnDownload.PngIconPath = checkForNewIcon
             
-            If tbHelperSettings.PostDownloadAction = 3 Then lblCurrentTBVersion.Caption = "version: " & chgLogs.LatestVersion
-            Me.MousePointer = vbDefault
+            ' if the option to auto unzip the file is selected, check to make sure the files in the tB folder are the new version
+            ' before changing the version info on the form
+            If tbHelperSettings.PostDownloadAction = 3 And GetCurrentTBVersion(txttBFolderLocation.Text) = chgLogs.LatestVersion Then
+                lblCurrentTBVersion.Caption = "version: " & chgLogs.LatestVersion
+            End If
             
             'WriteToDebugLogFile("Form1 - btnDownload: Done")
         End If
         
         FlushRedraws
+        Me.MousePointer = vbDefault
+         
     End Sub
     
     Private Sub btnSelectDownloadFolder_Click()
@@ -512,9 +518,12 @@ Class Form1
                         
         End If
         
+        FlushRedraws()
+        
+        Me.MousePointer = vbDefault
         tbHelperSettings.twinBASICFolder = txttBFolderLocation.Text
         FlushRedraws
-        Me.MousePointer = vbDefault
+        
     End Sub
     
     '**************************************
@@ -594,11 +603,11 @@ Class Form1
             Label9.Caption = "Change Log"
         End If
         
-        rvtVersionChangeLog.BeginUpdate()
+        clgView.BeginUpdate()
         For Each clItem In chgLogs
             clgView.AddEntry(clItem.tBVersion, clItem.Type, clItem.Notes)
         Next
-        rvtVersionChangeLog.EndUpdate()
+        clgView.EndUpdate()
         
     End Sub
     Private Function FoldersAreValid() As Boolean
@@ -711,7 +720,8 @@ Class Form1
         isAPanelDisplayed = False
         pnlMessageBox.Visible = False
         RTFMsg.Cls()
-                
+        FlushRedraws()
+        
     End Sub
     
     Private Function OptionSelection() As Integer
@@ -760,33 +770,43 @@ Class Form1
                 ' End If
                 
                 UpdateActivityLog " of installing twinBASIC", True
+                
                 'WriteToDebugLogFile("           Calling InstallTwinBasic")
                 If InstallTwinBasic(tBZipFile) Then
                     'WriteToDebugLogFile("           returned true - tell the user")
                     UpdateActivityLog "twinBASIC from " & tBZipFile & " has been extracted and is ready to use."
+                    
+                    Me.MousePointer = vbDefault
                     MessageBox("twinBASIC from [font color=vbblue]'" & tBZipFile & "'[/font] has been extracted and is ready to use.", "info", "Completed")
+                    
+                    ' does the user want to run twinBASIC after the update
+                    If tsStartTB.IsOn Then
+                        UpdateActivityLog "Start twinBASIC after update is checked, starting it"
+                        ShellExecute(0, "open", txttBFolderLocation.Text & "\twinBASIC.exe", vbNullString, vbNullString, 1)
+                        UpdateActivityLog "done", True
+                    End If
+                    
                 Else
                     UpdateActivityLog "twinBASIC from " & tBZipFile & " could not be extracted to " & tbHelperSettings.twinBASICFolder
-                    MessageBox("There was a problem recreating " & tbHelperSettings.twinBASICFolder & ". The parent folder and the zip file will be opened so that you can finish the process.", "error", "Unable to complete")
+                    Me.MousePointer = vbDefault
+                    MessageBox("There was a problem installing twinBASIC in " & tbHelperSettings.twinBASICFolder & ". The parent folder and the zip file will be opened so that you can finish the process.", "error", "Unable to complete")
                 
+                    ' wait for the message to be dismissed
+                    Do While isAPanelDisplayed
+                        DoEvents()
+                    Loop
+                    
                     ShellExecute(0, "open", tBZipFile, vbNullString, vbNullString, 1) ' open the zipfile for the user
                     ShellExecute(0, "open", GettBParentFolder, vbNullString, vbNullString, 1) ' open the folder where twinBASIC is supposed to be installed.
                 
-                    MessageBox("Going forward, you can open this utility as administrator to avoid this extra step.", "info", "Application Folder Rights")
+                    'MessageBox("Going forward, you can open this utility as administrator to avoid this extra step.", "info", "Application Folder Rights")
                 End If
                 
-                ' does the user want to run twinBASIC after the update
-                If tsStartTB.IsOn Then
-                    UpdateActivityLog "Start twinBASIC after update is checked, starting it"
-                    ShellExecute(0, "open", txttBFolderLocation.Text & "\twinBASIC.exe", vbNullString, vbNullString, 1)
-                    UpdateActivityLog "done", True
-                End If
         End Select
         
         UpdateActivityLog "Post download action done"
         'WriteToDebugLogFile("ProcessDownloadedZip " & tBZipFile & " end")
-        
-         
+                 
     End Sub
     
     Private Sub RefreshChangeLog(FilterText As String, itsState As Boolean)
@@ -804,7 +824,7 @@ Class Form1
         End If
         
         clgView.ClearEntries
-        rvtVersionChangeLog.BeginUpdate()
+        clgView.BeginUpdate()
         
         ' apply a filter to the listed change log
         Dim clItem As clsChangeLogItem
@@ -814,7 +834,7 @@ Class Form1
             End If
 
         Next
-        rvtVersionChangeLog.EndUpdate()
+        clgView.EndUpdate()
         
     End Sub
 
@@ -918,17 +938,22 @@ Class Form1
                 Dim clType As String * 11
                 Dim clText As String * 150
                 Dim clgEntry As clsChangeLogEntry
-                
-                On Error Resume Next
+                                
                 For Each clgEntry In changeLog
                     tBVersion = clgEntry.Values("VERSION")
                     clType = clgEntry.Values("TYPE")
-                    clText = clgEntry.Values("DESCIPTION")
-                    If Err <> 0 Then clText = "** missing description **"
-                
+                    
+                    On Error Resume Next
+                    clText = clgEntry.Values("DESCRIPTION")
+                    If Err <> 0 Then
+                        clText = "** missing description **"
+                        Stop
+                    End If
+                    On Error GoTo 0
+                    
                     logFile.WriteLine(Format(Now, "MM/dd/yy hh:mm:ss AM/PM: ") & tBVersion & " - " & clType & IIf(Len(Trim(clType)) = 0, "", ": ") & clText)
                 Next clgEntry
-                On Error GoTo 0
+                
             End If
         logFile.Close()
         Set logFile = Nothing
@@ -1138,7 +1163,7 @@ Class Form1
             ' Hide the list
             HideDateList
             
-            WriteToDebugLogFile "    lbDropdown_Click, selected date: " & lbDropdown.Text & " HideDateList called"
+            'WriteToDebugLogFile "    lbDropdown_Click, selected date: " & lbDropdown.Text & " HideDateList called"
                         
             FillLogHistoryGrid lbDropdown.Text
             
@@ -1758,5 +1783,12 @@ Class Form1
     Private Sub frmInnerSelectFolder_Click()
         
         HideDriveList
+    End Sub
+    
+    Private Sub tmrCatchUp_Timer()
+        ' check for remaining UI updates that may have happened to quickly
+        tmrCatchUp.Enabled = False
+        'WriteToDebugLogFile("tmrCatchUp: RedrawCount=" & RedrawQueue.Count)
+        If RedrawQueue.Count > 0 Then FlushRedraws()
     End Sub
 End Class

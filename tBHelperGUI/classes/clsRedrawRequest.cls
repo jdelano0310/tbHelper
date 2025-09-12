@@ -17,3 +17,4 @@ Public hWnd As LongPtr
 Public LastRequested As Double
 Public Priority As Boolean
 Public Region As LongPtr
+Public Processed As Boolean
