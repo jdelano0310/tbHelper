@@ -28,7 +28,7 @@
 		"HelpContextID": 0,
 		"Icon": "",
 		"InternalScaleHeightFull": 11400,
-		"InternalScaleWidthFull": 14550,
+		"InternalScaleWidthFull": 23145,
 		"KeyPreview": true,
 		"Left": 0,
 		"LinkMode": "vbLinkNone",
@@ -56,7 +56,7 @@
 		"ScaleLeft": 0,
 		"ScaleMode": "vbTwips",
 		"ScaleTop": 0,
-		"ScaleWidth": 14520,
+		"ScaleWidth": 23115,
 		"ShowInTaskbar": true,
 		"StartUpPosition": "vbStartUpScreen",
 		"TabFocusAutoSelect": false,
@@ -78,7 +78,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 64915290,
+		"__lastUpdateMarker": 2443962852,
 		"_children": [
 			{
 				"Anchors": {
@@ -1928,7 +1928,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 3999142
+				"canvashWnd": 854242
 			},
 			{
 				"Anchors": {
@@ -2085,7 +2085,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 8326694
+				"canvashWnd": 8979672
 			},
 			{
 				"Anchors": {
@@ -2932,7 +2932,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 199828
+								"canvashWnd": 15470000
 							},
 							{
 								"Anchors": {
@@ -4484,7 +4484,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 199882
+								"canvashWnd": 986328
 							},
 							{
 								"Anchors": {

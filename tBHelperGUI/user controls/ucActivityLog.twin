@@ -35,7 +35,7 @@ Class ucActivityLog
     Private WithEvents m_Canvas As PictureBox
     Private WithEvents m_VScrollBar As VScrollBar
 
-    ' colors for the type of changle log item
+    ' colors for the type of change log item
     Private Const COLOR_IMPORTANT = vbBlue
     Private Const COLOR_IMPROVED = RGB(107, 142, 35)      ' other green  
     Private Const COLOR_FIXED = RGB(56, 118, 29) ' green
@@ -47,6 +47,7 @@ Class ucActivityLog
     Private Const COLOR_WARNING = RGB(153, 0, 0)
     
     Private Const TEXT_COLOR_WHITE = &HFFFFFF
+    Private Const TEXT_COLOR_ERROR = &H3C14DC
     Private Const BACKGROUND_COLOR = &HFFFFFF
     Private Const ROW_ALT_COLOR = &HF8F8F8
     Private Const TEXT_COLOR_DARK = &H333333
@@ -219,8 +220,13 @@ Class ucActivityLog
         SetTextColor hdc, TEXT_COLOR_VERSION
         TextOut hdc, 20, yPos + 12, entry.DateTime, Len(entry.DateTime)
     
-        ' Draw description (dark gray)
-        SetTextColor hdc, TEXT_COLOR_DARK
+        ' Draw description - if it contains the word error then draw it crimsson
+        If InStr(UCase(entry.LogMessage), "ERROR") > 0 Then
+            SetTextColor hdc, TEXT_COLOR_ERROR
+        Else
+            SetTextColor hdc, TEXT_COLOR_DARK
+        End If
+        
         TextOut hdc, msgX, yPos + 12, entry.LogMessage, Len(entry.LogMessage)
     End Sub
 

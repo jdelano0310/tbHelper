@@ -180,8 +180,8 @@ End Function
 
 Public Function SearchLog() As Boolean
     
-    ' this finds each version of tBs change log that has been processed locally
-    ' and is found in the log file. The user could have cleared the log at anytime
+    ' this finds each version of twinBASIC change logs that has been processed locally
+    ' and is found in the tBHelper log file. Do this because the user could have cleared the log at anytime
     Dim LogFileContents As String = fsoFileRead(App.Path & "\log.txt")
     If LogFileContents = "Failed fsoFileRead" Then
         Return False
