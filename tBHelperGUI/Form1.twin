@@ -870,7 +870,7 @@ Class Form1
         clgColumns(1).WrappedEnabled = False
         
         clgColumns(2).Name = "DESCRIPTION"
-        clgColumns(2).Width = 550
+        clgColumns(2).Width = 700
         clgColumns(2).WrappedEnabled = True
 
         clgView.SetColumns = clgColumns
@@ -1108,7 +1108,7 @@ Class Form1
         clgColumns(2).WrappedEnabled = False
         
         clgColumns(3).Name = "Description"
-        clgColumns(3).Width = 400
+        clgColumns(3).Width = 550
         clgColumns(3).WrappedEnabled = True
         
         clgHistoryView.SetColumns = clgColumns
@@ -1503,7 +1503,7 @@ Class Form1
         clgColumns(0).WrappedEnabled = False
 
         clgColumns(1).Name = "DESCRIPTION"
-        clgColumns(1).Width = 550
+        clgColumns(1).Width = 600
         clgColumns(1).WrappedEnabled = True
 
         rvtVersionChangeLog.SetColumns = clgColumns
@@ -1850,4 +1850,5 @@ Class Form1
         'WriteToDebugLogFile("tmrCatchUp: RedrawCount=" & RedrawQueue.Count)
         If RedrawQueue.Count > 0 Then FlushRedraws()
     End Sub
+    
 End Class

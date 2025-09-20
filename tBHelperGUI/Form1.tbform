@@ -5,7 +5,7 @@
 		"AutoRedraw": false,
 		"BackColor": -2147483633,
 		"BorderStyle": "vbFixedSingle",
-		"Caption": "tB Helper beta 1",
+		"Caption": "tB Helper beta 2",
 		"ClipControls": true,
 		"ControlBox": true,
 		"DrawMode": "vbCopyPen",
@@ -28,7 +28,7 @@
 		"HelpContextID": 0,
 		"Icon": "",
 		"InternalScaleHeightFull": 11400,
-		"InternalScaleWidthFull": 23145,
+		"InternalScaleWidthFull": 14550,
 		"KeyPreview": true,
 		"Left": 0,
 		"LinkMode": "vbLinkNone",
@@ -56,7 +56,7 @@
 		"ScaleLeft": 0,
 		"ScaleMode": "vbTwips",
 		"ScaleTop": 0,
-		"ScaleWidth": 23115,
+		"ScaleWidth": 14520,
 		"ShowInTaskbar": true,
 		"StartUpPosition": "vbStartUpScreen",
 		"TabFocusAutoSelect": false,
@@ -78,7 +78,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 2443962852,
+		"__lastUpdateMarker": 3000578105,
 		"_children": [
 			{
 				"Anchors": {
@@ -1928,7 +1928,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 854242
+				"canvashWnd": 14224756
 			},
 			{
 				"Anchors": {
@@ -2085,7 +2085,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 8979672
+				"canvashWnd": 786934
 			},
 			{
 				"Anchors": {
@@ -2932,7 +2932,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 15470000
+								"canvashWnd": 9112888
 							},
 							{
 								"Anchors": {
@@ -4484,7 +4484,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 986328
+								"canvashWnd": 5310304
 							},
 							{
 								"Anchors": {
@@ -5293,6 +5293,81 @@
 				"Width": 27,
 				"_className": "Timer",
 				"_clsid": "{33AD4F28-6699-11CF-B70C-00AA0060D393}"
+			},
+			{
+				"Anchors": {
+					"Bottom": false,
+					"Left": true,
+					"Right": false,
+					"Top": true,
+					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
+				},
+				"Appearance": "vbAppearFlat",
+				"AutoRedraw": false,
+				"AutoSize": false,
+				"BackColor": -2147483633,
+				"BorderStyle": "vbNoBorder",
+				"CausesValidation": true,
+				"ClipControls": true,
+				"DataField": null,
+				"DataFormat": null,
+				"DataMember": null,
+				"DataSource": null,
+				"Dock": "vbDockNone",
+				"DragIcon": "",
+				"DragMode": "vbManual",
+				"DrawMode": "vbCopyPen",
+				"DrawStyle": "vbSolid",
+				"DrawWidth": 1,
+				"Enabled": true,
+				"FillColor": 0,
+				"FillStyle": "vbFSTransparent",
+				"FontBold": false,
+				"FontItalic": false,
+				"FontName": "Segoe UI",
+				"FontSize": 8.25,
+				"FontStrikethru": false,
+				"FontTransparent": true,
+				"FontUnderline": false,
+				"ForeColor": 0,
+				"HasDC": true,
+				"Height": 16,
+				"HelpContextID": 0,
+				"Index": -1,
+				"InternalScaleHeightFull": 240,
+				"InternalScaleWidthFull": 240,
+				"Left": 561,
+				"LinkItem": null,
+				"LinkMode": "vbLinkNone",
+				"LinkTimeout": 50,
+				"LinkTopic": null,
+				"MouseIcon": "",
+				"MousePointer": "vbDefault",
+				"Name": "picPanelIcon",
+				"Negotiate": false,
+				"OLEDragMode": "vbOLEDragManual",
+				"OLEDropMode": "vbOLEDropNone",
+				"Opacity": 100,
+				"Picture": "",
+				"PictureDpiScaling": false,
+				"RightToLeft": false,
+				"ScaleHeight": 240,
+				"ScaleLeft": 0,
+				"ScaleMode": "vbTwips",
+				"ScaleTop": 0,
+				"ScaleWidth": 240,
+				"TabIndex": 78,
+				"TabStop": true,
+				"Tag": null,
+				"ToolTipText": null,
+				"Top": 14,
+				"TransparencyKey": -1,
+				"Visible": false,
+				"WhatsThisHelpID": 0,
+				"Width": 16,
+				"_className": "PictureBox",
+				"_clsid": "{33AD4ED0-6699-11CF-B70C-00AA0060D393}",
+				"_isFrame": true
 			}
 		],
 		"_className": "Form",

@@ -277,6 +277,7 @@ End Sub
 
 Public currentPanelTop As Long
 Public currentPanelLeft As Long
+Private picIcon As PictureBox
 
 Public Sub ShowPanelView(innerPanel As Frame, Optional radius As Long = 10)
     
@@ -304,14 +305,46 @@ Public Sub ShowPanelView(innerPanel As Frame, Optional radius As Long = 10)
     
     ApplyRoundedRegion innerPanel, 12
     
-    CenterPanel parentPanel
-    CenterPanel innerPanel, parentPanel
+    CenterPanel parentPanel                ' center the parent of the inner panel in the mail form
+    CenterPanel innerPanel, parentPanel    ' center the inner panel in the parent
+    
+    ' add icon to the panel
+    Set picIcon = Form1.picPanelIcon
+    If InStr(innerPanel.Name, "Revert") > 0 Then
+        DisplayPanelIcon App.Path & "\revert panel icon.png", innerPanel
+    
+    ElseIf InStr(innerPanel.Name, "ViewLog") > 0 Then
+        DisplayPanelIcon App.Path & "\logHistorypanel icon.png", innerPanel
+        
+    ElseIf InStr(innerPanel.Name, "Folder") > 0 Then
+        DisplayPanelIcon App.Path & "\black_folder_open.ico", innerPanel
+
+    Else
+        DisplayPanelIcon App.Path & "\messagebox.png", innerPanel
+        
+    End If
     
     parentPanel.Visible = True
     parentPanel.ZOrder 0
 
     Form1.isAPanelDisplayed = True
 End Sub
+
+Private Sub DisplayPanelIcon(iconFileName As String, parentContainer As Frame)
+    
+    ' stickly for aesthetics - add an icon to the panel
+    Debug.Print "placing panel icon ar Left: " & (parentContainer.Left + 60) & " and top: " & (parentContainer.Top + 35)
+    
+    picIcon.Picture = LoadPicture(iconFileName)
+    picIcon.AutoSize = True
+    picIcon.Top = parentContainer.Top + 35
+    picIcon.Left = parentContainer.Left + 60
+    picIcon.Visible = True
+    
+    SetParent picIcon.hWnd, parentContainer.hWnd
+    
+End Sub
+
 
 Public Sub HidePanelView(parentPanel As Frame)
     
@@ -322,7 +355,7 @@ Public Sub HidePanelView(parentPanel As Frame)
     ' put the frame back off the screen
     parentPanel.Top = currentPanelTop
     parentPanel.Left = currentPanelLeft
-        
+    
     FlushRedraws()
     
 End Sub
