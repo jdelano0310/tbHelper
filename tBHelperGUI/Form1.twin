@@ -58,6 +58,12 @@ Class Form1
             UpdateActivityLog "loaded", True
         Else
             UpdateActivityLog "Not found", True
+            UpdateActivityLog "Find user download location and tB location"
+            
+            ' if there isn't a settings file, then use the users default download path and attempt to find twinBASIC's path
+            txtDownloadFolder.Text = GetDownloadsFolder
+            txttBFolderLocation.Text = GettwinBASICInstallPath
+            
         End If
 
         loadingSettingsFromFile = False
@@ -123,7 +129,7 @@ Class Form1
     Private Sub Form_Unload(Cancel As Integer)
 
         ' check for exit application procedures
-        If tbHelperSettings.SettingsChanged Then tbHelperSettings.SaveSettings()
+        If tbHelperSettings.SettingsChanged And tbHelperSettings.SaveSettingsOnExit Then tbHelperSettings.SaveSettings()
         
         If tbHelperSettings.LogActivity Then WriteToLogFile
 

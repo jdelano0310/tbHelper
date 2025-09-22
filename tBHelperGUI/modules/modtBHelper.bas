@@ -359,3 +359,94 @@ Public Sub HidePanelView(parentPanel As Frame)
     FlushRedraws()
     
 End Sub
+
+Private Declare PtrSafe Function SHGetKnownFolderPath Lib "shell32" ( _
+    ByRef rfid As GUID, _
+    ByVal dwFlags As Long, _
+    ByVal hToken As LongPtr, _
+    ByRef pszPath As LongPtr _
+) As Long
+
+Private Declare PtrSafe Sub CoTaskMemFree Lib "ole32" (ByVal pv As LongPtr)
+
+Private Type GUID
+    Data1 As Long
+    Data2 As Integer
+    Data3 As Integer
+    Data4(0 To 7) As Byte
+End Type
+
+' needed to declare this here, even though it is in WinDevLib because the call to it
+' was failing to get the folder I was asking for
+Private Declare PtrSafe Function CLSIDFromString Lib "ole32" ( _
+    ByVal lpsz As LongPtr, _
+    ByRef pclsid As GUID _
+) As Long
+
+Function GetDownloadsFolder() As String
+    
+    ' this retrieves the default download folder for the user
+    Const FOLDERID_Downloads As String = "{374DE290-123F-4565-9164-39C4925E467B}"
+    
+    Dim folderGUID As GUID
+    CLSIDFromString StrPtr(FOLDERID_Downloads), folderGUID
+
+    Dim pszPath As LongPtr
+    If SHGetKnownFolderPath(folderGUID, 0, 0, pszPath) = 0 Then
+        GetDownloadsFolder = SysAllocString(pszPath) & "\"
+        CoTaskMemFree pszPath
+    Else
+        GetDownloadsFolder = ""
+    End If
+    
+End Function
+
+Function GettwinBASICInstallPath() As String
+
+    Dim hKey As LongPtr
+    Dim result As Long
+    Dim dataSize As Long
+    Dim dataBuffer() As Byte
+    Dim lpType As Long
+    Dim regValue As String = ""
+
+    ' Open the registry key
+    result = RegOpenKeyEx(HKEY_CLASSES_ROOT, "Applications\twinBASIC.exe\shell\open\command", 0, KEY_READ, hKey)
+    
+    If result = 0 Then
+        ' returned no error, get the value
+        dataSize = 1024
+        ReDim dataBuffer(dataSize - 1)
+        
+        result = RegQueryValueEx(hKey, "", 0, lpType, dataBuffer(0), dataSize)
+        If result = 0 Then
+            
+            regValue = BytesToUnicodeString(dataBuffer) ' get the complete register value
+            regValue = Left(regValue, InStr(UCase(regValue), "TWINBASIC.EXE") - 1) ' to get the path, read up to the exe name
+            regValue = Replace(regValue, Chr(34), "") ' remove any extra double quotes in the string
+            
+        End If
+                       
+        RegCloseKey hKey
+    End If
+        
+    GettwinBASICInstallPath = regValue
+    
+End Function
+
+Function BytesToUnicodeString(dataBuffer() As Byte) As String
+    
+    ' loop the databuffer to rebuild the string
+    Dim i As Long
+    Dim result As String
+
+    ' every even byte is a 0, skip them to build the string, 
+    ' when a 0 is encountered where a valid character should be, exit the for
+    ' as everything required has been added to the string
+    For i = 0 To UBound(dataBuffer) Step 2
+        If dataBuffer(i) = 0 Then Exit For
+        result = result & ChrW(dataBuffer(i))
+    Next i
+
+    BytesToUnicodeString = result
+End Function
