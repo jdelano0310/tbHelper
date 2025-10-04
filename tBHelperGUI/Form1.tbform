@@ -78,7 +78,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 3000578105,
+		"__lastUpdateMarker": 1882783743,
 		"_children": [
 			{
 				"Anchors": {
@@ -92,6 +92,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"Height": 24,
 				"HelpContextID": 0,
 				"Index": -1,
@@ -112,7 +113,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 46,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AMEEAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAewIAAA==",
-				"_className": "tBHelperGUI.ucToggleSlider",
+				"_className": "tBHelper.ucToggleSlider",
 				"_clsid": "{2478CAA6-A46F-4350-BBFB-F42F68CEA067}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -129,6 +130,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"Height": 24,
 				"HelpContextID": 0,
 				"Index": -1,
@@ -149,7 +151,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 46,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AMEEAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAewIAAA==",
-				"_className": "tBHelperGUI.ucToggleSlider",
+				"_className": "tBHelper.ucToggleSlider",
 				"_clsid": "{2478CAA6-A46F-4350-BBFB-F42F68CEA067}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -166,6 +168,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"Height": 24,
 				"HelpContextID": 0,
 				"Index": -1,
@@ -186,7 +189,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 46,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AMEEAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAewIAAA==",
-				"_className": "tBHelperGUI.ucToggleSlider",
+				"_className": "tBHelper.ucToggleSlider",
 				"_clsid": "{2478CAA6-A46F-4350-BBFB-F42F68CEA067}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -203,6 +206,7 @@
 				"Dock": "vbDockNone",
 				"DragIcon": "",
 				"DragMode": "vbManual",
+				"Enabled": false,
 				"Height": 24,
 				"HelpContextID": 0,
 				"Index": -1,
@@ -223,7 +227,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 46,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AMEEAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAewIAAA==",
-				"_className": "tBHelperGUI.ucToggleSlider",
+				"_className": "tBHelper.ucToggleSlider",
 				"_clsid": "{2478CAA6-A46F-4350-BBFB-F42F68CEA067}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -560,6 +564,7 @@
 					"Top": true,
 					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
 				},
+				"BackColor": 16777215,
 				"BorderColor": 0,
 				"BorderRadius": 0,
 				"BorderWidth": 0,
@@ -593,7 +598,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 385,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AMonAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkANAMAAA==",
-				"_className": "tBHelperGUI.ucRoundedTextbox",
+				"_className": "tBHelper.ucRoundedTextbox",
 				"_clsid": "{A938451B-4E4E-4A0F-B633-3BEF0BCDFD1E}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -606,6 +611,7 @@
 					"Top": true,
 					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
 				},
+				"BackColor": 16777215,
 				"BorderColor": 0,
 				"BorderRadius": 0,
 				"BorderWidth": 0,
@@ -639,7 +645,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 385,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AMonAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkANAMAAA==",
-				"_className": "tBHelperGUI.ucRoundedTextbox",
+				"_className": "tBHelper.ucRoundedTextbox",
 				"_clsid": "{A938451B-4E4E-4A0F-B633-3BEF0BCDFD1E}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -1552,7 +1558,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 227,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AHYXAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAuAMAAA==",
-				"_className": "tBHelperGUI.ucCustomButton",
+				"_className": "tBHelper.ucCustomButton",
 				"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -1594,7 +1600,7 @@
 				"Width": 71,
 				"WidthOverride": 0,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AFcHAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkARgIAAA==",
-				"_className": "tBHelperGUI.ucTypeFilter",
+				"_className": "tBHelper.ucTypeFilter",
 				"_clsid": "{0F01B66C-36E5-48C3-A99E-C75E1BE32D94}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -1636,7 +1642,7 @@
 				"Width": 71,
 				"WidthOverride": 0,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AFcHAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkARgIAAA==",
-				"_className": "tBHelperGUI.ucTypeFilter",
+				"_className": "tBHelper.ucTypeFilter",
 				"_clsid": "{0F01B66C-36E5-48C3-A99E-C75E1BE32D94}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -1678,7 +1684,7 @@
 				"Width": 71,
 				"WidthOverride": 0,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AFcHAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkARgIAAA==",
-				"_className": "tBHelperGUI.ucTypeFilter",
+				"_className": "tBHelper.ucTypeFilter",
 				"_clsid": "{0F01B66C-36E5-48C3-A99E-C75E1BE32D94}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -1720,7 +1726,7 @@
 				"Width": 71,
 				"WidthOverride": 0,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AFcHAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkARgIAAA==",
-				"_className": "tBHelperGUI.ucTypeFilter",
+				"_className": "tBHelper.ucTypeFilter",
 				"_clsid": "{0F01B66C-36E5-48C3-A99E-C75E1BE32D94}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -1762,7 +1768,7 @@
 				"Width": 71,
 				"WidthOverride": 0,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AFcHAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkARgIAAA==",
-				"_className": "tBHelperGUI.ucTypeFilter",
+				"_className": "tBHelper.ucTypeFilter",
 				"_clsid": "{0F01B66C-36E5-48C3-A99E-C75E1BE32D94}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -1804,7 +1810,7 @@
 				"Width": 71,
 				"WidthOverride": 0,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AFcHAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkARgIAAA==",
-				"_className": "tBHelperGUI.ucTypeFilter",
+				"_className": "tBHelper.ucTypeFilter",
 				"_clsid": "{0F01B66C-36E5-48C3-A99E-C75E1BE32D94}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -1846,7 +1852,7 @@
 				"Width": 71,
 				"WidthOverride": 0,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AFcHAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkARgIAAA==",
-				"_className": "tBHelperGUI.ucTypeFilter",
+				"_className": "tBHelper.ucTypeFilter",
 				"_clsid": "{0F01B66C-36E5-48C3-A99E-C75E1BE32D94}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -1888,7 +1894,7 @@
 				"Width": 71,
 				"WidthOverride": 0,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AFcHAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkARgIAAA==",
-				"_className": "tBHelperGUI.ucTypeFilter",
+				"_className": "tBHelper.ucTypeFilter",
 				"_clsid": "{0F01B66C-36E5-48C3-A99E-C75E1BE32D94}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -1924,11 +1930,11 @@
 				"WhatsThisHelpID": 0,
 				"Width": 957,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AOliAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAqh0AAA==",
-				"_className": "tBHelperGUI.ucChangeLog",
+				"_className": "tBHelper.ucChangeLog",
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 14224756
+				"canvashWnd": 2625202
 			},
 			{
 				"Anchors": {
@@ -2081,11 +2087,11 @@
 				"WhatsThisHelpID": 0,
 				"Width": 658,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AAJEAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAMgwAAA==",
-				"_className": "tBHelperGUI.ucActivityLog",
+				"_className": "tBHelper.ucActivityLog",
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 786934
+				"canvashWnd": 660054
 			},
 			{
 				"Anchors": {
@@ -2131,7 +2137,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 35,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AJ4DAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAaQMAAA==",
-				"_className": "tBHelperGUI.ucCustomButton",
+				"_className": "tBHelper.ucCustomButton",
 				"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -2180,7 +2186,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 35,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AJ4DAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAaQMAAA==",
-				"_className": "tBHelperGUI.ucCustomButton",
+				"_className": "tBHelper.ucCustomButton",
 				"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -2229,7 +2235,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 99,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4ADsKAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAhAMAAA==",
-				"_className": "tBHelperGUI.ucCustomButton",
+				"_className": "tBHelper.ucCustomButton",
 				"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -2278,7 +2284,7 @@
 				"WhatsThisHelpID": 0,
 				"Width": 168,
 				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AF0RAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAhAMAAA==",
-				"_className": "tBHelperGUI.ucCustomButton",
+				"_className": "tBHelper.ucCustomButton",
 				"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true
@@ -2643,7 +2649,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 350,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4ACwkAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAgwYAAA==",
-								"_className": "tBHelperGUI.ucRTFMessage",
+								"_className": "tBHelper.ucRTFMessage",
 								"_clsid": "{D841E509-2395-43B1-9CF1-3A3E66ECF274}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -2692,7 +2698,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 65,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4ALgGAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAaQMAAA==",
-								"_className": "tBHelperGUI.ucCustomButton",
+								"_className": "tBHelper.ucCustomButton",
 								"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -2741,7 +2747,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 65,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4ALgGAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAaQMAAA==",
-								"_className": "tBHelperGUI.ucCustomButton",
+								"_className": "tBHelper.ucCustomButton",
 								"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -2790,7 +2796,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 65,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4ALgGAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAaQMAAA==",
-								"_className": "tBHelperGUI.ucCustomButton",
+								"_className": "tBHelper.ucCustomButton",
 								"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -2928,11 +2934,11 @@
 								"WhatsThisHelpID": 0,
 								"Width": 884,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AF1bAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkA3CYAAA==",
-								"_className": "tBHelperGUI.ucChangeLog",
+								"_className": "tBHelper.ucChangeLog",
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 9112888
+								"canvashWnd": 724780
 							},
 							{
 								"Anchors": {
@@ -3100,7 +3106,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 167,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AEMRAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAuAMAAA==",
-								"_className": "tBHelperGUI.ucCustomButton",
+								"_className": "tBHelper.ucCustomButton",
 								"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -3277,7 +3283,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 159,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AG8QAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAGgMAAA==",
-								"_className": "tBHelperGUI.ucDropdown",
+								"_className": "tBHelper.ucDropdown",
 								"_clsid": "{97288DC2-C853-46E8-BFB6-87938BCF281F}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -4079,7 +4085,7 @@
 								"FontSize": 11.25,
 								"FontStrikethru": false,
 								"FontUnderline": false,
-								"ForeColor": 13403689,
+								"ForeColor": 10642444,
 								"Height": 24,
 								"Index": -1,
 								"InternalSectionId": -1,
@@ -4137,7 +4143,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 312,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AD8gAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAGgMAAA==",
-								"_className": "tBHelperGUI.ucDropdown",
+								"_className": "tBHelper.ucDropdown",
 								"_clsid": "{97288DC2-C853-46E8-BFB6-87938BCF281F}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -4322,7 +4328,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 306,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AKAfAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAGgMAAA==",
-								"_className": "tBHelperGUI.ucCustomButton",
+								"_className": "tBHelper.ucCustomButton",
 								"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -4480,11 +4486,11 @@
 								"WhatsThisHelpID": 0,
 								"Width": 789,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AIxRAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAmB4AAA==",
-								"_className": "tBHelperGUI.ucChangeLog",
+								"_className": "tBHelper.ucChangeLog",
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 5310304
+								"canvashWnd": 660062
 							},
 							{
 								"Anchors": {
@@ -4530,7 +4536,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 112,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AJMLAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAGgMAAA==",
-								"_className": "tBHelperGUI.ucCustomButton",
+								"_className": "tBHelper.ucCustomButton",
 								"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -4991,7 +4997,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 112,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AJMLAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAygIAAA==",
-								"_className": "tBHelperGUI.ucDropdown",
+								"_className": "tBHelper.ucDropdown",
 								"_clsid": "{97288DC2-C853-46E8-BFB6-87938BCF281F}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -5168,7 +5174,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 300,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AAIfAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkA4BcAAA==",
-								"_className": "tBHelperGUI.ucFolderList",
+								"_className": "tBHelper.ucFolderList",
 								"_clsid": "{79AA1168-F64B-4672-9254-EB73E6BD0FD9}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -5217,7 +5223,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 85,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AMkIAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAngMAAA==",
-								"_className": "tBHelperGUI.ucCustomButton",
+								"_className": "tBHelper.ucCustomButton",
 								"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true
@@ -5266,7 +5272,7 @@
 								"WhatsThisHelpID": 0,
 								"Width": 85,
 								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AMkIAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkAngMAAA==",
-								"_className": "tBHelperGUI.ucCustomButton",
+								"_className": "tBHelper.ucCustomButton",
 								"_clsid": "{E87E6136-36ED-48D4-AE69-648B93EF0A12}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true

@@ -15,6 +15,15 @@ Class ucRoundedTextbox
     Private m_BorderWidth As Long
     Private hWnd As LongPtr
     
+    Public Property Let BackColor(ByVal value As OLE_COLOR)
+        m_BackColor = value
+        txtInput.BackColor = m_BackColor
+    End Property
+    
+    Public Property Get BackColor() As OLE_COLOR
+        BackColor = m_BackColor
+    End Property
+    
     Public Property Let BorderColor(ByVal Value As OLE_COLOR)
         m_BorderColor = Value
         'Refresh

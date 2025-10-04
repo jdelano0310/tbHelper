@@ -47,7 +47,7 @@ Public Const CUST_BTN_BCOLOR = &HA2640C
 
 Public Sub ApplyRoundedRegion(toWhichControl As Control, borderRadius As Long)
     
-    On Error GoTo AddRoundedError
+    On Error GoTo AddRoundedRegionError
     
     'WriteToDebugLogFile "   ApplyRoundedRegion: to " & toWhichControl.name
         
@@ -86,7 +86,7 @@ Public Sub ApplyRoundedRegion(toWhichControl As Control, borderRadius As Long)
     
     Set ctrl = Nothing
     Exit Sub
-AddRoundedError:
+AddRoundedRegionError:
 
     Debug.Print "ApplyRoundedRegion: unable to apply to " & ctrlName & " due to: " & Err.Description
 End Sub
@@ -355,8 +355,11 @@ Public Sub FlushRedraws()
             buttonCaption = ""
             controlName = " [not in ucDictionary]"
             If ucDictionary.Exists(req.hWnd) Then
+                On Error Resume Next
                 controlName = ucDictionary(req.hWnd).Name
                 If TypeOf ucDictionary(req.hWnd) Is ucCustomButton Then buttonCaption = ucDictionary(req.hWnd).caption
+                Debug.Print "FlushRedraws: remove the requests that were successful for " & controlName & " due to: " & Err.Description
+                On Error GoTo 0
             End If
             
             RedrawQueue.Remove countRedrawItems

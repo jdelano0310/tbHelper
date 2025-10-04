@@ -333,7 +333,7 @@ End Sub
 Private Sub DisplayPanelIcon(iconFileName As String, parentContainer As Frame)
     
     ' stickly for aesthetics - add an icon to the panel
-    Debug.Print "placing panel icon ar Left: " & (parentContainer.Left + 60) & " and top: " & (parentContainer.Top + 35)
+    'Debug.Print "placing panel icon ar Left: " & (parentContainer.Left + 60) & " and top: " & (parentContainer.Top + 35)
     
     picIcon.Picture = LoadPicture(iconFileName)
     picIcon.AutoSize = True
@@ -383,23 +383,23 @@ Private Declare PtrSafe Function CLSIDFromString Lib "ole32" ( _
     ByRef pclsid As GUID _
 ) As Long
 
-Function GetDownloadsFolder() As String
+Sub GetLocalFolders()
     
     ' this retrieves the default download folder for the user
-    Const FOLDERID_Downloads As String = "{374DE290-123F-4565-9164-39C4925E467B}"
+    Dim FOLDERID_Downloads As String = "{374DE290-123F-4565-9164-39C4925E467B}"
     
     Dim folderGUID As GUID
     CLSIDFromString StrPtr(FOLDERID_Downloads), folderGUID
 
     Dim pszPath As LongPtr
     If SHGetKnownFolderPath(folderGUID, 0, 0, pszPath) = 0 Then
-        GetDownloadsFolder = SysAllocString(pszPath) & "\"
+        tbHelperSettings.DownloadFolder = SysAllocString(pszPath) & "\"
         CoTaskMemFree pszPath
-    Else
-        GetDownloadsFolder = ""
     End If
     
-End Function
+    tbHelperSettings.twinBASICFolder = GettwinBASICInstallPath()
+    
+End Sub
 
 Function GettwinBASICInstallPath() As String
 

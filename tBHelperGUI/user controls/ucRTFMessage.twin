@@ -44,6 +44,10 @@ Class ucRTFMessage
     
     Private WithEvents m_Canvas As PictureBox
     
+    Public Sub Clear()
+        m_Canvas.Cls()
+    End Sub
+        
     Public Property Let Message(value As String)
         m_Canvas.Cls
         m_Message = value

@@ -17,8 +17,18 @@ Class ucToggleSlider
     Private m_OnColor As Long
     Private m_OffColor As Long
     Private m_ThumbColor As Long
+    Private m_Enabled As Boolean
 
     Public Event StateChanged(ByVal NewState As Boolean)
+    
+    Public Property Let Enabled(ByVal value As Boolean)
+        m_Enabled = value
+
+    End Property
+    
+    Public Property Get Enabled() As Boolean
+        Enabled = m_Enabled
+    End Property
     
     Private Sub UserControl_Initialize()
         m_IsOn = False

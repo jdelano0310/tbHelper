@@ -26,6 +26,10 @@ Class ucDropdown
         RedrawUserControl
         RaiseEvent SelectionChanged(m_SelectedItem)
     End Property
+
+    Public Sub Clear()
+        UserControl.Cls
+    End Sub
     
     Public Sub Collapse()
         m_IsExpanded = False

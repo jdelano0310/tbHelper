@@ -231,18 +231,20 @@ Public Function GetNewerReleasedVersions(Optional isDuringFormLoad As Boolean = 
     Dim latesttBVersion As Integer
     
     tagText = GetTagText("h2", "twinBASIC BETA")
-    'latesttBVersion = Trim(Right(tagText, 4))
     latesttBVersion = GetVersionNumber(tagText)
     
     _latestVersion = CInt(latesttBVersion)
     
     If CInt(latesttBVersion) <= tbHelperClass.InstalledtBVersion Then
-        If isDuringFormLoad Then
-            _versionCheckResult = "Latest version already installed"
+        _versionCheckResult = "Latest version already installed"
+        
+        ' why treat the form load, look for a new version, different from clicking the button?
+        ' If isDuringFormLoad Then
+        '     _versionCheckResult = "Latest version already installed"
 
-        Else
-            _versionCheckResult = "The version in use is newer or equal to the version available on GitHub"
-        End If
+        ' Else
+        '     _versionCheckResult = "The version in use is newer or equal to the version available on GitHub"
+        ' End If
 
         Exit Function
     Else

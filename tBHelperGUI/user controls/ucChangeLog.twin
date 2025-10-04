@@ -42,9 +42,14 @@ Class ucChangeLog
     Private WithEvents m_HeaderCanvas As PictureBox
     Private WithEvents m_VScrollBar As VScrollBar
     
+    Private m_DPI_Horizontal As Long
+    Private m_DPI_Vertical As Long
+    Private m_DPIHeaderFontSize As Integer
+    Private m_DPIFontSize As Integer
+    
     Private m_Columns() As clsChangeLogColumn
     Private m_ColumnCount As Integer
-    
+        
     Private Const TEXT_COLOR_WHITE = &HFFFFFF
     Private Const BACKGROUND_COLOR = &HFFFFFF
     
@@ -53,9 +58,14 @@ Class ucChangeLog
     Private Const SELECTED_COLOR = &HEAE2D0    ' Light blue selection    
     Private Const BORDER_COLOR = &HE0E0E0
 
+    Private Const TEXT_BASE_FONT_SIZE = 11
     Private Const ROW_HEIGHT = 40
     Private Const HEADER_HEIGHT = 500
 
+    Public Sub Clear()
+        m_Canvas.Cls
+    End Sub
+    
     Public Property Get LogEntries() As clsChangeLogEntry()
         LogEntries = m_Entries
     End Property
@@ -71,8 +81,36 @@ Class ucChangeLog
         RedrawCanvas
     End Sub
     
+    Private Sub CalculateDPIValues()
+        
+        Dim hdc As Long
+        Dim dpiX As Long
+        Dim dpiY As Long
+
+        ' Get the device context (DC) for the screen
+        hdc = GetDC(0)
+
+        ' Get the horizontal and vertical DPI values
+        dpiX = GetDeviceCaps(hdc, LOGPIXELSX)
+        dpiY = GetDeviceCaps(hdc, LOGPIXELSY)
+
+        ' Release the device context
+        ReleaseDC 0, hdc
+
+        ' Display the DPI values
+        m_DPI_Horizontal = dpiX
+        m_DPI_Vertical = dpiY
+
+        ' Example for scaling controls (assuming 96 DPI as baseline)
+        m_DPIFontSize = TEXT_BASE_FONT_SIZE * (dpiX / 96)
+        m_DPIHeaderFontSize = (TEXT_BASE_FONT_SIZE + 1) * (dpiX / 96)
+        
+    End Sub
+    
     Private Sub UserControl_Initialize()
     
+        CalculateDPIValues
+        
         InitializeControls
         
         m_FilterType = "All" ' initially show all types of change log items
@@ -108,7 +146,7 @@ Class ucChangeLog
             .BorderStyle = 0 ' None
             .AutoRedraw = True
             .Font.Name = "Segoe UI"
-            .Font.Size = 11
+            .Font.Size = m_DPIHeaderFontSize' 11
             .Font.Bold = True
             .Visible = True
             .Cls()
@@ -127,7 +165,7 @@ Class ucChangeLog
             .AutoRedraw = True
             .ScaleMode = vbPixels
             .Font.Name = "Segoe UI"
-            .Font.Size = 10
+            .Font.Size = m_DPIFontSize '10
             .Visible = True
         End With
         
@@ -220,7 +258,24 @@ Class ucChangeLog
         m_HeaderCanvas.Cls
         hdc = m_HeaderCanvas.hDC
 
-        hFont = CreateFont(-12, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "Segoe UI")
+        Dim basePointSize As Long
+        basePointSize = 9 ' instead of 11
+
+        Dim targetPointSize As Long
+        targetPointSize = basePointSize
+
+        If m_DPI_Vertical > 96 Then
+            targetPointSize = basePointSize + ((m_DPI_Vertical - 96) \ 48)
+        End If
+        
+        ' dpi changes 
+        Dim scaledFontHeight As Long
+        
+        ' Convert to logical height
+        scaledFontHeight = -MulDiv(targetPointSize, m_DPI_Vertical, 72)
+                
+        'hFont = CreateFont(-12, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "Segoe UI")
+        hFont = CreateFont(scaledFontHeight, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "Segoe UI")
         If hFont <> 0 Then hOldFont = SelectObject(hdc, hFont)
 
         SetBkMode hdc, 1
@@ -238,7 +293,6 @@ Class ucChangeLog
             DeleteObject hFont
         End If
 
-        'm_HeaderCanvas.Refresh
         RequestHeaderRedraw
 
         Exit Sub

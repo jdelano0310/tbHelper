@@ -4,16 +4,24 @@ Attribute VB_Name = "modUCHelper"
 Public Sub ApplyRoundedCorners(ctl As Object, ByVal RadiusX As Long, ByVal RadiusY As Long)
     Dim hRgn As LongPtr
     Dim clientRect As RECT
+    Dim controlName As String = ""
     
-    ' CORRECTION: Use GetClientRect to reliably get dimensions in PIXELS.
-    ' This works for all controls, including UserControls.
+    On Error GoTo RoundedCornersError
     GetClientRect ctl.hWnd, clientRect
+    
+    controlName = ctl.name
     
     ' clientRect.Right IS the width in pixels.
     ' clientRect.Bottom IS the height in pixels.
     hRgn = CreateRoundRectRgn(0, 0, clientRect.Right, clientRect.Bottom, RadiusX, RadiusY)
     
     SetWindowRgn ctl.hWnd, hRgn, True
+    On Error GoTo 0
+    
+    Exit Sub
+    RoundedCornersError:
+    Debug.Print "ApplyRoundedCorners: unable to apply to " & controlName & " due to: " & Err.Description
+    
 End Sub
 
 Public Sub ApplyBottomRoundedCorners(ctl As Object, ByVal RadiusX As Long, ByVal RadiusY As Long, Optional ByVal hasVerticalScrollbar As Boolean = False)

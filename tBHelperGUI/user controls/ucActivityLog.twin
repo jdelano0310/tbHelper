@@ -31,6 +31,10 @@ Class ucActivityLog
     Private m_SelectedIndex As Long
     Private m_ScrollOffset As Long
 
+    Private m_DPI_Horizontal As Long
+    Private m_DPI_Vertical As Long
+    Private m_DPIFontSize As Integer
+    
     ' Drawing surface
     Private WithEvents m_Canvas As PictureBox
     Private WithEvents m_VScrollBar As VScrollBar
@@ -55,9 +59,11 @@ Class ucActivityLog
     Private Const SELECTED_COLOR = &HEAE2D0    ' Light blue selection
     Private Const BORDER_COLOR = &HE0E0E0
 
+    ' other constants
     Private Const ROW_HEIGHT = 40
     Private Const HEADER_HEIGHT = 0  ' no header in the activity log
-
+    Private Const TEXT_BASE_FONT_SIZE = 10
+    
     Public Property Get LogEntries() As ActivityLogEntry()
         LogEntries = m_Entries
     End Property
@@ -66,8 +72,50 @@ Class ucActivityLog
         LogEntryCount = m_EntryCount
     End Property
     
+    Private Sub CalculateDPIValues()
+        Dim hdc As Long
+        Dim dpiX As Long
+        Dim dpiY As Long
+        Dim scaleFactor As Single
+
+        ' Get the device context (DC) for the screen
+        hdc = GetDC(0)
+
+        ' Get the horizontal and vertical DPI values
+        dpiX = GetDeviceCaps(hdc, LOGPIXELSX)
+        dpiY = GetDeviceCaps(hdc, LOGPIXELSY)
+
+        ' Release the device context
+        ReleaseDC 0, hdc
+
+        ' Store DPI values
+        m_DPI_Horizontal = dpiX
+        m_DPI_Vertical = dpiY
+
+        Select Case dpiX
+            Case Is < 120: m_DPIFontSize = 10
+            Case 120 To 144: m_DPIFontSize = 11
+            Case 145 To 192: m_DPIFontSize = 12
+            Case Else: m_DPIFontSize = 13
+        End Select
+        
+        ' Calculate softened scale factor
+        ' scaleFactor = dpiX / 96
+        ' If scaleFactor > 1.5 Then
+        '     scaleFactor = 1.25 + ((scaleFactor - 1.5) / 4) ' dampen above 150%
+        ' End If
+
+        ' ' Apply to font size
+        ' m_DPIFontSize = TEXT_BASE_FONT_SIZE * scaleFactor
+
+        ' Optional: log for visibility
+        Debug.Print "DPI=" & dpiX & ", Font scale=" & Format(scaleFactor, "0.00") & ", Font size=" & m_DPIFontSize
+    End Sub
+    
     Private Sub UserControl_Initialize()
     
+        CalculateDPIValues
+        
         InitializeControls
         
         ' array of change log entries
@@ -82,7 +130,7 @@ Class ucActivityLog
         ucDictionary.Add canvashWnd, Me
         
         OriginalCanvasProc = SetWindowLong(canvashWnd, GWL_WNDPROC, AddressOf Canvas_WindowProc)
-                
+        
     End Sub
 
     Private Sub InitializeControls()
@@ -99,7 +147,7 @@ Class ucActivityLog
             .AutoRedraw = True
             .ScaleMode = vbPixels
             .Font.Name = "Segoe UI"
-            .Font.Size = 10
+            .Font.Size = m_DPIFontSize  ' 10 
             .Visible = True
         End With
                 

@@ -61,9 +61,13 @@ Class Form1
             UpdateActivityLog "Find user download location and tB location"
             
             ' if there isn't a settings file, then use the users default download path and attempt to find twinBASIC's path
-            txtDownloadFolder.Text = GetDownloadsFolder
-            txttBFolderLocation.Text = GettwinBASICInstallPath
+            GetLocalFolders
+            txtDownloadFolder.Text = tbHelperSettings.DownloadFolder
+            txttBFolderLocation.Text = tbHelperSettings.twinBASICFolder
             
+            If Len(txttBFolderLocation.Text) = 0 Then
+                MessageBox("No twinBASIC folder found.", "info", "Auto find twinBASIC")
+            End If
         End If
 
         loadingSettingsFromFile = False
@@ -162,19 +166,28 @@ Class Form1
             Else
                 FilltBChangeLog
                 SetInitialTypeFilters
+
+                UpdateActivityLog "Version " & chgLogs.LatestVersion & " is available"
+                'WriteToDebugLogFile "  btnDownload Click set btnDownload caption and icon "
+                btnDownload.Caption = "Download version " & chgLogs.LatestVersion
+                btnDownload.PngIconPath = downloadIcon
+
+                'WriteToDebugLogFile("Form1 - btnDownload: changed caption and icon. executed ResetHoverTracking")
                 
-                If tbHelperClass.InstalledtBVersion >= chgLogs.LatestVersion Then
-                    ' no newer version is available
-                    UpdateActivityLog "No newer version available"
+                
+                ' why was this here???
+                ' If tbHelperClass.InstalledtBVersion >= chgLogs.LatestVersion Then
+                '     ' no newer version is available
+                '     UpdateActivityLog "No newer version available"
 
-                Else
-                    UpdateActivityLog "Version " & chgLogs.LatestVersion & " is available"
-                    'WriteToDebugLogFile "  btnDownload Click set btnDownload caption and icon "
-                    btnDownload.Caption = "Download version " & chgLogs.LatestVersion
-                    btnDownload.PngIconPath = downloadIcon
+                ' Else
+                '     UpdateActivityLog "Version " & chgLogs.LatestVersion & " is available"
+                '     'WriteToDebugLogFile "  btnDownload Click set btnDownload caption and icon "
+                '     btnDownload.Caption = "Download version " & chgLogs.LatestVersion
+                '     btnDownload.PngIconPath = downloadIcon
 
-                    'WriteToDebugLogFile("Form1 - btnDownload: changed caption and icon. executed ResetHoverTracking")
-                End If
+                '     'WriteToDebugLogFile("Form1 - btnDownload: changed caption and icon. executed ResetHoverTracking")
+                ' End If
             End If
         
             Me.MousePointer = vbDefault
@@ -616,7 +629,7 @@ Class Form1
             Label9.Caption = "Change Log"
         End If
         
-        clgView.Cls
+        clgView.Clear
         
         clgView.BeginUpdate()
         For Each clItem In chgLogs
@@ -734,7 +747,7 @@ Class Form1
         buttonCaption = responseText
         isAPanelDisplayed = False
         pnlMessageBox.Visible = False
-        RTFMsg.Cls()
+        RTFMsg.Clear()
         FlushRedraws()
         
     End Sub
@@ -1037,7 +1050,7 @@ Class Form1
         
         clgView.ClearEntries()
         
-        DatePicker.Cls()
+        DatePicker.Clear()
         lbDropdown.Clear()
         btnDeleteLog.Enabled = False
         
