@@ -91,7 +91,7 @@ Class ucTypeFilter
 
     Public Property Let Active(ByVal Value As Boolean)
         m_Active = Value
-        UpdateAppearance
+        UpdateAppearance "Toggle Active"
     End Property
 
     Public Property Get Enabled() As Boolean
@@ -100,38 +100,52 @@ Class ucTypeFilter
 
     Public Property Let Enabled(ByVal Value As Boolean)
         m_Enabled = Value
-        UpdateAppearance
+        UpdateAppearance "Toggle Enabled"
         UserControl.Enabled = Value
     End Property
     
-    Public Event StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
+    'Public Event StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
+    Public Event StateChanged(ByVal Active As Boolean)
     Public Event Click(ByVal TypeName As String)
 
     Private Sub lblCaption_Click()
         
         m_Active = Not m_Active
-        UpdateAppearance
+        UpdateAppearance "Toggle Active"
         'RaiseEvent StateChanged(m_TypeName, m_Active)
-        RaiseEvent StateChanged(m_FilterText, m_Active)
+        RaiseEvent StateChanged(m_Active)
         
     End Sub
 
-    Private Sub UpdateAppearance()
+    Private Sub UpdateAppearance(forWhat As String)
         
         ' change the look to indicate the type is included in the filter
-        If m_Enabled Then
-            If m_Active Then
-                lblCaption.BackColor = m_Backcolor ' change back to the selected color
-                lblCaption.ForeColor = vbWhite
-            Else
-                lblCaption.BackColor = &HCCCCCC ' Grey when inactive
-                lblCaption.ForeColor = vbBlack
-            End If
-        Else
-            ' the button isn't enabled - looks different than if not included in the filter
-            lblCaption.BackColor = &H626262 ' Grey when inactive
-            lblCaption.ForeColor = &H878787
-        End If
+        WriteToDebugLogFile "ucTypeFilter - UpdateAppearance: " & lblCaption.Caption & IIf(m_Enabled, " enabled", " disabled") & IIf(m_Active, " active", " inactive")
+        Select Case forWhat
+            Case "Toggle Enabled"
+                If m_Enabled Then
+                    lblCaption.BackColor = m_Backcolor ' change to the selected color
+                    lblCaption.ForeColor = vbWhite
+
+                Else
+                    ' the button isn't enabled - looks different than if not included in the filter
+                    lblCaption.BackColor = &H626262 ' the grey when disabled
+                    lblCaption.ForeColor = &H878787
+                End If
+                
+            Case "Toggle Active"
+                
+                If m_Active Then
+                    lblCaption.BackColor = m_Backcolor ' change to the selected color
+                    lblCaption.ForeColor = vbWhite
+
+                Else
+                    ' the button isn't active - indicating these log types aren't shown
+                    lblCaption.BackColor = &HCCCCCC ' Grey when inactive
+                    lblCaption.ForeColor = vbBlack
+                End If
+                
+        End Select
     End Sub
 
     Private Sub UserControl_Initialize()
@@ -146,7 +160,7 @@ Class ucTypeFilter
         End If
         
         m_Active = True ' Default ON
-        UpdateAppearance
+        UpdateAppearance "Toggle Active"
     End Sub
     
     Private Function CalcAutoWidth() As Long

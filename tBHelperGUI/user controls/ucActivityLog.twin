@@ -99,15 +99,6 @@ Class ucActivityLog
             Case Else: m_DPIFontSize = 13
         End Select
         
-        ' Calculate softened scale factor
-        ' scaleFactor = dpiX / 96
-        ' If scaleFactor > 1.5 Then
-        '     scaleFactor = 1.25 + ((scaleFactor - 1.5) / 4) ' dampen above 150%
-        ' End If
-
-        ' ' Apply to font size
-        ' m_DPIFontSize = TEXT_BASE_FONT_SIZE * scaleFactor
-
         ' Optional: log for visibility
         Debug.Print "DPI=" & dpiX & ", Font scale=" & Format(scaleFactor, "0.00") & ", Font size=" & m_DPIFontSize
     End Sub

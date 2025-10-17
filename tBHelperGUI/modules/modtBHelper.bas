@@ -57,17 +57,24 @@ Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As S
 End Sub
 
 Public Sub WriteToDebugLogFile(logFileLine As String)
-    
-    Dim logFileName As String = App.Path & "\debug_log.txt"
-    Static debugLogFile As TextStream
     'Dim debugLogFile As TextStream
     
-    ' it this was not used then no reason to close it
+    ' its possible that a user control can call this before the form load event triggers
+    If fso Is Nothing Then
+        Debug.Print "No fso object to write this message " & logFileLine
+        Exit Sub
+    End If
+
+    Dim logFileName As String = App.Path & "\debug_log.txt"
+    Static debugLogFile As TextStream
+    
+    ' if this was not used then no reason to close it
     If logFileLine = "CLOSE" And debugLogFile Is Nothing Then Exit Sub
 
     ' open this once during app run
     On Error GoTo errorHandler
     If debugLogFile Is Nothing Then
+        
         Set debugLogFile = fso.OpenTextFile(logFileName, ForAppending, True)
     End If
     

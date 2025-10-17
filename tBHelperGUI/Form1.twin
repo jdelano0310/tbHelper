@@ -15,6 +15,19 @@ Class Form1
     Private Const CheckForVersion As String = "Check for new version"
     Private Const DownLoadVersion As String = "Download version"
     Private Const InstalledVersion As String = "Installed version: "
+
+    ' colors for the type of change log item      the names came from this site https://colornamer.robertcooper.me/
+    Private Const COLOR_IMPORTANT = &HA2640C          ' Raw Umber  (orange/yellow)
+    Private Const COLOR_IMPROVED = RGB(107, 142, 35)  ' Scallion  (light green)
+    Private Const COLOR_FIXED = RGB(56, 118, 29)      ' Forest Empress  (darker green)
+    Private Const COLOR_UPDATED = RGB(107, 45, 103)   ' Intense Mauve 
+    Private Const COLOR_TIP = RGB(22, 83, 126)        ' Lake Baikal (blue/grey)
+    Private Const COLOR_DEFAULT = &H808080            ' standard Grey
+    Private Const COLOR_KNOWN = vbBlack
+    Private Const COLOR_ADDED = RGB(75, 0, 130)       ' Indigo (purple)
+    Private Const COLOR_WARNING = RGB(153, 0, 0)      ' Crimson Red 
+    Private Const COLOR_CHANGED = RGB(198, 79, 55)    ' Burnt Sienna  (Trinidad)
+    Private Const COLOR_NOTE = RGB(72, 61, 139)       ' Nauseous Blue
     
     Private Sub Form_Load()
         
@@ -23,6 +36,8 @@ Class Form1
         
         downloadIcon = App.Path & "\download.png"
         checkForNewIcon = App.Path & "\binoculars.png"
+        
+        Me.Caption = "tBHelper (beta 2 10-17-25)"
         
         'WriteToDebugLogFile "Form load"
         
@@ -142,7 +157,7 @@ Class Form1
         Set activeTypeFilters = Nothing
         
         'WriteToDebugLogFile "form1 closed"
-        'WriteToDebugLogFile "CLOSE" ' this tells the procedure to close the debug log file 
+        WriteToDebugLogFile "CLOSE" ' this tells the procedure to close the debug log file 
         
         Set fso = Nothing
         
@@ -384,36 +399,45 @@ Class Form1
         FlushRedraws
     End Sub
 
-    Private Sub tfAdded_StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
-        RefreshChangeLog TypeName, Active
+    Private Sub tfAdded_StateChanged(ByVal Active As Boolean)
+        RefreshChangeLog tfAdded, Active
+        
     End Sub
 
-    Private Sub tfFixed_StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
-        RefreshChangeLog TypeName, Active
+    Private Sub tfFixed_StateChanged(ByVal Active As Boolean)
+        RefreshChangeLog tfFixed, Active
     End Sub
     
-    Private Sub tfImportant_StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
-        RefreshChangeLog TypeName, Active
+    Private Sub tfImportant_StateChanged(ByVal Active As Boolean)
+        RefreshChangeLog tfImportant, Active
     End Sub
 
-    Private Sub tfImproved_StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
-        RefreshChangeLog TypeName, Active
+    Private Sub tfImproved_StateChanged(ByVal Active As Boolean)
+        RefreshChangeLog tfImproved, Active
     End Sub
     
-    Private Sub tfKnown_Issue_StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
-        RefreshChangeLog TypeName, Active
+    Private Sub tfKnown_Issue_StateChanged(ByVal Active As Boolean)
+        RefreshChangeLog tfKnown_Issue, Active
     End Sub
     
-    Private Sub tfTip_StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
-        RefreshChangeLog TypeName, Active
+    Private Sub tfTip_StateChanged(ByVal Active As Boolean)
+        RefreshChangeLog tfTip, Active
     End Sub
     
-    Private Sub tfUpdated_StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
-        RefreshChangeLog TypeName, Active
+    Private Sub tfUpdated_StateChanged(ByVal Active As Boolean)
+        RefreshChangeLog tfUpdated, Active
     End Sub
     
-    Private Sub tfWarning_StateChanged(ByVal TypeName As String, ByVal Active As Boolean)
-        RefreshChangeLog TypeName, Active
+    Private Sub tfWarning_StateChanged(ByVal Active As Boolean)
+        RefreshChangeLog tfWarning, Active
+    End Sub
+    
+    Private Sub tfNote_StateChanged(ByVal Active As Boolean)
+        RefreshChangeLog tfNote, Active
+    End Sub
+    
+    Private Sub tfChanged_StateChanged(ByVal Active As Boolean)
+        RefreshChangeLog tfChanged, Active
     End Sub
     
     Private Sub tsStartTB_StateChanged(ByVal NewState As Boolean)
@@ -848,22 +872,26 @@ Class Form1
     
     End Function
     
-    Private Sub RefreshChangeLog(FilterText As String, itsState As Boolean)
+    Private Sub RefreshChangeLog(FilterButton As ucTypeFilter, isActive As Boolean)
 
         ' check for the message box displaying
         If isAPanelDisplayed Then Exit Sub
+
+        Dim filterText As String = FilterButton.FilterText
         
         ' display only those enteries that match the active filter buttons
-        FilterText = UCase(FilterText) ' passing the name of the control instead of caption
+        filterText = UCase(filterText) ' passing the name of the control instead of caption
 
-        If itsState Then
-            activeTypeFilters.Add(FilterText, FilterText)
+        If isActive Then
+            ' re-add to the active filters used to fill the change log
+            activeTypeFilters.Add(filterText, filterText)
         Else
-            activeTypeFilters.Remove(FilterText)
+            ' remore from the active filters used to fill the change log
+            activeTypeFilters.Remove(filterText)
         End If
         
         clgView.ClearEntries
-        clgView.BeginUpdate()
+        clgView.BeginUpdate()  ' hold off updating the control view until all the items are added
         
         ' apply a filter to the listed change log
         Dim clItem As clsChangeLogItem
@@ -873,7 +901,7 @@ Class Form1
             End If
 
         Next
-        clgView.EndUpdate()
+        clgView.EndUpdate() ' display the new filtered log to the user
         
     End Sub
 
@@ -908,7 +936,12 @@ Class Form1
             ' isn't a valid control name, and 5 characters is unique enough for this purpose
             tfName = UCase("tf" & Replace(clType, " ", "_"))
             For Each ctrl In Me.Controls
-                If UCase(ctrl.name) = tfName Then ctrl.enabled = True
+                If UCase(ctrl.name) = tfName Then
+                    WriteToDebugLogFile ctrl.name & " enabled and activated via SetInitialTypeFilters"
+                    'ctrl.active = True
+                    ctrl.enabled = True
+                    
+                End If
                 'DoEvents()
             Next
         Next
@@ -940,14 +973,16 @@ Class Form1
     Private Sub SetupTypeFilterButtons()
         
         'setup the type filter user controls on the form
-        ConfigureTypeFilterButton tfImportant, "Important", &HA2640C
+        ConfigureTypeFilterButton tfImportant, "Important", COLOR_IMPORTANT
         ConfigureTypeFilterButton tfKnown_Issue, "Known", vbBlack, "Known Issue"
-        ConfigureTypeFilterButton tfAdded, "Added", RGB(75, 0, 130) ' indigo
-        ConfigureTypeFilterButton tfImproved, "Improved", RGB(107, 142, 35) ' other green
-        ConfigureTypeFilterButton tfUpdated, "Updated", RGB(107, 45, 103) ' a purple
-        ConfigureTypeFilterButton tfTip, "Tip", RGB(22, 83, 126) ' blueish
-        ConfigureTypeFilterButton tfWarning, "Warning", RGB(153, 0, 0) ' dark red
-        ConfigureTypeFilterButton tfFixed, "Fixed", RGB(56, 118, 29) ' green
+        ConfigureTypeFilterButton tfAdded, "Added", COLOR_ADDED
+        ConfigureTypeFilterButton tfImproved, "Improved", COLOR_IMPROVED
+        ConfigureTypeFilterButton tfUpdated, "Updated", COLOR_UPDATED
+        ConfigureTypeFilterButton tfTip, "Tip", COLOR_TIP
+        ConfigureTypeFilterButton tfWarning, "Warning", COLOR_WARNING
+        ConfigureTypeFilterButton tfFixed, "Fixed", COLOR_FIXED
+        ConfigureTypeFilterButton tfNote, "Note", COLOR_NOTE
+        ConfigureTypeFilterButton tfChanged, "Changed", COLOR_CHANGED
         
     End Sub
 
@@ -1869,5 +1904,6 @@ Class Form1
         'WriteToDebugLogFile("tmrCatchUp: RedrawCount=" & RedrawQueue.Count)
         If RedrawQueue.Count > 0 Then FlushRedraws()
     End Sub
+    
     
 End Class

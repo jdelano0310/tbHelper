@@ -46,6 +46,9 @@ Class ucChangeLog
     Private m_DPI_Vertical As Long
     Private m_DPIHeaderFontSize As Integer
     Private m_DPIFontSize As Integer
+    Private m_BadgeDPIFontSize As Integer
+    Private m_BadgeFont As Long
+    Private m_DefaultFont As Long
     
     Private m_Columns() As clsChangeLogColumn
     Private m_ColumnCount As Integer
@@ -105,6 +108,9 @@ Class ucChangeLog
         m_DPIFontSize = TEXT_BASE_FONT_SIZE * (dpiX / 96)
         m_DPIHeaderFontSize = (TEXT_BASE_FONT_SIZE + 1) * (dpiX / 96)
         
+        m_BadgeDPIFontSize = m_DPIFontSize - 0.5
+        If m_BadgeDPIFontSize < 8 Then m_BadgeDPIFontSize = 8 ' minimum readable size
+
     End Sub
     
     Private Sub UserControl_Initialize()
@@ -183,6 +189,10 @@ Class ucChangeLog
         End With
     
         DrawHeaders
+
+        ' set the fonts for the change log
+        m_DefaultFont = CreateFont(-MulDiv(m_DPIFontSize, m_DPI_Vertical, 72), 0, 0, 0, FW_NORMAL, 0, 0, 0, 0, 0, 0, 0, 0, "Segoe UI")
+        m_BadgeFont = CreateFont(-MulDiv(m_BadgeDPIFontSize, m_DPI_Vertical, 72), 0, 0, 0, FW_NORMAL, 0, 0, 0, 0, 0, 0, 0, 0, "Segoe UI")
         
     End Sub
 
@@ -203,11 +213,8 @@ Class ucChangeLog
     End Sub
     
     Public Sub RequestCanvasRedraw()
-        ' tell the system to update this uc 
         
-        ' If Timer - m_LastCanvasRedrawTime < 0.05 Then Exit Sub
-        ' m_LastCanvasRedrawTime = Timer
-        
+        ' the change log needs to update the ui  
         If m_RedrawQueued Then Exit Sub
         m_RedrawQueued = True
                         
@@ -352,7 +359,7 @@ Class ucChangeLog
         Dim i As Long
         Dim col As clsChangeLogColumn
         Dim value As String
-        
+                
         Dim BASE_LINE_HEIGHT As Integer = 18
         
         actualIndex = GetFilteredEntryIndex(entryIndex)
@@ -412,13 +419,16 @@ Class ucChangeLog
             ' in a more controlled manner
             value = entry.Values(col.Name)
             'WriteToDebugLogFile("      ucChanglog: DrawRow, entryIndex is " & entryIndex & " value: " & value)
+                        
             Select Case UCase(col.Name)
                 Case "VERSION"
+                    SelectObject hdc, m_DefaultFont
                     SetTextColor hdc, TEXT_COLOR_VERSION
                     TextOut hdc, xPos + 4, yPos + 12, value, Len(value)
                 Case "TYPE"
                     If Len(entry.TypeText) > 0 Then DrawTypeBadge(hdc, xPos, yPos + 8, entry)
                 Case "DESCRIPTION"
+                    SelectObject hdc, m_DefaultFont
                     SetTextColor hdc, TEXT_COLOR_DARK
 
                     Dim lineYPos As Long
@@ -434,6 +444,7 @@ Class ucChangeLog
                     
                     Set descrLines = Nothing
                 Case Else
+                    SelectObject hdc, m_DefaultFont
                     SetTextColor hdc, TEXT_COLOR_DARK
                     TextOut hdc, xPos + 4, yPos + 12, value, Len(value)
                 Case Else
@@ -446,11 +457,12 @@ Class ucChangeLog
     End Sub
 
     Private Sub DrawTypeBadge(ByVal hdc As Long, ByVal x As Long, ByVal y As Long, entry As clsChangeLogEntry)
+        
         Dim badgeRect As RECT
         Dim hBrush As Long
         Dim textSize As Size
         Dim badgeWidth As Long
-    
+                
         ' Calculate badge size
         GetTextExtentPoint32 hdc, entry.TypeText, Len(entry.TypeText), textSize
         badgeWidth = textSize.cx + 16
@@ -470,6 +482,8 @@ Class ucChangeLog
         ' Draw badge text (white)
         SetBkMode hdc, 1 ' TRANSPARENT
         SetTextColor hdc, TEXT_COLOR_WHITE
+        SelectObject hdc, m_BadgeFont         ' make the font in the badge a little smaller
+        
         TextOut hdc, x + 8, y + 4, entry.TypeText, Len(entry.TypeText)
     End Sub
 

@@ -78,7 +78,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 1882783743,
+		"__lastUpdateMarker": 1735204811,
 		"_children": [
 			{
 				"Anchors": {
@@ -1878,7 +1878,7 @@
 				"Height": 22,
 				"HelpContextID": 0,
 				"Index": -1,
-				"Left": 541,
+				"Left": 542,
 				"Name": "tfImproved",
 				"Opacity": 100,
 				"TabIndex": 34,
@@ -1934,7 +1934,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 2625202
+				"canvashWnd": 3410982
 			},
 			{
 				"Anchors": {
@@ -2091,7 +2091,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 660054
+				"canvashWnd": 8522942
 			},
 			{
 				"Anchors": {
@@ -2938,7 +2938,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 724780
+								"canvashWnd": 1248912
 							},
 							{
 								"Anchors": {
@@ -4490,7 +4490,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 660062
+								"canvashWnd": 1380350
 							},
 							{
 								"Anchors": {
@@ -5374,6 +5374,90 @@
 				"_className": "PictureBox",
 				"_clsid": "{33AD4ED0-6699-11CF-B70C-00AA0060D393}",
 				"_isFrame": true
+			},
+			{
+				"Active": true,
+				"Anchors": {
+					"Bottom": false,
+					"Left": true,
+					"Right": false,
+					"Top": true,
+					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
+				},
+				"Backcolor": 0,
+				"BorderRadius": 0,
+				"CausesValidation": false,
+				"Dock": "vbDockNone",
+				"DragIcon": "",
+				"DragMode": "vbManual",
+				"Enabled": false,
+				"FilterText": null,
+				"FontSize": 0,
+				"Height": 22,
+				"HelpContextID": 0,
+				"Index": -1,
+				"Left": 615,
+				"Name": "tfChanged",
+				"Opacity": 100,
+				"TabIndex": 79,
+				"TabStop": true,
+				"Tag": null,
+				"ToolTipText": null,
+				"Top": 435,
+				"TransparencyKey": -1,
+				"TypeName": null,
+				"UseIViewObjectSnapshots": false,
+				"Visible": true,
+				"WhatsThisHelpID": 0,
+				"Width": 71,
+				"WidthOverride": 0,
+				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AFcHAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkARgIAAA==",
+				"_className": "tBHelper.ucTypeFilter",
+				"_clsid": "{0F01B66C-36E5-48C3-A99E-C75E1BE32D94}",
+				"_hasExclusiveCancelProp": true,
+				"_hasExclusiveDefaultProp": true
+			},
+			{
+				"Active": true,
+				"Anchors": {
+					"Bottom": false,
+					"Left": true,
+					"Right": false,
+					"Top": true,
+					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
+				},
+				"Backcolor": 0,
+				"BorderRadius": 0,
+				"CausesValidation": false,
+				"Dock": "vbDockNone",
+				"DragIcon": "",
+				"DragMode": "vbManual",
+				"Enabled": false,
+				"FilterText": null,
+				"FontSize": 0,
+				"Height": 22,
+				"HelpContextID": 0,
+				"Index": -1,
+				"Left": 688.0001,
+				"Name": "tfNote",
+				"Opacity": 100,
+				"TabIndex": 80,
+				"TabStop": true,
+				"Tag": null,
+				"ToolTipText": null,
+				"Top": 435,
+				"TransparencyKey": -1,
+				"TypeName": null,
+				"UseIViewObjectSnapshots": false,
+				"Visible": true,
+				"WhatsThisHelpID": 0,
+				"Width": 71,
+				"WidthOverride": 0,
+				"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AFcHAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkARgIAAA==",
+				"_className": "tBHelper.ucTypeFilter",
+				"_clsid": "{0F01B66C-36E5-48C3-A99E-C75E1BE32D94}",
+				"_hasExclusiveCancelProp": true,
+				"_hasExclusiveDefaultProp": true
 			}
 		],
 		"_className": "Form",

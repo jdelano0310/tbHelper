@@ -19,16 +19,18 @@ Private m_TypeColor As Long
 Private m_TypeTextColor As Long
 Private m_EntryHeight As Long
 
-' colors for the type of changle log item
-Private Const COLOR_IMPORTANT = &HA2640C
-Private Const COLOR_IMPROVED = RGB(107, 142, 35)
-Private Const COLOR_FIXED = RGB(56, 118, 29)
-Private Const COLOR_UPDATED = RGB(107, 45, 103)
-Private Const COLOR_TIP = RGB(22, 83, 126)
-Private Const COLOR_DEFAULT = &H808080
+' colors for the type of change log item      the names came from this site https://colornamer.robertcooper.me/
+Private Const COLOR_IMPORTANT = &HA2640C          ' Raw Umber  (orange/yellow)
+Private Const COLOR_IMPROVED = RGB(107, 142, 35)  ' Scallion  (light green)
+Private Const COLOR_FIXED = RGB(56, 118, 29)      ' Forest Empress  (darker green)
+Private Const COLOR_UPDATED = RGB(107, 45, 103)   ' Intense Mauve 
+Private Const COLOR_TIP = RGB(22, 83, 126)        ' Lake Baikal (blue/grey)
+Private Const COLOR_DEFAULT = &H808080            ' standard Grey
 Private Const COLOR_KNOWN = vbBlack
-Private Const COLOR_ADDED = RGB(75, 0, 130)
-Private Const COLOR_WARNING = RGB(153, 0, 0)
+Private Const COLOR_ADDED = RGB(75, 0, 130)       ' Indigo (purple)
+Private Const COLOR_WARNING = RGB(153, 0, 0)      ' Crimson Red 
+Private Const COLOR_CHANGED = RGB(198, 79, 55)    ' Burnt Sienna  (Trinidad)
+Private Const COLOR_NOTE = RGB(72, 61, 139)       ' Nauseous Blue
 
 Private Const TEXT_COLOR_WHITE = &HFFFFFF
 
@@ -93,6 +95,8 @@ Public Sub Initialize(columnDefs() As clsChangeLogColumn, columnValues() As Vari
                 Case "KNOWN ISSUE": m_TypeColor = COLOR_KNOWN
                 Case "ADDED":     m_TypeColor = COLOR_ADDED
                 Case "WARNING":   m_TypeColor = COLOR_WARNING
+                Case "CHANGED":   m_TypeColor = COLOR_CHANGED
+                Case "NOTE":      m_TypeColor = COLOR_NOTE
                 Case Else:        m_TypeColor = COLOR_DEFAULT
             End Select
         End If
