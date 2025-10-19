@@ -37,6 +37,26 @@ Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As S
     
     'WriteToDebugLogFile "       ConfigureCustomButton identifier " & IIf(buttonCaption = "", pngImagePath, buttonCaption)
     
+    Dim dpiScale As Double = GetDPIScale()
+    
+    ' With theButton
+    '     .Caption = buttonCaption
+    '     .BackColor = bkColor
+    '     .ForeColor = frColor
+    '     If borderWidth > 0 Then
+    '         .BorderColor = borderColor
+    '         .BorderWidth = borderWidth
+    '     End If
+    '     .FontSize = 11
+    '     .BorderRadius = 3
+    '     .FontBold = boldFont
+    '     .PngIconPath = pngImagePath
+    '     .IconSize = iconSize
+    '     .IconSpacing = 8
+    '     .Enabled = startEnabled
+    ' End With
+    
+    ' new button configuration code from AARays on VBForums
     With theButton
         .Caption = buttonCaption
         .BackColor = bkColor
@@ -46,11 +66,11 @@ Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As S
             .BorderWidth = borderWidth
         End If
         .FontSize = 11
-        .BorderRadius = 3
+        .BorderRadius = 3 * dpiScale
         .FontBold = boldFont
         .PngIconPath = pngImagePath
-        .IconSize = iconSize
-        .IconSpacing = 8
+        .IconSize = iconSize * dpiScale
+        .IconSpacing = 8 * dpiScale
         .Enabled = startEnabled
     End With
     
@@ -346,6 +366,7 @@ Private Sub DisplayPanelIcon(iconFileName As String, parentContainer As Frame)
     picIcon.AutoSize = True
     picIcon.Top = parentContainer.Top + 35
     picIcon.Left = parentContainer.Left + 60
+    picIcon.PictureDpiScaling = True
     picIcon.Visible = True
     
     SetParent picIcon.hWnd, parentContainer.hWnd
@@ -456,4 +477,43 @@ Function BytesToUnicodeString(dataBuffer() As Byte) As String
     Next i
 
     BytesToUnicodeString = result
+End Function
+
+Private Const BASE_DPI As Long = 96
+
+Public Function GetDPIScale() As Double
+    ' code given by AARays on VBForums 
+    ' I'm using the declarations in WinDevLib for the API calls referenced here (at first)
+    ' Returns the system DPI scaling factor (e.g., 1.5 for 150% scaling)
+    
+    #If VBA7 Then
+        Dim hDC As LongPtr
+    #Else
+        Dim hDC As Long
+    #End If
+    Dim CurrentDPI As Long
+    Dim ScaleFactor As Double
+
+    ' 1. Get the Device Context (DC) for the desktop window (hWnd=0)
+    hDC = GetDC(0)
+
+    If hDC <> 0 Then
+        ' 2. Retrieve the current DPI value (e.g., 144 DPI for 150% scaling)
+        CurrentDPI = GetDeviceCaps(hDC, LOGPIXELSX)
+
+        ' 3. Release the Device Context (essential cleanup)
+        Call ReleaseDC(0, hDC)
+
+        ' 4. Calculate the fractional scale factor using floating-point division
+        If CurrentDPI > 0 Then
+            ScaleFactor = CDbl(CurrentDPI) / BASE_DPI
+            GetDPIScale = ScaleFactor
+        Else
+            GetDPIScale = 1.0 ' Default to 1.0 (100%) if DPI failed to retrieve
+        End If
+    Else
+        ' Failed to get DC
+        GetDPIScale = 1.0
+    End If
+    
 End Function

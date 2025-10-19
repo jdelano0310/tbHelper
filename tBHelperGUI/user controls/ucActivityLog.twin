@@ -34,6 +34,7 @@ Class ucActivityLog
     Private m_DPI_Horizontal As Long
     Private m_DPI_Vertical As Long
     Private m_DPIFontSize As Integer
+    Private m_DPIRowHeight As Integer
     
     ' Drawing surface
     Private WithEvents m_Canvas As PictureBox
@@ -60,7 +61,7 @@ Class ucActivityLog
     Private Const BORDER_COLOR = &HE0E0E0
 
     ' other constants
-    Private Const ROW_HEIGHT = 40
+    'Private Const ROW_HEIGHT = 40
     Private Const HEADER_HEIGHT = 0  ' no header in the activity log
     Private Const TEXT_BASE_FONT_SIZE = 10
     
@@ -99,8 +100,13 @@ Class ucActivityLog
             Case Else: m_DPIFontSize = 13
         End Select
         
+        ' adding a calculation for the row height and removing the ROW_HEIGHT constant - thanks for AARays on VBForums
+        m_DPIRowHeight = MulDiv(40, m_DPI_Vertical, 96)
+        
         ' Optional: log for visibility
-        Debug.Print "DPI=" & dpiX & ", Font scale=" & Format(scaleFactor, "0.00") & ", Font size=" & m_DPIFontSize
+        Debug.Print "DPI_X=" & dpiX & ", Font scale=" & Format(scaleFactor, "0.00") & ", Font size=" & m_DPIFontSize
+        Debug.Print "DPI_Y=" & dpiY & ", Row Height=" & m_DPIRowHeight
+        
     End Sub
     
     Private Sub UserControl_Initialize()
@@ -180,8 +186,8 @@ Class ucActivityLog
         canvasHeightPixels = m_Canvas.Height \ Screen.TwipsPerPixelY
         
         ' Now calculate how many full rows fit, plus 1 if there's partial space left
-        visibleEntries = canvasHeightPixels \ ROW_HEIGHT
-        If (canvasHeightPixels Mod ROW_HEIGHT) <> 0 Then visibleEntries = visibleEntries + 1
+        visibleEntries = canvasHeightPixels \ m_DPIRowHeight  'ROW_HEIGHT
+        If (canvasHeightPixels Mod m_DPIRowHeight) <> 0 Then visibleEntries = visibleEntries + 1
         
         startIndex = m_ScrollOffset
         endIndex = startIndex + visibleEntries - 1
@@ -190,7 +196,7 @@ Class ucActivityLog
         yPos = 0
         For i = startIndex To endIndex
             DrawRow i, yPos
-            yPos = yPos + ROW_HEIGHT
+            yPos = yPos + m_DPIRowHeight 'ROW_HEIGHT
         Next i
     
         With m_VScrollBar
@@ -232,7 +238,7 @@ Class ucActivityLog
         rowRect.Left = 0
         rowRect.Top = yPos
         rowRect.Right = m_Canvas.Width
-        rowRect.Bottom = yPos + ROW_HEIGHT
+        rowRect.Bottom = yPos + m_DPIRowHeight 'ROW_HEIGHT
     
         ' Draw row background
         If isSelected Then
@@ -274,7 +280,7 @@ Class ucActivityLog
         Dim actualIndex As Long
     
         If Button = 1 Then ' Left click
-            clickedIndex = Int(y / ROW_HEIGHT) + m_ScrollOffset
+            clickedIndex = Int(y / m_DPIRowHeight) + m_ScrollOffset
             
             If actualIndex <> -1 Then
 
@@ -311,13 +317,13 @@ Class ucActivityLog
             Dim entryIndex As Long
             entryIndex = m_EntryCount - 1
             Dim yPos As Long
-            yPos = (entryIndex - m_ScrollOffset) * ROW_HEIGHT
+            yPos = (entryIndex - m_ScrollOffset) * m_DPIRowHeight 'ROW_HEIGHT
             If yPos >= 0 And yPos < m_Canvas.Height Then
                 DrawRow entryIndex, yPos
 
                 ' Optional: redraw the next row in case overlap occurred
                 If entryIndex + 1 < m_EntryCount Then
-                    DrawRow entryIndex + 1, yPos + ROW_HEIGHT
+                    DrawRow entryIndex + 1, yPos + m_DPIRowHeight 'ROW_HEIGHT
                 End If
             End If
 
@@ -340,9 +346,9 @@ Class ucActivityLog
             canvasHeightPixels = m_Canvas.Height \ Screen.TwipsPerPixelY
             
             Dim visibleEntries As Long
-            visibleEntries = canvasHeightPixels \ ROW_HEIGHT
+            visibleEntries = canvasHeightPixels \ m_DPIRowHeight 'ROW_HEIGHT
             
-            If (canvasHeightPixels Mod ROW_HEIGHT) <> 0 Then visibleEntries = visibleEntries + 1
+            If (canvasHeightPixels Mod m_DPIRowHeight) <> 0 Then visibleEntries = visibleEntries + 1
             
             ' scroll if needed to highlight the last entry added to the log
             If m_EntryCount > visibleEntries Then
@@ -377,7 +383,7 @@ Class ucActivityLog
         filteredCount = m_EntryCount
         
         ' check to see if the scrollbar is needed, if so convert the pixel row height to twips to calculate that
-        If Not m_Canvas Is Nothing Then visibleRows = Int(m_Canvas.Height / (ROW_HEIGHT * Screen.TwipsPerPixelX))
+        If Not m_Canvas Is Nothing Then visibleRows = Int(m_Canvas.Height / (m_DPIRowHeight * Screen.TwipsPerPixelX))
             
         If filteredCount > visibleRows Then
             m_VScrollBar.Max = filteredCount - visibleRows
@@ -387,7 +393,7 @@ Class ucActivityLog
             m_ScrollOffset = 0
         End If
         
-        UpdateScrollOwnership m_Canvas.hWnd, (m_VScrollBar.Value * ROW_HEIGHT)
+        UpdateScrollOwnership m_Canvas.hWnd, (m_VScrollBar.Value * m_DPIRowHeight)
         
     End Sub
 

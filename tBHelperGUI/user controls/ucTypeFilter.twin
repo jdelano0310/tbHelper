@@ -120,7 +120,7 @@ Class ucTypeFilter
     Private Sub UpdateAppearance(forWhat As String)
         
         ' change the look to indicate the type is included in the filter
-        WriteToDebugLogFile "ucTypeFilter - UpdateAppearance: " & lblCaption.Caption & IIf(m_Enabled, " enabled", " disabled") & IIf(m_Active, " active", " inactive")
+        'WriteToDebugLogFile "ucTypeFilter - UpdateAppearance: " & lblCaption.Caption & IIf(m_Enabled, " enabled", " disabled") & IIf(m_Active, " active", " inactive")
         Select Case forWhat
             Case "Toggle Enabled"
                 If m_Enabled Then

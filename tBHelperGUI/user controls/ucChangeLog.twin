@@ -49,6 +49,7 @@ Class ucChangeLog
     Private m_BadgeDPIFontSize As Integer
     Private m_BadgeFont As Long
     Private m_DefaultFont As Long
+    Private m_DPIRowHeight As Integer
     
     Private m_Columns() As clsChangeLogColumn
     Private m_ColumnCount As Integer
@@ -62,8 +63,9 @@ Class ucChangeLog
     Private Const BORDER_COLOR = &HE0E0E0
 
     Private Const TEXT_BASE_FONT_SIZE = 11
-    Private Const ROW_HEIGHT = 40
+    'Private Const ROW_HEIGHT = 40
     Private Const HEADER_HEIGHT = 500
+    Private Const BASE_DPI = 96
 
     Public Sub Clear()
         m_Canvas.Cls
@@ -105,8 +107,11 @@ Class ucChangeLog
         m_DPI_Vertical = dpiY
 
         ' Example for scaling controls (assuming 96 DPI as baseline)
-        m_DPIFontSize = TEXT_BASE_FONT_SIZE * (dpiX / 96)
-        m_DPIHeaderFontSize = (TEXT_BASE_FONT_SIZE + 1) * (dpiX / 96)
+        m_DPIFontSize = TEXT_BASE_FONT_SIZE * (dpiX / BASE_DPI)
+        m_DPIHeaderFontSize = (TEXT_BASE_FONT_SIZE + 1) * (dpiX / BASE_DPI)
+        
+        ' adding a calculation for the row height and removing the ROW_HEIGHT constant - thanks for AARays on VBForums
+        m_DPIRowHeight = MulDiv(40, m_DPI_Vertical, BASE_DPI)
         
         m_BadgeDPIFontSize = m_DPIFontSize - 0.5
         If m_BadgeDPIFontSize < 8 Then m_BadgeDPIFontSize = 8 ' minimum readable size
@@ -235,7 +240,14 @@ Class ucChangeLog
         ' count the columns
         Dim c As clsChangeLogColumn
         Dim cCount As Integer
+        Dim calcColumnWidth As Integer
+        
         For Each c In m_Columns
+            ' DPI calculations for the column widths of the log
+            calcColumnWidth = MulDiv(c.Width, m_DPI_Horizontal, BASE_DPI)
+            If calcColumnWidth < 50 Then calcColumnWidth = 50
+            If calcColumnWidth > 2000 Then calcColumnWidth = 2000
+            c.Width = calcColumnWidth
             cCount += 1
         Next
         
@@ -271,8 +283,8 @@ Class ucChangeLog
         Dim targetPointSize As Long
         targetPointSize = basePointSize
 
-        If m_DPI_Vertical > 96 Then
-            targetPointSize = basePointSize + ((m_DPI_Vertical - 96) \ 48)
+        If m_DPI_Vertical > BASE_DPI Then
+            targetPointSize = basePointSize + ((m_DPI_Vertical - BASE_DPI) \ 48)
         End If
         
         ' dpi changes 
@@ -329,7 +341,7 @@ Class ucChangeLog
         m_Canvas.BackColor = BACKGROUND_COLOR
     
         ' Calculate visible range
-        visibleEntries = Int(m_Canvas.Height / ROW_HEIGHT) + 1
+        visibleEntries = Int(m_Canvas.Height / m_DPIRowHeight) + 1
         startIndex = m_ScrollOffset
         endIndex = startIndex + visibleEntries
     
@@ -360,8 +372,8 @@ Class ucChangeLog
         Dim col As clsChangeLogColumn
         Dim value As String
                 
-        Dim BASE_LINE_HEIGHT As Integer = 18
-        
+        Dim BASE_LINE_HEIGHT As Integer = MulDiv(18, m_DPI_Vertical, BASE_DPI)
+                
         actualIndex = GetFilteredEntryIndex(entryIndex)
         If actualIndex = -1 Then Exit Sub
 
@@ -374,7 +386,7 @@ Class ucChangeLog
         ' does the description field exists in this row
         ' needed to create the rect that the row needs to display properly
         Dim includesDescription As Boolean = False
-        Dim thisRowHeight As Long = ROW_HEIGHT
+        Dim thisRowHeight As Long = m_DPIRowHeight 'ROW_HEIGHT
         
         ' for now loop the columns to see if description is one of the columns (change to WrappedEnabled if this works)
         For Each col In m_Columns
@@ -393,9 +405,9 @@ Class ucChangeLog
             
             ' in the event that description is blank 
             If requiredLines < 2 Then
-                thisRowHeight = ROW_HEIGHT
+                thisRowHeight = m_DPIRowHeight
             Else
-                thisRowHeight = (requiredLines * BASE_LINE_HEIGHT) + 8
+                thisRowHeight = (requiredLines * BASE_LINE_HEIGHT) + MulDiv(8, m_DPI_Vertical, BASE_DPI)
             End If
         End If
 
@@ -419,26 +431,26 @@ Class ucChangeLog
             ' in a more controlled manner
             value = entry.Values(col.Name)
             'WriteToDebugLogFile("      ucChanglog: DrawRow, entryIndex is " & entryIndex & " value: " & value)
-                        
+            
+            Dim lineXPos As Long = MulDiv(4, m_DPI_Horizontal, BASE_DPI)
             Select Case UCase(col.Name)
                 Case "VERSION"
                     SelectObject hdc, m_DefaultFont
                     SetTextColor hdc, TEXT_COLOR_VERSION
-                    TextOut hdc, xPos + 4, yPos + 12, value, Len(value)
+                    TextOut hdc, xPos + lineXPos, yPos + 12, value, Len(value)
                 Case "TYPE"
                     If Len(entry.TypeText) > 0 Then DrawTypeBadge(hdc, xPos, yPos + 8, entry)
                 Case "DESCRIPTION"
                     SelectObject hdc, m_DefaultFont
                     SetTextColor hdc, TEXT_COLOR_DARK
 
-                    Dim lineYPos As Long
-                    lineYPos = IIf(requiredLines < 2, yPos + 12, yPos + 6)
+                    Dim lineYPos As Long = IIf(requiredLines < 2, yPos + 12, yPos + 6)
                     
                     Dim descrLine As String
                     Dim eachLineHeight As Long = (thisRowHeight / (requiredLines + 1))
                     For Each descrLine In descrLines
                         ' write each line 
-                        TextOut hdc, xPos + 4, lineYPos, descrLine, Len(descrLine)
+                        TextOut hdc, xPos + lineXPos, lineYPos, descrLine, Len(descrLine)
                         lineYPos = lineYPos + eachLineHeight
                     Next
                     
@@ -446,7 +458,7 @@ Class ucChangeLog
                 Case Else
                     SelectObject hdc, m_DefaultFont
                     SetTextColor hdc, TEXT_COLOR_DARK
-                    TextOut hdc, xPos + 4, yPos + 12, value, Len(value)
+                    TextOut hdc, xPos + lineXPos, yPos + 12, value, Len(value)
                 Case Else
                     
             End Select
@@ -462,7 +474,9 @@ Class ucChangeLog
         Dim hBrush As Long
         Dim textSize As Size
         Dim badgeWidth As Long
-                
+        Dim badgeHeight As Long = MulDiv(26, m_DPI_Vertical, BASE_DPI)
+        Dim textTopPos As Long
+        
         ' Calculate badge size
         GetTextExtentPoint32 hdc, entry.TypeText, Len(entry.TypeText), textSize
         badgeWidth = textSize.cx + 16
@@ -471,7 +485,7 @@ Class ucChangeLog
         badgeRect.Left = x
         badgeRect.Top = y
         badgeRect.Right = x + badgeWidth
-        badgeRect.Bottom = y + 24
+        badgeRect.Bottom = y + badgeHeight
     
         ' Draw rounded rectangle background
         hBrush = CreateSolidBrush(entry.TypeColor)
@@ -484,7 +498,11 @@ Class ucChangeLog
         SetTextColor hdc, TEXT_COLOR_WHITE
         SelectObject hdc, m_BadgeFont         ' make the font in the badge a little smaller
         
-        TextOut hdc, x + 8, y + 4, entry.TypeText, Len(entry.TypeText)
+        textTopPos = badgeRect.Top + ((badgeHeight - textSize.cy) \ 2)  ' center the text name in the badge
+        
+        'TextOut hdc, x + 8, y + 4, entry.TypeText, Len(entry.TypeText)
+        TextOut hdc, x + 8, textTopPos, entry.TypeText, Len(entry.TypeText)
+        
     End Sub
 
     Private Sub m_Canvas_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
@@ -492,7 +510,7 @@ Class ucChangeLog
         Dim actualIndex As Long
     
         If Button = 1 Then ' Left click
-            clickedIndex = Int(y / ROW_HEIGHT) + m_ScrollOffset
+            clickedIndex = Int(y / m_DPIRowHeight) + m_ScrollOffset
             actualIndex = GetFilteredEntryIndex(clickedIndex)
         
             If actualIndex <> -1 Then
@@ -581,7 +599,7 @@ Class ucChangeLog
         
         ' check to see if the scrollbar is needed, if so convert the pixel row height to twips to calculate that
         If Not m_Canvas Is Nothing Then
-            visibleRows = Int(m_Canvas.Height / (ROW_HEIGHT * Screen.TwipsPerPixelX))
+            visibleRows = Int(m_Canvas.Height / (m_DPIRowHeight * Screen.TwipsPerPixelX))
         End If
     
         If filteredCount > visibleRows Then
@@ -592,7 +610,7 @@ Class ucChangeLog
             m_ScrollOffset = 0
         End If
         
-        UpdateScrollOwnership m_Canvas.hWnd, (m_VScrollBar.Value * ROW_HEIGHT)
+        UpdateScrollOwnership m_Canvas.hWnd, (m_VScrollBar.Value * m_DPIRowHeight)
         
     End Sub
 

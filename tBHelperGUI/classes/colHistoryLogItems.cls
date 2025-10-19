@@ -116,7 +116,7 @@ Public Function LoadLog() As Boolean
     
     For Each LogLine In LogLines
         
-        If Len(LogLine) = 0 Then Exit For
+        If Len(LogLine) < 10 Then Exit For
         
         Set historyLogItem = New clsHistoryLogItem
         historyLogItem.LogCLI = New clsChangeLogItem
