@@ -39,23 +39,6 @@ Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As S
     
     Dim dpiScale As Double = GetDPIScale()
     
-    ' With theButton
-    '     .Caption = buttonCaption
-    '     .BackColor = bkColor
-    '     .ForeColor = frColor
-    '     If borderWidth > 0 Then
-    '         .BorderColor = borderColor
-    '         .BorderWidth = borderWidth
-    '     End If
-    '     .FontSize = 11
-    '     .BorderRadius = 3
-    '     .FontBold = boldFont
-    '     .PngIconPath = pngImagePath
-    '     .IconSize = iconSize
-    '     .IconSpacing = 8
-    '     .Enabled = startEnabled
-    ' End With
-    
     ' new button configuration code from AARays on VBForums
     With theButton
         .Caption = buttonCaption
@@ -194,10 +177,6 @@ Public Function InstallTwinBasic(tBZipFile As String) As Boolean
     ' to the folder that has been desgniated
     'WriteToDebugLogFile("           InstallTwinBasic " & tBZipFile & " - start")
     Dim result As Boolean
-    
-    ' WriteToDebugLogFile "*******************  skipping InstalltwinBASIC  ***********************"
-    ' InstallTwinBasic = True
-    ' Exit Function
     
     On Error GoTo ErrorUnZiping
     

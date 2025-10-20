@@ -37,7 +37,7 @@ Class Form1
         downloadIcon = App.Path & "\download.png"
         checkForNewIcon = App.Path & "\binoculars.png"
         
-        Me.Caption = "tBHelper (beta 2 10-19-25)"
+        Me.Caption = "tBHelper (beta 2 10-20-25)"
         
         'WriteToDebugLogFile "Form load"
         

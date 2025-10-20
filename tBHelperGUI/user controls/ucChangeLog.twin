@@ -476,10 +476,17 @@ Class ucChangeLog
         Dim badgeWidth As Long
         Dim badgeHeight As Long = MulDiv(26, m_DPI_Vertical, BASE_DPI)
         Dim textTopPos As Long
+        Dim textLeftPos As Long
+        Dim badgePaddingX As Long
+        Dim cornerRadius As Long
+        cornerRadius = MulDiv(8, m_DPI_Vertical, BASE_DPI)
         
-        ' Calculate badge size
+        ' Calculate badge size and info to place the text centered in the badge
         GetTextExtentPoint32 hdc, entry.TypeText, Len(entry.TypeText), textSize
-        badgeWidth = textSize.cx + 16
+        badgePaddingX = MulDiv(8, m_DPI_Horizontal, BASE_DPI)
+        badgeWidth = textSize.cx + (badgePaddingX * 2)
+                
+        'badgeWidth = textSize.cx + 16
     
         ' Set badge rectangle
         badgeRect.Left = x
@@ -490,7 +497,9 @@ Class ucChangeLog
         ' Draw rounded rectangle background
         hBrush = CreateSolidBrush(entry.TypeColor)
         SelectObject hdc, hBrush
-        RoundRect hdc, badgeRect.Left, badgeRect.Top, badgeRect.Right, badgeRect.Bottom, 8, 8
+        
+        ' use a radius based on the screen scaling 
+        RoundRect hdc, badgeRect.Left, badgeRect.Top, badgeRect.Right, badgeRect.Bottom, cornerRadius, cornerRadius   ' changing the border radius to be DPI aware as well
         DeleteObject hBrush
     
         ' Draw badge text (white)
@@ -498,10 +507,12 @@ Class ucChangeLog
         SetTextColor hdc, TEXT_COLOR_WHITE
         SelectObject hdc, m_BadgeFont         ' make the font in the badge a little smaller
         
-        textTopPos = badgeRect.Top + ((badgeHeight - textSize.cy) \ 2)  ' center the text name in the badge
+        textTopPos = badgeRect.Top + ((badgeHeight - textSize.cy) \ 2)  ' center the text name in the badge height
         
-        'TextOut hdc, x + 8, y + 4, entry.TypeText, Len(entry.TypeText)
-        TextOut hdc, x + 8, textTopPos, entry.TypeText, Len(entry.TypeText)
+        ' center the text name in the badge width, it required a bit of a cludge ti get the text closer to the center
+        textLeftPos = badgeRect.Left + badgePaddingX + MulDiv(2, m_DPI_Horizontal, BASE_DPI)
+
+        TextOut hdc, textLeftPos, textTopPos, entry.TypeText, Len(entry.TypeText)
         
     End Sub
 
