@@ -1,0 +1,493 @@
+[Description("")]
+[FormDesignerId("AE0E71E5-28F7-48E0-985D-A202988830AD")]
+[ClassId("014B5795-458A-49AE-839F-E60A19B613DF")]
+[InterfaceId("B4BA79FB-6169-4A0E-A5F2-CF0140576517")]
+[EventInterfaceId("73D657EC-7E4C-45AB-B989-B29D656C6E7E")]
+[COMControl]
+Class ucChangeLog
+
+    Option Explicit
+
+    Private Const GWL_WNDPROC As Long = -4
+    Private Const WM_MOUSEWHEEL As Long = &H20A
+    
+    Public canvashWnd As LongPtr
+
+    Private Type Size
+        cx As Long
+        cy As Long
+    End Type
+
+    Private Type ChangeLogEntry
+        Version As String
+        EntryType As String
+        Description As String
+        TypeColor As Long
+        TypeTextColor As Long
+        TypeText As String
+    End Type
+
+    Public Event ItemClick(ByVal ItemIndex As Long)
+    Public Event ItemDoubleClick(ByVal ItemIndex As Long)
+
+    Private m_Entries() As ChangeLogEntry
+    Private m_EntryCount As Long
+    Private m_FilterType As String
+    Private m_SelectedIndex As Long
+    Private m_ScrollOffset As Long
+
+    ' Drawing surface
+    Private WithEvents m_Canvas As PictureBox
+    Private WithEvents m_HeaderCanvas As PictureBox
+    Private WithEvents m_VScrollBar As VScrollBar
+
+    ' colors for the type of changle log item
+    Private Const COLOR_IMPORTANT = vbBlue
+    Private Const COLOR_IMPROVED = RGB(107, 142, 35)      ' other green  
+    Private Const COLOR_FIXED = RGB(56, 118, 29) ' green
+    Private Const COLOR_UPDATED = RGB(107, 45, 103)       ' Orange badge
+    Private Const COLOR_TIP = RGB(22, 83, 126)           ' blueish
+    Private Const COLOR_DEFAULT = &H808080       ' Gray badge  
+    Private Const COLOR_KNOWN = vbBlack
+    Private Const COLOR_ADDED = RGB(75, 0, 130)
+    Private Const COLOR_WARNING = RGB(153, 0, 0)
+    
+    Private Const TEXT_COLOR_WHITE = &HFFFFFF
+    Private Const BACKGROUND_COLOR = &HFFFFFF
+    Private Const ROW_ALT_COLOR = &HF8F8F8
+    Private Const TEXT_COLOR_DARK = &H333333
+    Private Const TEXT_COLOR_VERSION = -RGB(128, 49, 116) ' Blue version text
+    Private Const SELECTED_COLOR = &HE6F3FF       ' Light blue selection
+    Private Const BORDER_COLOR = &HE0E0E0
+
+    Private Const ROW_HEIGHT = 40
+    Private Const HEADER_HEIGHT = 500
+
+    Private Sub UserControl_Initialize()
+    
+        InitializeControls
+        
+        m_FilterType = "All" ' initially show all types of change log items
+        
+        ' array of change log entries
+        ReDim m_Entries(0)
+                
+        m_EntryCount = 0
+        m_SelectedIndex = -1
+        m_ScrollOffset = 0
+
+        'capture mouse scroll
+        Set CallbackOwner = Me
+        canvashWnd = m_Canvas.hWnd
+        'originalCanvasProc = SetWindowLongPtr(canvashWnd, GWL_WNDPROC, AddressOf Canvas_WindowProc)
+        OriginalCanvasProc = SetWindowLong(canvashWnd, GWL_WNDPROC, AddressOf Canvas_WindowProc)
+        
+    End Sub
+
+    Private Sub InitializeControls()
+        ' Create header canvas
+        Set m_HeaderCanvas = Controls.Add("VB.PictureBox", "HeaderCanvas")
+        With m_HeaderCanvas
+            .Left = 0
+            .Top = 0
+            .ScaleMode = vbPixels
+            .Width = UserControl.ScaleWidth - 200
+            .Height = HEADER_HEIGHT
+            .BackColor = ROW_ALT_COLOR
+            .BorderStyle = 0 ' None
+            .AutoRedraw = True
+            .Font.Name = "Segoe UI"
+            .Font.Size = 11
+            .Font.Bold = True
+            .Visible = True
+            .Cls()
+            .Refresh()
+        End With
+    
+        ' Create canvas for the change log items
+        Set m_Canvas = Controls.Add("VB.PictureBox", "Canvas")
+        With m_Canvas
+            .Left = 0
+            .Top = HEADER_HEIGHT
+            .Width = UserControl.ScaleWidth - 200 ' Leave space for scrollbar
+            .Height = UserControl.ScaleHeight - HEADER_HEIGHT
+            .BackColor = BACKGROUND_COLOR
+            .BorderStyle = 0 ' None
+            .AutoRedraw = True
+            .ScaleMode = vbPixels
+            .Font.Name = "Segoe UI"
+            .Font.Size = 10
+            .Visible = True
+        End With
+        
+        ' Create vertical scrollbar
+        Set m_VScrollBar = Controls.Add("VB.VScrollBar", "VScroll")
+        With m_VScrollBar
+            .Left = UserControl.ScaleWidth - 200
+            .Top = HEADER_HEIGHT
+            .Width = 200
+            .Height = UserControl.ScaleHeight - HEADER_HEIGHT
+            .Min = 0
+            .Max = 0
+            .Value = 0
+            .Visible = False
+        End With
+    
+        DrawHeaders
+        
+    End Sub
+
+    Private Sub DrawHeaders()
+        ' replacement to test the TextOut issue
+        Dim hdc As Long
+        Dim hFont As Long
+        Dim hOldFont As Long
+
+        m_HeaderCanvas.Cls
+        hdc = m_HeaderCanvas.hDC
+
+        ' Create and select a bold Segoe UI font
+        hFont = CreateFont(-12, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "Segoe UI")
+        If hFont <> 0 Then
+            hOldFont = SelectObject(hdc, hFont)
+        End If
+
+        SetBkMode hdc, 1 ' TRANSPARENT
+        SetTextColor hdc, TEXT_COLOR_DARK ' &H333333
+
+        TextOut hdc, 20, 8, "VERSION", 7
+        TextOut hdc, 120, 8, "TYPE", 4
+        TextOut hdc, 280, 8, "DESCRIPTION", 11
+
+        ' Clean up
+        If hFont <> 0 Then
+            SelectObject hdc, hOldFont
+            DeleteObject hFont
+        End If
+
+        m_HeaderCanvas.Refresh
+    End Sub
+
+    Private Sub m_Canvas_Paint()
+        RedrawCanvas
+        
+    End Sub
+
+    Private Sub RedrawCanvas()
+        Dim i As Long
+        Dim yPos As Long
+        Dim visibleEntries As Long
+        Dim startIndex As Long
+        Dim endIndex As Long
+    
+        m_Canvas.Cls
+        m_Canvas.BackColor = BACKGROUND_COLOR
+    
+        ' Calculate visible range
+        visibleEntries = Int(m_Canvas.Height / ROW_HEIGHT) + 1
+        startIndex = m_ScrollOffset
+        endIndex = startIndex + visibleEntries
+        If endIndex > GetFilteredEntryCount() Then endIndex = GetFilteredEntryCount()
+    
+        yPos = 0
+        For i = startIndex To endIndex - 1
+            DrawRow i, yPos
+            yPos = yPos + ROW_HEIGHT
+        Next i
+    
+        m_Canvas.Refresh
+        
+    End Sub
+
+    Private Sub DrawRow(ByVal entryIndex As Long, ByVal yPos As Long)
+        Dim entry As ChangeLogEntry
+        Dim actualIndex As Long
+        Dim hdc As Long
+        Dim rowRect As RECT
+        Dim hBrush As Long
+        Dim isSelected As Boolean
+    
+        ' Get the actual entry (accounting for filtering)
+        actualIndex = GetFilteredEntryIndex(entryIndex)
+        If actualIndex = -1 Then Exit Sub
+    
+        entry = m_Entries(actualIndex)
+        isSelected = (actualIndex = m_SelectedIndex)
+    
+        hdc = m_Canvas.hDC
+    
+        ' Set up row rectangle
+        rowRect.Left = 0
+        rowRect.Top = yPos
+        rowRect.Right = m_Canvas.Width
+        rowRect.Bottom = yPos + ROW_HEIGHT
+    
+        ' Draw row background
+        If isSelected Then
+            hBrush = CreateSolidBrush(SELECTED_COLOR)
+        ElseIf (entryIndex Mod 2) = 0 Then
+            hBrush = CreateSolidBrush(ROW_ALT_COLOR)
+        Else
+            hBrush = CreateSolidBrush(BACKGROUND_COLOR)
+        End If
+    
+        FillRect hdc, rowRect, hBrush
+        DeleteObject hBrush
+    
+        ' Draw version number (blue)
+        SetBkMode hdc, 1 ' TRANSPARENT
+        SetTextColor hdc, TEXT_COLOR_VERSION
+        TextOut hdc, 20, yPos + 12, entry.Version, Len(entry.Version)
+    
+        ' Draw type badge
+        DrawTypeBadge hdc, 120, yPos + 8, entry
+    
+        ' Draw description (dark gray)
+        SetTextColor hdc, TEXT_COLOR_DARK
+        TextOut hdc, 280, yPos + 12, Left(entry.Description, 80), Len(Left(entry.Description, 80))
+    End Sub
+
+    Private Sub DrawTypeBadge(ByVal hdc As Long, ByVal x As Long, ByVal y As Long, entry As ChangeLogEntry)
+        Dim badgeRect As RECT
+        Dim hBrush As Long
+        Dim textSize As Size
+        Dim badgeWidth As Long
+    
+        ' Calculate badge size
+        GetTextExtentPoint32 hdc, entry.TypeText, Len(entry.TypeText), textSize
+        badgeWidth = textSize.cx + 16
+    
+        ' Set badge rectangle
+        badgeRect.Left = x
+        badgeRect.Top = y
+        badgeRect.Right = x + badgeWidth
+        badgeRect.Bottom = y + 24
+    
+        ' Draw rounded rectangle background
+        hBrush = CreateSolidBrush(entry.TypeColor)
+        SelectObject hdc, hBrush
+        RoundRect hdc, badgeRect.Left, badgeRect.Top, badgeRect.Right, badgeRect.Bottom, 8, 8
+        DeleteObject hBrush
+    
+        ' Draw badge text (white)
+        SetBkMode hdc, 1 ' TRANSPARENT
+        SetTextColor hdc, TEXT_COLOR_WHITE
+        TextOut hdc, x + 8, y + 4, entry.TypeText, Len(entry.TypeText)
+    End Sub
+
+    Private Sub m_Canvas_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+        Dim clickedIndex As Long
+        Dim actualIndex As Long
+    
+        If Button = 1 Then ' Left click
+            clickedIndex = Int(y / ROW_HEIGHT) + m_ScrollOffset
+            actualIndex = GetFilteredEntryIndex(clickedIndex)
+        
+            If actualIndex <> -1 Then
+                m_SelectedIndex = actualIndex
+                RedrawCanvas
+                RaiseEvent ItemClick(actualIndex)
+            End If
+        End If
+    End Sub
+
+    Private Sub m_Canvas_DblClick()
+        If m_SelectedIndex <> -1 Then
+            RaiseEvent ItemDoubleClick(m_SelectedIndex)
+        End If
+    End Sub
+
+    Private Sub m_VScrollBar_Change()
+        m_ScrollOffset = m_VScrollBar.Value
+        RedrawCanvas
+    End Sub
+
+    Private Function GetFilteredEntryCount() As Long
+        Dim i As Long
+        Dim count As Long
+    
+        For i = 0 To m_EntryCount - 1
+            If m_FilterType = "All" Or UCase(m_FilterType) = m_Entries(i).EntryType Then
+                count = count + 1
+            End If
+        Next i
+    
+        GetFilteredEntryCount = count
+    End Function
+
+    Private Function GetFilteredEntryIndex(ByVal displayIndex As Long) As Long
+        Dim i As Long
+        Dim count As Long
+    
+        For i = 0 To m_EntryCount - 1
+            If m_FilterType = "All" Or UCase(m_FilterType) = m_Entries(i).EntryType Then
+                If count = displayIndex Then
+                    GetFilteredEntryIndex = i
+                    Exit Function
+                End If
+                count = count + 1
+            End If
+        Next i
+    
+        GetFilteredEntryIndex = -1
+    End Function
+
+    Public Sub AddEntry(ByVal Version As String, ByVal EntryType As String, ByVal Description As String)
+        Dim newEntry As ChangeLogEntry
+    
+        newEntry.Version = Version
+        newEntry.EntryType = UCase(EntryType)
+        newEntry.Description = Description
+        newEntry.TypeTextColor = TEXT_COLOR_WHITE
+    
+        ' Set badge colors based on entry type
+        Select Case UCase(EntryType)
+            Case "IMPORTANT"
+                newEntry.TypeColor = COLOR_IMPORTANT
+            Case "IMPROVED"
+                newEntry.TypeColor = COLOR_IMPROVED
+            Case "FIXED"
+                newEntry.TypeColor = COLOR_FIXED
+            Case "UPDATED"
+                newEntry.TypeColor = COLOR_UPDATED
+            Case "TIP"
+                newEntry.TypeColor = COLOR_TIP
+            Case "KNOWN ISSUE"
+                newEntry.TypeColor = COLOR_KNOWN
+            Case "ADDED"
+                newEntry.TypeColor = COLOR_ADDED
+            Case "WARNING"
+                newEntry.TypeColor = COLOR_WARNING
+                                    
+            Case Else
+                newEntry.TypeColor = COLOR_DEFAULT
+        End Select
+        
+        newEntry.TypeText = UCase(EntryType)
+        
+        ' Add to array
+        ReDim Preserve m_Entries(m_EntryCount)
+        m_Entries(m_EntryCount) = newEntry
+        m_EntryCount = m_EntryCount + 1
+    
+        UpdateScrollBar
+        RedrawCanvas
+    End Sub
+
+    Private Sub UpdateScrollBar()
+
+        Dim filteredCount As Long
+        Dim visibleRows As Long
+    
+        filteredCount = GetFilteredEntryCount()
+        
+        ' check to see if the scrollbar is needed, if so convert the pixel row height to twips to calculate that
+        If Not m_Canvas Is Nothing Then visibleRows = Int(m_Canvas.Height / (ROW_HEIGHT * Screen.TwipsPerPixelX))
+    
+        If filteredCount > visibleRows Then
+            m_VScrollBar.Max = filteredCount - visibleRows
+            m_VScrollBar.Visible = True
+        Else
+            m_VScrollBar.Visible = False
+            m_ScrollOffset = 0
+        End If
+    End Sub
+
+    Public Sub ClearEntries()
+        ReDim m_Entries(0)
+        m_EntryCount = 0
+        m_SelectedIndex = -1
+        m_ScrollOffset = 0
+        UpdateScrollBar
+        RedrawCanvas
+    End Sub
+
+    Public Sub SetFilter(ByVal FilterType As String)
+        m_FilterType = FilterType
+        m_SelectedIndex = -1
+        m_ScrollOffset = 0
+        UpdateScrollBar
+        RedrawCanvas
+    End Sub
+
+    Public Sub LoadSampleData()
+        ClearEntries
+        AddEntry "820", "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
+        AddEntry "820", "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
+        AddEntry "820", "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
+        AddEntry "820", "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
+        AddEntry "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
+
+        AddEntry "820", "IMPORTANT", "This is an interim/experimental release. It includes significant changes, so some instability is to be expected."
+        AddEntry "820", "IMPROVED", "Markdown preview mode in the editor now allows for selection of text"
+        AddEntry "820", "FIXED", "Auto-correct editor bug sometimes causing invalid ""Private Sub"" to be inserted when creating an event from the form designer"
+        AddEntry "820", "UPDATED", "Sample 15 (GlobalSearchAddIn) to match the latest version of GlobalSearchAddIn that is included with the IDE"
+        AddEntry "820", "FIXED", "After the recent package changes, the ""Available Packages"" list might sometimes contain enabled packages"
+                
+    End Sub
+
+    Private Sub UserControl_Resize()
+        If Not m_Canvas Is Nothing Then
+            m_HeaderCanvas.Width = UserControl.ScaleWidth - 200
+        
+            m_Canvas.Width = UserControl.ScaleWidth - 200
+            m_Canvas.Height = UserControl.ScaleHeight - HEADER_HEIGHT
+        
+            m_VScrollBar.Left = UserControl.ScaleWidth - 200
+            m_VScrollBar.Height = UserControl.ScaleHeight - HEADER_HEIGHT
+        
+            UpdateScrollBar
+            DrawHeaders
+            RedrawCanvas
+        End If
+    End Sub
+
+    ' Properties
+    Public Property Get Filter() As String
+        Filter = m_FilterType
+    End Property
+
+    Public Property Let Filter(ByVal Value As String)
+        SetFilter Value
+    End Property
+
+    Public Property Get EntryCount() As Long
+        EntryCount = m_EntryCount
+    End Property
+
+    Public Property Get SelectedIndex() As Long
+        SelectedIndex = m_SelectedIndex
+    End Property
+    
+    Public Sub HandleMouseScroll(ByVal zDelta As Long)
+        If Not m_VScrollBar.Visible Then Exit Sub
+
+        Dim direction As Long
+        direction = Sgn(zDelta)
+
+        Dim newVal As Long
+        newVal = m_VScrollBar.Value - direction
+
+        If newVal < m_VScrollBar.Min Then newVal = m_VScrollBar.Min
+        If newVal > m_VScrollBar.Max Then newVal = m_VScrollBar.Max
+
+        If newVal <> m_VScrollBar.Value Then
+            m_VScrollBar.Value = newVal
+            m_ScrollOffset = newVal
+            RedrawCanvas
+        End If
+    End Sub
+
+    Private Sub UserControl_Terminate()
+        
+        ' have to release things when destorying the control
+        If canvashWnd <> 0 And OriginalCanvasProc <> 0 Then
+            Call SetWindowLong(canvashWnd, GWL_WNDPROC, OriginalCanvasProc)
+            canvashWnd = 0
+            OriginalCanvasProc = 0
+        End If
+        Set CallbackOwner = Nothing
+        
+    End Sub
+    
+End Class

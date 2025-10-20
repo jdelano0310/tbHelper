@@ -1,0 +1,24 @@
+[Description("")]
+[FormDesignerId("A895DB9A-2E48-4CBE-9D8B-3573D3848AD2")]
+[PredeclaredId]
+Class frmZipPickerPopup
+
+    Public Event ZipFileSelected(ZipFile As String)
+
+        Private Sub Form_Deactivate()
+            ' Hide the popup if the user clicks away
+            Me.Hide
+        End Sub
+
+        Private Sub lstZipFiles_Click()
+            If lstZipFiles.ListIndex > -1 Then
+                RaiseEvent ZipFileSelected(lstZipFiles.List(lstZipFiles.ListIndex))
+                Me.Hide
+            End If
+        End Sub
+
+        Public Sub MoveAndSize(Left As Long, Top As Long, Width As Long)
+            Me.Move Left, Top, Width, 800 ' 800 twips height, adjust as needed
+        End Sub
+        
+End Class

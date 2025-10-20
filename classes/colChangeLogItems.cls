@@ -22,6 +22,16 @@ Private _githubReleasesPage As HTMLDocument
 Private _versionCheckResult As String
 Private _tBVersionGap As Integer
 Private _latestVersion As Integer
+Private _logTypes As Scripting.Dictionary
+Private _tBVersions As Scripting.Dictionary
+
+Public Property Get LogTypes() As Scripting.Dictionary
+    Set LogTypes = _logTypes
+End Property
+
+Public Property Get tBVersions() As Scripting.Dictionary
+    Set tBVersions = _tBVersions
+End Property
 
 Public Property Let LatestVersion(lv As Integer)
     _latestVersion = lv
@@ -58,6 +68,9 @@ Public Function Add(tBVersion As String, clType As String, clDescription As Stri
         _col.Add newCLI, sKey
     End If
 
+    ' save a list of unique change log types to be used in filtering the log
+    If Not [_logTypes].Exists(UCase(clType)) Then [_logTypes].Add(UCase(clType), UCase(clType))
+    
     'return the object created
     Set Add = newCLI
     Set newCLI = Nothing
@@ -101,11 +114,16 @@ Private Sub Class_Initialize()
     'creates the collection when this class is created
     Set _col = New Collection
     Set _githubReleasesPage = New HTMLDocument
+    Set _logTypes = New Scripting.Dictionary
+    Set [_tBVersions] = New Scripting.Dictionary
 End Sub
 
 Private Sub Class_Terminate()
     'destroys collection when this class is terminated
     Set _col = Nothing
+    Set _githubReleasesPage = Nothing
+    Set _logTypes = Nothing
+    Set [_tBVersions] = Nothing
 End Sub
 
 Private Function GetChangeLogUL(versionGAP As Integer) As Boolean
@@ -147,6 +165,8 @@ Private Function GetChangeLogUL(versionGAP As Integer) As Boolean
                     clType = ""
                     clDesc = Trim(liElements(liIndex).innerText)
                 End If
+                
+                If Not _tBVersions.Exists(forVersion) Then [_tBVersions].Add(forVersion, forVersion)
                 
                 Me.Add forVersion, clType, clDesc
             Next
@@ -211,17 +231,20 @@ Public Function GetNewerReleasedVersions(Optional isDuringFormLoad As Boolean = 
     Dim latesttBVersion As Integer
     
     tagText = GetTagText("h2", "twinBASIC BETA")
-    latesttBVersion = Trim(Right(tagText, 4))
- 
+    latesttBVersion = GetVersionNumber(tagText)
+    
     _latestVersion = CInt(latesttBVersion)
     
     If CInt(latesttBVersion) <= tbHelperClass.InstalledtBVersion Then
-        If isDuringFormLoad Then
-            _versionCheckResult = "Latest version already installed"
+        _versionCheckResult = "Latest version already installed"
+        
+        ' why treat the form load, look for a new version, different from clicking the button?
+        ' If isDuringFormLoad Then
+        '     _versionCheckResult = "Latest version already installed"
 
-        Else
-            _versionCheckResult = "The version in use is newer or equal to the version available on GitHub"
-        End If
+        ' Else
+        '     _versionCheckResult = "The version in use is newer or equal to the version available on GitHub"
+        ' End If
 
         Exit Function
     Else
@@ -235,6 +258,26 @@ Public Function GetNewerReleasedVersions(Optional isDuringFormLoad As Boolean = 
     On Error GoTo 0
     
     GetNewerReleasedVersions = True
+    
+End Function
+
+Private Function GetVersionNumber(fromText As String) As String
+    
+    ' find the version number from the string passed
+    ' simply appending each number found - needed after re-release of 870
+    Dim versionNumber As String
+    Dim i As Integer
+    Dim aChar As String
+    
+    For i = 1 To Len(fromText)
+        aChar = Mid(fromText, i, 1)
+        If IsNumeric(aChar) Then
+            versionNumber = versionNumber & aChar
+        End If
+        
+    Next i
+
+    GetVersionNumber = versionNumber
     
 End Function
 

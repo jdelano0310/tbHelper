@@ -1,55 +1,215 @@
 [Description("")]
-[FormDesignerId("0529A098-441A-4FEB-AAAF-8039B755D63D")]
+[FormDesignerId("FD329450-9BBF-4852-9F43-7580B7893540")]
 [PredeclaredId]
 Class frmSelectFolder
+
+    Public SelectedPath As String
+    Private m_IsCancelled As Boolean
     
-    Public selectedFolder As String
-    
-	Sub New()
-	End Sub
-    
-    Private Sub SelectPreviousValues()
-        
-        ' reselect the information that was previously selected
-        Dim selectedDrive As String = Left(selectedFolder, 2)
-        
-        Drive1.Drive = selectedDrive
-        DoEvents
-                
-        Dir1.Path = selectedFolder
-        DoEvents
-        
-    End Sub
-    
+    ' Use the ANSI version of GetDriveType for maximum compatibility. This is the key fix.
+    Private Declare PtrSafe Function GetDriveType Lib "kernel32" Alias "GetDriveTypeA" (ByVal lpRootPathName As String) As Long
+    Private Declare PtrSafe Function GetLogicalDrives Lib "kernel32" () As Long
+
+    ' Drive Type Constants
+    Private Const DRIVE_FIXED As Long = 3
+    Private Const DRIVE_REMOVABLE As Long = 2
+
     Private Sub Form_Load()
         
-        ' if the public var is set
-        If Len(selectedFolder) > 0 Then
-            ' there is a folder already select at load of the form 
-            SelectPreviousValues
-        Else
-            Dir1.Path = Drive1.Drive
+        ConfigureButtons()
+                
+        ' Populate the drives listbox and set the initial selection
+        PopulateDrivesList
+        
+        ' if there are drives found and there isn't a previous selection that needs to be highlighted
+        If lstDrives.ListCount > 0 And Len(SelectedPath) = 0 Then
+            lstDrives.ListIndex = 0
+            DrivePicker.Item = lstDrives.Text
+            
+            ' Explicitly populate the folder list with the initial drive.
+            ' This ensures it happens after the drive is set and the control is ready.
+            FolderList.ShowDrive DrivePicker.Item
+            
+        ElseIf Len(SelectedPath) > 0 Then
+            ' highlight the passed SelectedPath
+            DrivePicker.Item = Left(SelectedPath, 2) ' select the drive in the dropdown
+            FolderList.ShowDrive DrivePicker.Item    ' make sure that drive's folders are listed
+            
+            FolderList.Path = SelectedPath           ' highlight the previous folder
+            
         End If
-    End Sub
-    
-    Private Sub btnOK_Click()
         
-        ' set the public var as the selected path and close the form
-        selectedFolder = Dir1.PathSelected
-        
-        Me.Close
-        
-    End Sub
-    
-    Private Sub btnCancel_Click()
-        Me.Close
-    End Sub
-    
-    Private Sub Drive1_Change()
-        
-        ' switch the folder view to the drive selected
-        Dir1.Path = Drive1.Drive
+        FlushRedraws
         
     End Sub
 
+    Private Sub ConfigureButtons()
+        
+        'setup the user control download button
+        With btnOkay
+            .Caption = "Okay"
+            .BackColor = CUST_BTN_BCOLOR  ' Blue
+            .ForeColor = vbWhite  ' White
+            .FontSize = 11
+            '.HoverColor = RGB(18, 40, 234) ' Darker blue
+            .BorderRadius = 3
+            .FontBold = False
+            .PngIconPath = ""
+            .IconSize = 0
+            .IconSpacing = 0
+            .Enabled = True
+        End With
+        
+        With btnCancel
+            .Caption = "Cancel"
+            .BackColor = CUST_BTN_BCOLOR  ' darker grey
+            .ForeColor = vbWhite
+            .FontSize = 11
+            '.HoverColor = RGB(37, 99, 235)
+            .BorderRadius = 3
+            .FontBold = False
+            .PngIconPath = ""
+            .IconSize = 0
+            .IconSpacing = 0
+            .Enabled = True
+        End With
+        
+    End Sub
+    
+    Private Sub PopulateDrivesList()
+        
+        'TODO: add volume label to the drive list
+        Dim drives As Long
+        Dim i As Long
+        Dim driveLetter As String
+        Dim driveType As Long
+        Dim volumeLabel As String
+        
+        drives = GetLogicalDrives()
+        lstDrives.Clear
+
+        For i = 0 To 25
+            If (drives And (2 ^ i)) <> 0 Then
+                driveLetter = Chr$(65 + i) & ":"
+                driveType = GetDriveType(driveLetter & "\")
+                If driveType = DRIVE_FIXED Or driveType = DRIVE_REMOVABLE Then
+                    'volumeLabel = Dir(driveLetter & ":\", vbVolume)
+                    lstDrives.AddItem driveLetter
+                End If
+            End If
+        Next i
+    End Sub
+
+    Private Sub DrivePicker_DropDown()
+        
+        ' toggle the dropdown if it is visible
+        If lstDrives.Visible Then
+            HideDriveList()
+            Exit Sub
+        End If
+        
+        ' Find the currently selected drive in the list and highlight it
+        Dim i As Long
+        For i = 0 To lstDrives.ListCount - 1
+            If lstDrives.List(i) = DrivePicker.Item Then
+                lstDrives.ListIndex = i
+                Exit For
+            End If
+        Next i
+
+        Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
+        Const LIST_HEIGHT As Long = 1200
+          
+        ' listbox for the available drives
+        With lstDrives
+            .Width = DrivePicker.Width - (BORDER_SIZE * 2)
+            .Height = LIST_HEIGHT
+            .Left = DrivePicker.Left
+            .Top = DrivePicker.Top + DrivePicker.Height
+            .Visible = True
+        End With
+
+        ' the border for the listbox
+        With picDropDownBorder
+            .Move lstDrives.Left - BORDER_SIZE, _
+                  lstDrives.Top - BORDER_SIZE, _
+                  lstDrives.Width + (BORDER_SIZE * 2), _ 
+                  lstDrives.Height + (BORDER_SIZE * 2)
+            .Visible = True
+        End With
+        
+        ApplyBottomRoundedCorners picDropDownBorder, 4, 4 ' Apply to the border first
+        ApplyBottomRoundedCorners lstDrives, 4, 4, True         ' Then apply to the listbox
+                
+        BringWindowToTop picDropDownBorder.hWnd ' Bring border to the top
+        BringWindowToTop lstDrives.hWnd
+        
+    End Sub
+
+    Private Sub lstDrives_Click()
+        
+        ' When a new drive is selected from the list...
+        If lstDrives.ListIndex > -1 Then
+            DrivePicker.Item = lstDrives.Text ' Update the picker display
+            
+            FolderList.ShowDrive lstDrives.Text
+            DrivePicker.Collapse()
+            
+            ' Hide the list
+            HideDriveList
+            FlushRedraws
+        End If
+    End Sub
+
+    Private Sub FolderList_SelectionChanged(SelectedPath As String)
+        'lblSelectedFolder.Caption = "Selected: " & SelectedPath
+    End Sub
+
+    Private Sub btnOkay_Click()
+        Me.SelectedPath = FolderList.Path
+        m_IsCancelled = False
+        Me.Hide
+    End Sub
+
+    Private Sub btnCancel_Click()
+        Me.SelectedPath = ""
+        m_IsCancelled = True
+        Me.Hide
+    End Sub
+    
+    Private Sub Form_Click()
+        'Hiding the Dropdown when clicking the form
+        HideDriveList
+    End Sub
+
+    Private Sub FolderList_GotFocus()
+        HideDriveList
+    End Sub
+
+    Public Function ShowAsDialog() As String
+        m_IsCancelled = True
+        Me.SelectedPath = ""
+        Me.Show vbModal
+    
+        If Not m_IsCancelled Then
+            Return Me.SelectedPath
+        Else
+            Return ""
+        End If
+    End Function
+
+    Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
+        If UnloadMode = vbFormControlMenu Then
+            m_IsCancelled = True
+            Me.Hide
+            Cancel = 1
+        End If
+    End Sub
+
+    Private Sub HideDriveList()
+        
+        lstDrives.Visible = False
+        picDropDownBorder.Visible = False
+        
+    End Sub
 End Class

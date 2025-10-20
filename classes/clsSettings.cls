@@ -13,15 +13,15 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 
 ' add your member fields and procedures here
-Private _downloadFolder As String
-Private _twinBASICFolder As String
-Private _postDownloadAction As Integer
-Private _checkForNewVersionOnLoad As Integer
-Private _starttwinBASICAfterUpdate As Integer
-Private _logActivity As Integer
-Private _settingsFileLoaded As Boolean
-Private _settingsChanged As Boolean
-Private _saveSettingsOnExit As Integer
+Private _downloadFolder As String = ""
+Private _twinBASICFolder As String = ""
+Private _postDownloadAction As Integer = 0
+Private _checkForNewVersionOnLoad As Integer = 0
+Private _starttwinBASICAfterUpdate As Integer = 0
+Private _logActivity As Integer = 0
+Private _settingsFileLoaded As Boolean = False
+Private _settingsChanged As Boolean = False
+Private _saveSettingsOnExit As Integer = 0
 
 Private Sub Class_Initialize()
     'creates the collection when this class is created
