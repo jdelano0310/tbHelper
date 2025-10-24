@@ -29,9 +29,15 @@ Class ucRTFMessage
     Private m_Message As String
     Private m_BackColor As OLE_COLOR     ' to be introduced after main functions are working
     Private m_StyleSegment As StyledSegment
-        
+    Private m_DPIFontSize As Integer
+    Private m_DPI_Horizontal As Long
+    Private m_DPI_Vertical As Long
+    Private m_DPIRowHeight As Integer
+    
     Private Const ROW_HEIGHT = 40
     Private Const GWL_WNDPROC As Long = -4
+    Private Const BASE_DPI = 96
+    
     Const FW_NORMAL = 400
     Const FW_BOLD = 700
     Const DEFAULT_CHARSET = 1
@@ -41,7 +47,8 @@ Class ucRTFMessage
     Const DEFAULT_PITCH = 0
     Const FF_DONTCARE = 0
     Const DEF_FONT_SIZE = 12.75
-    
+    Const MAX_FONT_SIZE As Long = 13
+        
     Private WithEvents m_Canvas As PictureBox
     
     Public Sub Clear()
@@ -78,7 +85,20 @@ Class ucRTFMessage
     
     Private Sub UserControl_Initialize()
         
+        Dim dpiX As Long
+        Dim dpiY As Long
+        
+        ' Get the horizontal and vertical DPI values
+        dpiX = GetDeviceCaps(hDC, LOGPIXELSX)
+        dpiY = GetDeviceCaps(hDC, LOGPIXELSY)
+
+        ' Display the DPI values
+        m_DPI_Horizontal = dpiX
+        m_DPI_Vertical = dpiY
+        
         m_BackColor = RGB(240, 240, 240)
+        m_DPIFontSize = DEF_FONT_SIZE * (dpiX / BASE_DPI)
+        If m_DPIFontSize > MAX_FONT_SIZE Then m_DPIFontSize = MAX_FONT_SIZE
         
         ' Create canvas for the change log items
         Set m_Canvas = Controls.Add("VB.PictureBox", "Canvas")
@@ -92,7 +112,7 @@ Class ucRTFMessage
             .AutoRedraw = True
             .ScaleMode = vbPixels
             .Font.Name = "Segoe UI"
-            .Font.Size = DEF_FONT_SIZE
+            .Font.Size = m_DPIFontSize  'DEF_FONT_SIZE
             .Visible = True
         End With
         
@@ -141,7 +161,7 @@ Class ucRTFMessage
     
     Private Function IsJustPunctuation(segmentText As String) As Boolean
         
-        If Len(Trim(segmentText)) > 1 Then Return False
+        If Len(Trim(segmentText)) > 1 Then Return False ' more than 1 character can't be punctuation
         
         Dim asciiVal As Integer
         asciiVal = Asc(segmentText)
@@ -151,20 +171,24 @@ Class ucRTFMessage
            (asciiVal >= 91 And asciiVal <= 96) Or (asciiVal >= 123 And asciiVal <= 126)
 
     End Function
-        
+
+    Function ScaleFontSize(size As Long) As Long
+        ScaleFontSize = MulDiv(size, m_DPI_Vertical, BASE_DPI)
+    End Function
+    
     Private Sub DrawMessage()
         
         Dim hDC As Long
         Dim x As Long, y As Long
         Dim canvasWidth As Long
         Dim lineHeight As Long
-        Dim spacePadding As Long: spacePadding = 6
+        Dim spacePadding As Long: spacePadding = MulDiv(6, m_DPI_Vertical, BASE_DPI)
         Dim segCount As Integer
         Dim debugSegmentWritten As String
         
         hDC = m_Canvas.hDC
         canvasWidth = m_Canvas.Width \ Screen.TwipsPerPixelX
-        x = 0: y = 10 ' give a little padding at the top of the message area
+        x = 0: y = MulDiv(10, m_DPI_Vertical, BASE_DPI) ' give a little padding at the top of the message area
 
         Dim segments As Collection
         Set segments = ParseStyledMessage(m_Message)
@@ -187,7 +211,7 @@ Class ucRTFMessage
                     
                     ' Create and select font
                     Dim hFont As Long
-                    hFont = CreateFont(seg.FontSize, 0, 0, 0, IIf(seg.Bold, FW_BOLD, FW_NORMAL), seg.Italic, seg.Underline _
+                    hFont = CreateFont(ScaleFontSize(seg.FontSize), 0, 0, 0, IIf(seg.Bold, FW_BOLD, FW_NORMAL), seg.Italic, seg.Underline _
                             , 0, DEFAULT_CHARSET, 0, 0, 0, 0, seg.FontName)
                     SelectObject hDC, hFont
                     SetTextColor hDC, seg.Color
@@ -232,7 +256,7 @@ Class ucRTFMessage
         Dim tagOpen As Boolean
         Dim tagName As String
         Dim currentFontName As String: currentFontName = "Segoe UI"
-        Dim currentFontSize As Long: currentFontSize = DEF_FONT_SIZE
+        Dim currentFontSize As Long: currentFontSize = m_DPIFontSize
         Dim currentColor As Long: currentColor = vbBlack
         Dim currentBold As Boolean: currentBold = False
         Dim currentItalic As Boolean: currentItalic = False
@@ -275,7 +299,7 @@ Class ucRTFMessage
                         Case "/u": currentUnderline = False
                         Case "/font"
                             currentFontName = "Segoe UI"
-                            currentFontSize = DEF_FONT_SIZE
+                            currentFontSize = m_DPIFontSize  'DEF_FONT_SIZE
                             currentColor = vbBlack
                         Case Else
                             If Left(tagContent, 4) = "font" Then
@@ -288,7 +312,7 @@ Class ucRTFMessage
                                     If UBound(kv) = 1 Then
                                         Select Case LCase(kv(0))
                                             Case "name": currentFontName = Replace(kv(1), """", "")
-                                            Case "size": currentFontSize = CLng("-" & kv(1))
+                                            Case "size": currentFontSize = CLng("-" & kv(1) * (m_DPI_Horizontal / BASE_DPI))      '  CLng("-" & kv(1))
                                             Case "color"
                                                 Select Case LCase(kv(1))
                                                     Case "vbred": currentColor = vbRed

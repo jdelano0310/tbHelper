@@ -63,6 +63,8 @@ Class ucChangeLog
     Private Const BORDER_COLOR = &HE0E0E0
 
     Private Const TEXT_BASE_FONT_SIZE = 11
+    Const MAX_FONT_SIZE As Long = 13
+    
     'Private Const ROW_HEIGHT = 40
     Private Const HEADER_HEIGHT = 500
     Private Const BASE_DPI = 96
@@ -108,7 +110,10 @@ Class ucChangeLog
 
         ' Example for scaling controls (assuming 96 DPI as baseline)
         m_DPIFontSize = TEXT_BASE_FONT_SIZE * (dpiX / BASE_DPI)
+        If m_DPIFontSize > MAX_FONT_SIZE Then m_DPIFontSize = MAX_FONT_SIZE
+
         m_DPIHeaderFontSize = (TEXT_BASE_FONT_SIZE + 1) * (dpiX / BASE_DPI)
+        If m_DPIHeaderFontSize > MAX_FONT_SIZE Then m_DPIHeaderFontSize = MAX_FONT_SIZE
         
         ' adding a calculation for the row height and removing the ROW_HEIGHT constant - thanks for AARays on VBForums
         m_DPIRowHeight = MulDiv(40, m_DPI_Vertical, BASE_DPI)
@@ -293,7 +298,6 @@ Class ucChangeLog
         ' Convert to logical height
         scaledFontHeight = -MulDiv(targetPointSize, m_DPI_Vertical, 72)
                 
-        'hFont = CreateFont(-12, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "Segoe UI")
         hFont = CreateFont(scaledFontHeight, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "Segoe UI")
         If hFont <> 0 Then hOldFont = SelectObject(hdc, hFont)
 
