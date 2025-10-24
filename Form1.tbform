@@ -28,7 +28,7 @@
 		"HelpContextID": 0,
 		"Icon": "",
 		"InternalScaleHeightFull": 11400,
-		"InternalScaleWidthFull": 14550,
+		"InternalScaleWidthFull": 14520,
 		"KeyPreview": true,
 		"Left": 0,
 		"LinkMode": "vbLinkNone",
@@ -56,7 +56,7 @@
 		"ScaleLeft": 0,
 		"ScaleMode": "vbTwips",
 		"ScaleTop": 0,
-		"ScaleWidth": 14520,
+		"ScaleWidth": 14490,
 		"ShowInTaskbar": true,
 		"StartUpPosition": "vbStartUpScreen",
 		"TabFocusAutoSelect": false,
@@ -67,7 +67,7 @@
 		"Visible": true,
 		"WhatsThisButton": false,
 		"WhatsThisHelp": false,
-		"Width": 970,
+		"Width": 968,
 		"WindowState": "vbNormal",
 		"__IDEOptions": {
 			"alignToGrid": false,
@@ -78,7 +78,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 182913160,
+		"__lastUpdateMarker": 3668955031,
 		"_children": [
 			{
 				"Anchors": {
@@ -1934,7 +1934,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 1379726
+				"canvashWnd": 7868318
 			},
 			{
 				"Anchors": {
@@ -2091,7 +2091,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 2427564
+				"canvashWnd": 6426760
 			},
 			{
 				"Anchors": {
@@ -2855,7 +2855,7 @@
 				"Visible": false,
 				"VisualStyles": true,
 				"WhatsThisHelpID": 0,
-				"Width": 915,
+				"Width": 804,
 				"_children": [
 					{
 						"Anchors": {
@@ -2901,7 +2901,7 @@
 						"Visible": true,
 						"VisualStyles": true,
 						"WhatsThisHelpID": 0,
-						"Width": 903,
+						"Width": 792,
 						"_children": [
 							{
 								"Anchors": {
@@ -2932,13 +2932,13 @@
 								"UseIViewObjectSnapshots": false,
 								"Visible": true,
 								"WhatsThisHelpID": 0,
-								"Width": 884,
-								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AF1bAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkA3CYAAA==",
+								"Width": 773,
+								"_IPersistStreamData": "6urq6pOyAABIAAAAAwAIAAvyV0cgAAAAXwBlAHgAdABlAG4AdAB4AORPAAADAAgACvJXR+D///9fAGUAeAB0AGUAbgB0AHkA3CYAAA==",
 								"_className": "tBHelper.ucChangeLog",
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 2623786
+								"canvashWnd": 36770160
 							},
 							{
 								"Anchors": {
@@ -3091,7 +3091,7 @@
 								"IconSize": 20,
 								"IconSpacing": 8,
 								"Index": -1,
-								"Left": 707,
+								"Left": 600,
 								"Name": "btnDeleteLog",
 								"Opacity": 100,
 								"PngIconPath": null,
@@ -3520,7 +3520,7 @@
 								"VerticalAlignment": "vbVerticalAlignMiddle",
 								"Visible": true,
 								"WhatsThisHelpID": 0,
-								"Width": 903,
+								"Width": 792,
 								"WordWrap": false,
 								"_className": "Label",
 								"_clsid": "{33AD4ED8-6699-11CF-B70C-00AA0060D393}"
@@ -3582,7 +3582,7 @@
 								"Height": 22,
 								"Index": -1,
 								"InternalSectionId": -1,
-								"Left": 863,
+								"Left": 752,
 								"LineSpacing": 0,
 								"LinkItem": null,
 								"LinkMode": "vbLinkNone",
@@ -4490,7 +4490,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 4590792
+								"canvashWnd": 5507374
 							},
 							{
 								"Anchors": {

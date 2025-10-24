@@ -37,7 +37,7 @@ Class Form1
         downloadIcon = App.Path & "\download.png"
         checkForNewIcon = App.Path & "\binoculars.png"
         
-        Me.Caption = "tBHelper (beta 2 10-20-25)"
+        Me.Caption = "tBHelper (beta 2 10-24-25)"
         
         'WriteToDebugLogFile "Form load"
         
@@ -1147,7 +1147,7 @@ Class Form1
         clgColumns(2).WrappedEnabled = False
         
         clgColumns(3).Name = "Description"
-        clgColumns(3).Width = 550
+        clgColumns(3).Width = 375
         clgColumns(3).WrappedEnabled = True
         
         clgHistoryView.SetColumns = clgColumns
