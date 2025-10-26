@@ -9,6 +9,14 @@ Class ucFolderList
     ' --- Public API ---
     Public Event SelectionChanged(SelectedPath As String)
     
+    Private m_DPI_Horizontal As Long
+    Private m_DPI_Vertical As Long
+    Private m_DPIFontSize As Integer
+    Private Const TEXT_BASE_FONT_SIZE = 9.75
+
+    Private Const MAX_FONT_SIZE As Long = 13
+    Private Const BASE_DPI = 96
+    
     Public Property Get Path() As String
         If Not tvFolders.SelectedItem Is Nothing Then
             Path = tvFolders.SelectedItem.FullPath
@@ -30,12 +38,16 @@ Class ucFolderList
         
         ' Setup ImageList using our own bundled icon files.
 
+        CalculateDPIValues
+        
         Dim icoFolderClosed As StdPicture
         Dim icoFolderOpen As StdPicture
        
         ' Style the TreeView to match your UI
         tvFolders.BorderStyle = vbBSNone
         tvFolders.LineStyle = tvwRootLines
+        tvFolders.FontName = "Segoe UI"
+        tvFolders.FontSize = m_DPIFontSize
         
         ' Load pictures from files located in the same folder as the app
         Set icoFolderClosed = LoadPicture(App.Path & "\folder_closed.ico")
@@ -48,6 +60,32 @@ Class ucFolderList
         Set tvFolders.ImageList = ilIcons
 
         'ApplyBottomRoundedCorners tvFolders, 4, 4, True         ' Then apply to the tree
+
+    End Sub
+    
+    Private Sub CalculateDPIValues()
+        
+        Dim hdc As Long
+        Dim dpiX As Long
+        Dim dpiY As Long
+
+        ' Get the device context (DC) for the screen
+        hdc = GetDC(0)
+
+        ' Get the horizontal and vertical DPI values
+        dpiX = GetDeviceCaps(hdc, LOGPIXELSX)
+        dpiY = GetDeviceCaps(hdc, LOGPIXELSY)
+
+        ' Release the device context
+        ReleaseDC 0, hdc
+
+        ' Display the DPI values
+        m_DPI_Horizontal = dpiX
+        m_DPI_Vertical = dpiY
+
+        ' Example for scaling controls (assuming 96 DPI as baseline)
+        m_DPIFontSize = TEXT_BASE_FONT_SIZE * (dpiX / BASE_DPI)
+        If m_DPIFontSize > MAX_FONT_SIZE Then m_DPIFontSize = MAX_FONT_SIZE
 
     End Sub
     

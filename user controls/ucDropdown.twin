@@ -15,7 +15,20 @@ Class ucDropdown
     Private WithEvents Popup As frmDropdownPopup
     Private m_IsExpanded As Boolean
     Private mAZipIcon As StdPicture
+    Private m_DPI_Horizontal As Long
+    Private m_DPI_Vertical As Long
+    Private m_DPIFontSize As Integer
+    Private Const TEXT_BASE_FONT_SIZE = 9.75
 
+    Private Const MAX_FONT_SIZE As Long = 13
+    Private Const BASE_DPI = 96
+    
+    Const PADDING_RAW As Long = 5
+    Const BUTTON_WIDTH_RAW As Long = 30
+    Const ARROW_HALF_WIDTH_RAW As Long = 4
+    Const ARROW_HALF_HEIGHT_RAW As Long = 2
+    Const ICON_SIZE_RAW As Long = 16
+    
     '@DefaultMember
     Public Property Get Item() As String
         Item = m_SelectedItem
@@ -36,11 +49,40 @@ Class ucDropdown
         RedrawUserControl
     End Sub
 
+    Private Sub CalculateDPIValues()
+        
+        Dim hdc As Long
+        Dim dpiX As Long
+        Dim dpiY As Long
+
+        ' Get the device context (DC) for the screen
+        hdc = GetDC(0)
+
+        ' Get the horizontal and vertical DPI values
+        dpiX = GetDeviceCaps(hdc, LOGPIXELSX)
+        dpiY = GetDeviceCaps(hdc, LOGPIXELSY)
+
+        ' Release the device context
+        ReleaseDC 0, hdc
+
+        ' Display the DPI values
+        m_DPI_Horizontal = dpiX
+        m_DPI_Vertical = dpiY
+
+        ' Example for scaling controls (assuming 96 DPI as baseline)
+        m_DPIFontSize = TEXT_BASE_FONT_SIZE * (dpiX / BASE_DPI)
+        If m_DPIFontSize > MAX_FONT_SIZE Then m_DPIFontSize = MAX_FONT_SIZE
+
+    End Sub
+    
     Private Sub UserControl_Initialize()
+        
+        CalculateDPIValues
+        
         UserControl.ScaleMode = vbPixels
         UserControl.AutoRedraw = False
         UserControl.Font.Name = "Segoe UI"
-        UserControl.Font.Size = 9.75
+        UserControl.Font.Size = m_DPIFontSize
         m_IsExpanded = False
         
         ucDictionary.Add Me.hWnd, Me
@@ -53,43 +95,48 @@ Class ucDropdown
     End Sub
 
     Private Sub RedrawUserControl()
-        Const PADDING = 5
-        Const BUTTON_WIDTH = 30
+        
+        Dim padding As Long: padding = MulDiv(PADDING_RAW, m_DPI_Horizontal, BASE_DPI)
+        Dim buttonWidth As Long: buttonWidth = MulDiv(BUTTON_WIDTH_RAW, m_DPI_Horizontal, BASE_DPI)
+        Dim arrowHalfWidth As Long: arrowHalfWidth = MulDiv(ARROW_HALF_WIDTH_RAW, m_DPI_Horizontal, BASE_DPI)
+        Dim arrowHalfHeight As Long: arrowHalfHeight = MulDiv(ARROW_HALF_HEIGHT_RAW, m_DPI_Vertical, BASE_DPI)
+        Dim iconSize As Long: iconSize = MulDiv(ICON_SIZE_RAW, m_DPI_Vertical, BASE_DPI)
+
         Dim xMid As Long, yMid As Long
 
         UserControl.FillColor = vbWhite
         UserControl.Line (0, 0)-(ScaleWidth, ScaleHeight), vbWhite, BF
 
         ' drop button
-        UserControl.FillColor = RGB(10, 80, 131) 'RGB(0, 122, 204) ' Blue button
-        UserControl.Line (ScaleWidth - BUTTON_WIDTH, 0)-(ScaleWidth, ScaleHeight), UserControl.FillColor, BF
+        UserControl.FillColor = RGB(10, 80, 131)
+        UserControl.Line (ScaleWidth - buttonWidth, 0)-(ScaleWidth, ScaleHeight), UserControl.FillColor, BF
 
         ' arrow on the drop button
         UserControl.ForeColor = vbWhite
-        xMid = ScaleWidth - BUTTON_WIDTH / 2
-        yMid = ScaleHeight / 2
+        xMid = ScaleWidth - buttonWidth \ 2
+        yMid = ScaleHeight \ 2
 
         If m_IsExpanded Then
-            Line (xMid - 4, yMid + 2)-(xMid, yMid - 2)
-            Line (xMid + 4, yMid + 2)-(xMid, yMid - 2)
+            Line (xMid - arrowHalfWidth, yMid + arrowHalfHeight)-(xMid, yMid - arrowHalfHeight)
+            Line (xMid + arrowHalfWidth, yMid + arrowHalfHeight)-(xMid, yMid - arrowHalfHeight)
         Else
-            Line (xMid - 4, yMid - 2)-(xMid, yMid + 2)
-            Line (xMid + 4, yMid - 2)-(xMid, yMid + 2)
+            Line (xMid - arrowHalfWidth, yMid - arrowHalfHeight)-(xMid, yMid + arrowHalfHeight)
+            Line (xMid + arrowHalfWidth, yMid - arrowHalfHeight)-(xMid, yMid + arrowHalfHeight)
         End If
 
         ' --- Draw Icon + Zip Filename ---
         If Not mAZipIcon Is Nothing Then
-            PaintPicture mAZipIcon, PADDING, (ScaleHeight - 16) / 2, 16, 16
+            PaintPicture mAZipIcon, padding, (ScaleHeight - iconSize) \ 2, iconSize, iconSize
         End If
 
-        UserControl.ForeColor = vbBlack  ' text color
-        CurrentX = 16 + PADDING
-        CurrentY = (ScaleHeight - TextHeight("S")) / 2
+        UserControl.ForeColor = vbBlack
+        CurrentX = iconSize + padding
+        CurrentY = (ScaleHeight - TextHeight("S")) \ 2
         Print m_SelectedItem
-        
+
         QueueRedraw(hWnd)
-        
     End Sub
+    
     
     Private Sub UserControl_Paint()
         RedrawUserControl

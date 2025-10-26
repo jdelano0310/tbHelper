@@ -29,6 +29,14 @@ Class Form1
     Private Const COLOR_CHANGED = RGB(198, 79, 55)    ' Burnt Sienna  (Trinidad)
     Private Const COLOR_NOTE = RGB(72, 61, 139)       ' Nauseous Blue
     
+    ' calc font size for dropdown drive list infor
+    Private drop_DPIFontSize As Integer
+    Private Const TEXT_BASE_FONT_SIZE = 9.75
+
+    Private Const MAX_FONT_SIZE As Long = 13
+    Private Const BASE_DPI = 96
+    
+    
     Private Sub Form_Load()
         
         Set fso = New FileSystemObject
@@ -37,7 +45,7 @@ Class Form1
         downloadIcon = App.Path & "\download.png"
         checkForNewIcon = App.Path & "\binoculars.png"
         
-        Me.Caption = "tBHelper (beta 2 10-24-25)"
+        Me.Caption = "tBHelper (beta 2 10-26-25)"
         
         'WriteToDebugLogFile "Form load"
         
@@ -129,6 +137,8 @@ Class Form1
         
         'WriteToDebugLogFile "  Form load FlushRedraws"
         FlushRedraws()
+        
+        CalculateDPIValues
         
         Me.MousePointer = vbDefault
     End Sub
@@ -1154,6 +1164,37 @@ Class Form1
         
     End Sub
     
+    Private Sub ConfigureDropdownListbox(lbDropdown As ListBox, picker As Control)
+        
+        Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
+        Const LIST_HEIGHT As Long = 1200
+        
+        With lbDropdown
+            .Width = picker.Width - (BORDER_SIZE * 2)
+            .Height = LIST_HEIGHT
+            .Left = picker.left
+            .Top = picker.top + picker.height
+            .FontSize = drop_DPIFontSize
+            .Font.Name = "Segoe UI"
+            .Visible = True
+        End With
+
+        With picDropDownBorder
+            .Move lbDropdown.Left - BORDER_SIZE, _
+                    lbDropdown.Top - BORDER_SIZE, _
+                    lbDropdown.Width + (BORDER_SIZE * 2), _ 
+                    lbDropdown.Height + (BORDER_SIZE * 2)
+            .Visible = True
+        End With
+
+        ApplyBottomRoundedCorners picDropDownBorder, 4, 4 ' Apply to the border first
+        ApplyBottomRoundedCorners lbDropdown, 4, 4, True         ' Then apply to the listbox
+            
+        BringWindowToTop picDropDownBorder.hWnd ' Bring border to the top
+        BringWindowToTop lbDropdown.hWnd
+        
+    End Sub
+    
     Private Sub DatePicker_DropDown()
 
         ' toggle the dropdown if it is visible
@@ -1171,30 +1212,7 @@ Class Form1
             End If
         Next i
 
-        Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
-        Const LIST_HEIGHT As Long = 1200
-        
-        With lbDropdown
-            .Width = DatePicker.Width - (BORDER_SIZE * 2)
-            .Height = LIST_HEIGHT
-            .Left = DatePicker.Left
-            .Top = DatePicker.Top + DatePicker.Height
-            .Visible = True
-        End With
-
-        With picDropDownBorder
-            .Move lbDropdown.Left - BORDER_SIZE, _
-                    lbDropdown.Top - BORDER_SIZE, _
-                    lbDropdown.Width + (BORDER_SIZE * 2), _ 
-                    lbDropdown.Height + (BORDER_SIZE * 2)
-            .Visible = True
-        End With
-
-        ApplyBottomRoundedCorners picDropDownBorder, 4, 4 ' Apply to the border first
-        ApplyBottomRoundedCorners lbDropdown, 4, 4, True         ' Then apply to the listbox
-            
-        BringWindowToTop picDropDownBorder.hWnd ' Bring border to the top
-        BringWindowToTop lbDropdown.hWnd
+        ConfigureDropdownListbox lbDropdown, DatePicker
         
     End Sub
     
@@ -1347,30 +1365,7 @@ Class Form1
             End If
         Next i
 
-        Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
-        Const LIST_HEIGHT As Long = 1200
-        
-        With lstZipFiles
-            .Width = ZipPicker.Width - (BORDER_SIZE * 2)
-            .Height = LIST_HEIGHT
-            .Left = ZipPicker.Left
-            .Top = ZipPicker.Top + ZipPicker.Height
-            .Visible = True
-        End With
-
-        With picDropDownBorder
-            .Move lstZipFiles.Left - BORDER_SIZE, _
-                    lstZipFiles.Top - BORDER_SIZE, _
-                    lstZipFiles.Width + (BORDER_SIZE * 2), _ 
-                    lstZipFiles.Height + (BORDER_SIZE * 2)
-            .Visible = True
-        End With
-
-        ApplyBottomRoundedCorners picDropDownBorder, 4, 4 ' Apply to the border first
-        ApplyBottomRoundedCorners lstZipFiles, 4, 4, True         ' Then apply to the listbox
-            
-        BringWindowToTop picDropDownBorder.hWnd ' Bring border to the top
-        BringWindowToTop lstZipFiles.hWnd
+        ConfigureDropdownListbox lstZipFiles, ZipPicker
 
     End Sub
     
@@ -1780,33 +1775,8 @@ Class Form1
             End If
         Next i
 
-        Const BORDER_SIZE As Long = 15 ' 1 pixel in Twips
-        Const LIST_HEIGHT As Long = 1200
-          
-        ' listbox for the available drives
-        With lstDrives
-            .Width = DrivePicker.Width - (BORDER_SIZE * 2)
-            .Height = LIST_HEIGHT
-            .Left = DrivePicker.Left
-            .Top = DrivePicker.Top + DrivePicker.Height
-            .Visible = True
-        End With
-
-        ' the border for the listbox
-        With picDropDownBorder
-            .Move lstDrives.Left - BORDER_SIZE, _
-                  lstDrives.Top - BORDER_SIZE, _
-                  lstDrives.Width + (BORDER_SIZE * 2), _ 
-                  lstDrives.Height + (BORDER_SIZE * 2)
-            .Visible = True
-        End With
-        
-        ApplyBottomRoundedCorners picDropDownBorder, 4, 4 ' Apply to the border first
-        ApplyBottomRoundedCorners lstDrives, 4, 4, True         ' Then apply to the listbox
+        ConfigureDropdownListbox lstDrives, DrivePicker
                 
-        BringWindowToTop picDropDownBorder.hWnd ' Bring border to the top
-        BringWindowToTop lstDrives.hWnd
-        
     End Sub
 
     Private Sub lstDrives_Click()
@@ -1891,5 +1861,25 @@ Class Form1
         If RedrawQueue.Count > 0 Then FlushRedraws()
     End Sub
     
-    
+    Private Sub CalculateDPIValues()
+        
+        Dim hdc As Long
+        Dim dpiX As Long
+        Dim dpiY As Long
+
+        ' Get the device context (DC) for the screen
+        hdc = GetDC(0)
+
+        ' Get the horizontal and vertical DPI values
+        dpiX = GetDeviceCaps(hdc, LOGPIXELSX)
+        dpiY = GetDeviceCaps(hdc, LOGPIXELSY)
+
+        ' Release the device context
+        ReleaseDC 0, hdc
+
+        ' Example for scaling controls (assuming 96 DPI as baseline)
+        drop_DPIFontSize = TEXT_BASE_FONT_SIZE * (dpiX / BASE_DPI)
+        If drop_DPIFontSize > MAX_FONT_SIZE Then drop_DPIFontSize = MAX_FONT_SIZE
+
+    End Sub
 End Class
