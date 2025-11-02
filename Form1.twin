@@ -45,7 +45,7 @@ Class Form1
         downloadIcon = App.Path & "\download.png"
         checkForNewIcon = App.Path & "\binoculars.png"
         
-        Me.Caption = "tBHelper (beta 2 10-26-25)"
+        Me.Caption = "tBHelper (beta 2 11-2-25)"
         
         'WriteToDebugLogFile "Form load"
         
@@ -1268,6 +1268,7 @@ Class Form1
         
         revertToVersionRequiresDownload = False
         revertGetGitHubVersionsClicked = False
+        rvtVersionChangeLog.ClearEntries()
         
         Form1.MousePointer = vbHourglass
         UpdateActivityLog "Loading revert twinBASIC view"
@@ -1276,7 +1277,7 @@ Class Form1
         FillAvailableZips
         ignoreClickEvent = False
         
-        SetupButtons
+        SetupRevertViewButtons
         SetRevertChangeLogHeader
         HideZipList
         
@@ -1291,7 +1292,7 @@ Class Form1
         FlushRedraws
     End Sub
 
-    Private Sub SetupButtons()
+    Private Sub SetupRevertViewButtons()
                 
         ConfigureCustomButton btnReverttB, "Revert tB", CUST_BTN_BCOLOR, vbWhite, App.Path & "\revert.png", 20, False, False
         ConfigureCustomButton btnGetVersionsFromGitHub, "Get Versions From GitHub", CUST_BTN_BCOLOR, vbWhite, App.Path & "\download.png", 20, True, False

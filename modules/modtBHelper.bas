@@ -318,7 +318,7 @@ Public Sub ShowPanelView(innerPanel As Frame, Optional radius As Long = 10)
     Set picIcon = Form1.picPanelIcon
     If InStr(innerPanel.Name, "Revert") > 0 Then
         DisplayPanelIcon App.Path & "\revert panel icon.png", innerPanel
-    
+        
     ElseIf InStr(innerPanel.Name, "ViewLog") > 0 Then
         DisplayPanelIcon App.Path & "\logHistorypanel icon.png", innerPanel
         
