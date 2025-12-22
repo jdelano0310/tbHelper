@@ -606,7 +606,7 @@ Class Form1
         
         ' should tBHelper look for a newer version?
         UpdateActivityLog "Checking for new version"
-        chgLogs.GetNewerReleasedVersions(True)
+        chgLogs.GetNewerReleasedVersions(tbHelperSettings.twinBASICFolder.tBVersion, True)
             
         If chgLogs.tBVersionGap > 0 Then
             ' there is at least 1 new version available
