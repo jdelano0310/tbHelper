@@ -1,3 +1,5 @@
+Project has moved to RC1 as of 12-22-2025; te screenshots are still relavant as nothing visible has changed. 
+
 Just a few updated screenshots as of 10-17-25:
 
 Each of the separate forms is now a frame with in a frame that are hidden until needed. To better control the update of user control state.
