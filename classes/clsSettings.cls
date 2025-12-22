@@ -1,10 +1,10 @@
-VERSION 1.0 CLASS
+﻿VERSION 1.0 CLASS
 BEGIN
     MultiUse = -1  'True
     Persistable = 0  'NotPersistable
     DataBindingBehavior = 0  'vbNone
     DataSourceBehavior  = 0  'vbNone
-    MTSTransactionMode  = 0	'NotAnMTSObject
+    MTSTransactionMode  = 0    'NotAnMTSObject
 END
 Attribute VB_Name = "clsSettings"
 Attribute VB_GlobalNameSpace = False
@@ -13,8 +13,13 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 
 ' add your member fields and procedures here
-Private _downloadFolder As String = ""
-Private _twinBASICFolder As String = ""
+
+
+'Private _downloadFolder As String = ""
+'Private _twinBASICFolder As String = ""
+Private _twinBASICFolder As clsSettingsFolder
+Private _downloadFolder As clsSettingsFolder
+
 Private _postDownloadAction As Integer = 0
 Private _checkForNewVersionOnLoad As Integer = 0
 Private _starttwinBASICAfterUpdate As Integer = 0
@@ -39,6 +44,7 @@ Public Function LoadSettings() As Boolean
     Dim settingsLine As String
     Dim settingName As String
     Dim settingValue As String
+    Dim newFolder As clsSettingsFolder
     
     settingsLines = Split(settingsContent, vbCrLf) ' create an array of the settings values found in the file
     
@@ -51,9 +57,15 @@ Public Function LoadSettings() As Boolean
             
             Select Case settingName
                 Case "Download Folder"
-                    _downloadFolder = settingValue
+                    Set _downloadFolder = New clsSettingsFolder
+                    _downloadFolder.IstwinBASIC = False
+                    _downloadFolder.Path = settingValue
+                    
                 Case "twinBASIC Folder"
-                    _twinBASICFolder = settingValue
+                    Set _twinBASICFolder = New clsSettingsFolder
+                    _twinBASICFolder.IstwinBASIC = True
+                    _twinBASICFolder.Path = settingValue
+
                 Case "Action"
                     _postDownloadAction = CInt(settingValue)
                 Case "Save Settings On Exit"
@@ -77,8 +89,8 @@ Public Function SaveSettings() As Boolean
     
     ' write the values to the file overwriting the old if there
     With fso.CreateTextFile(App.Path & "\settings.txt", True)
-        .WriteLine("Download Folder: " & _downloadFolder)
-        .WriteLine("twinBASIC Folder: " & _twinBASICFolder)
+        .WriteLine("Download Folder: " & _downloadFolder.Path)
+        .WriteLine("twinBASIC Folder: " & _twinBASICFolder.Path)
         .WriteLine("Action: " & _postDownloadAction)
         .WriteLine("Save Settings On Exit: " & CStr(_saveSettingsOnExit))
         .WriteLine("Check for new version on load: " & CStr(_checkForNewVersionOnLoad))
@@ -93,22 +105,25 @@ Public Property Get SettingsFileLoaded() As Boolean
     SettingsFileLoaded = _settingsFileLoaded
 End Property
 
-Public Property Let DownloadFolder(ByVal vData As String)
-    _downloadFolder = vData
-    _settingsChanged = True
+Public Property Let DownloadFolder(ByVal vData As clsSettingsFolder)
+    _downloadFolder.Path = vData.Path
+
+    If _downloadFolder.IsValid Then _settingsChanged = True
 End Property
 
-Public Property Get DownloadFolder() As String
-    DownloadFolder = _downloadFolder
+Public Property Get DownloadFolder() As clsSettingsFolder
+    Set DownloadFolder = _downloadFolder
 End Property
 
 Public Property Let twinBASICFolder(ByVal vData As String)
-    _twinBASICFolder = vData
-    _settingsChanged = True
+    _twinBASICFolder.Path = vData
+
+    If _twinBASICFolder.IsValid Then _settingsChanged = True
+
 End Property
 
-Public Property Get twinBASICFolder() As String
-    twinBASICFolder = _twinBASICFolder
+Public Property Get twinBASICFolder() As clsSettingsFolder
+    Set twinBASICFolder = _twinBASICFolder
 End Property
 
 Public Property Let PostDownloadAction(ByVal vData As Integer)

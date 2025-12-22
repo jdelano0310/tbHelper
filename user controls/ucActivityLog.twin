@@ -104,8 +104,8 @@ Class ucActivityLog
         m_DPIRowHeight = MulDiv(40, m_DPI_Vertical, 96)
         
         ' Optional: log for visibility
-        Debug.Print "DPI_X=" & dpiX & ", Font scale=" & Format(scaleFactor, "0.00") & ", Font size=" & m_DPIFontSize
-        Debug.Print "DPI_Y=" & dpiY & ", Row Height=" & m_DPIRowHeight
+        'Debug.Print "DPI_X=" & dpiX & ", Font scale=" & Format(scaleFactor, "0.00") & ", Font size=" & m_DPIFontSize
+        'Debug.Print "DPI_Y=" & dpiY & ", Row Height=" & m_DPIRowHeight
         
     End Sub
     

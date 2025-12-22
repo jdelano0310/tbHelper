@@ -27,8 +27,6 @@
 		"Height": 760,
 		"HelpContextID": 0,
 		"Icon": "",
-		"InternalScaleHeightFull": 11400,
-		"InternalScaleWidthFull": 14520,
 		"KeyPreview": true,
 		"Left": 0,
 		"LinkMode": "vbLinkNone",
@@ -52,11 +50,11 @@
 		"Picture": "",
 		"PictureDpiScaling": false,
 		"RightToLeft": false,
-		"ScaleHeight": 11370,
+		"ScaleHeight": 11400,
 		"ScaleLeft": 0,
 		"ScaleMode": "vbTwips",
 		"ScaleTop": 0,
-		"ScaleWidth": 14490,
+		"ScaleWidth": 14520,
 		"ShowInTaskbar": true,
 		"StartUpPosition": "vbStartUpScreen",
 		"TabFocusAutoSelect": false,
@@ -78,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 3668955031,
+		"__lastUpdateMarker": 1504887254,
 		"_children": [
 			{
 				"Anchors": {
@@ -1934,7 +1932,7 @@
 				"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 7868318
+				"canvashWnd": 2034032
 			},
 			{
 				"Anchors": {
@@ -2091,7 +2089,7 @@
 				"_clsid": "{F470E23E-4A86-4DF9-9ACC-4DD803520199}",
 				"_hasExclusiveCancelProp": true,
 				"_hasExclusiveDefaultProp": true,
-				"canvashWnd": 6426760
+				"canvashWnd": 3213776
 			},
 			{
 				"Anchors": {
@@ -2583,8 +2581,6 @@
 								"Height": 78,
 								"HelpContextID": 0,
 								"Index": -1,
-								"InternalScaleHeightFull": 1170,
-								"InternalScaleWidthFull": 1170,
 								"Left": -1,
 								"LinkItem": null,
 								"LinkMode": "vbLinkNone",
@@ -2938,7 +2934,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 36770160
+								"canvashWnd": 6294138
 							},
 							{
 								"Anchors": {
@@ -3409,8 +3405,6 @@
 								"Height": 22,
 								"HelpContextID": 0,
 								"Index": -1,
-								"InternalScaleHeightFull": 330,
-								"InternalScaleWidthFull": 735,
 								"Left": 296,
 								"LinkItem": null,
 								"LinkMode": "vbLinkNone",
@@ -4249,8 +4243,6 @@
 								"Height": 22,
 								"HelpContextID": 0,
 								"Index": -1,
-								"InternalScaleHeightFull": 330,
-								"InternalScaleWidthFull": 735,
 								"Left": 326,
 								"LinkItem": null,
 								"LinkMode": "vbLinkNone",
@@ -4490,7 +4482,7 @@
 								"_clsid": "{014B5795-458A-49AE-839F-E60A19B613DF}",
 								"_hasExclusiveCancelProp": true,
 								"_hasExclusiveDefaultProp": true,
-								"canvashWnd": 5507374
+								"canvashWnd": 2099196
 							},
 							{
 								"Anchors": {
@@ -5209,7 +5201,7 @@
 								"IconSpacing": 8,
 								"Index": -1,
 								"Left": 121,
-								"Name": "btnCancel",
+								"Name": "btnCancelSelectFolder",
 								"Opacity": 100,
 								"PngIconPath": null,
 								"TabIndex": 5,
@@ -5340,8 +5332,6 @@
 				"Height": 16,
 				"HelpContextID": 0,
 				"Index": -1,
-				"InternalScaleHeightFull": 240,
-				"InternalScaleWidthFull": 240,
 				"Left": 561,
 				"LinkItem": null,
 				"LinkMode": "vbLinkNone",

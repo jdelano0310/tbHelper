@@ -25,7 +25,7 @@ Class ucCustomButton
     Private m_IsPressed As Boolean
     Private m_FontSize As Long
 
-    Private m_PngPath As String
+    Private m_PngName As String
     Private m_PngBitmap As Long
     Private m_Enabled As Boolean
     Private m_ButtonWidth As Long
@@ -71,12 +71,12 @@ Class ucCustomButton
     
     Public Property Let PngIconPath(ByVal Value As String)
         ''WriteToDebugLogFile " ucCustomButton: PngIconPath set to " & Value
-        m_PngPath = Value
+        m_PngName = Value
         LoadPngIcon
         RequestRedraw
     End Property
     Public Property Get PngIconPath() As String
-        PngIconPath = m_PngPath
+        PngIconPath = m_PngName
     End Property
     
     Public Property Let Caption(ByVal Value As String)
@@ -190,7 +190,7 @@ Class ucCustomButton
         
         ucDictionary.Add Me.hWnd, Me
         
-        ''WriteToDebugLogFile("ucCustomButton - Initialize")
+        'WriteToDebugLogFile("ucCustomButton - Initialize")
         
         ' Set default values (existing code)
         m_Caption = "Button"
@@ -209,7 +209,7 @@ Class ucCustomButton
         m_DefaultCursor = GetCursor ' save the default mouse cursor
         
         'get the mouse cursor that indicates the button is disabled
-        m_DisabledCursor = LoadCursorFromFile(App.Path & "\disabled.cur")  ' TODO: the disabled current cursor sucks and needs to be replaced 
+        'm_DisabledCursor = LoadCursorFromFile(App.Path & "\disabled.cur")  ' TODO: the disabled current cursor sucks and needs to be replaced 
         
         UserControl.BackColor = m_BackColor
         UserControl.Font.Bold = m_FontBold
@@ -236,7 +236,7 @@ Class ucCustomButton
         If ScaleWidth <= 0 Or ScaleHeight <= 0 Then Exit Sub
         If Not GDIPlus_IsStarted() Then Exit Sub
 
-        ''WriteToDebugLogFile "     ucCustomButton: RedrawCanvas - start for: " & IIf(m_Caption = "", m_PngPath, m_Caption)
+        ''WriteToDebugLogFile "     ucCustomButton: RedrawCanvas - start for: " & IIf(m_Caption = "", m_PngName, m_Caption)
         Cls
         
         ' Calculate positions for icon and text, all in twips
@@ -290,7 +290,7 @@ Class ucCustomButton
         Dim newForeColor As OLE_COLOR
         Dim newborderColor As OLE_COLOR
         
-        ''WriteToDebugLogFile "     ucCustomButton: ApplyVisualState - identifier " & IIf(m_Caption = "", m_PngPath, m_Caption)
+        ''WriteToDebugLogFile "     ucCustomButton: ApplyVisualState - identifier " & IIf(m_Caption = "", m_PngName, m_Caption)
                 
         If Not m_Enabled Then
             ''WriteToDebugLogFile "     ucCustomButton: ApplyVisualState - button is disabled"
@@ -371,40 +371,19 @@ Class ucCustomButton
     
     Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
-        ''WriteToDebugLogFile("        MouseMove m_Enabled: " & m_Enabled & " m_IsHover: " & m_IsHover & " button caption:  " & IIf(m_Caption = "", m_PngPath, m_Caption))
+        'WriteToDebugLogFile("        MouseMove m_Enabled: " & m_Enabled & " m_IsHover: " & m_IsHover & " button caption:  " & IIf(m_Caption = "", m_PngName, m_Caption))
         
         ApplyVisualState
-        
-        If Not m_Enabled Then
-            ' if the button is disabled and the mouse hovers over it, then show the disabled mouse pointer
-            SetCursor m_DisabledCursor
-            m_CurrentCursor = m_DisabledCursor
-            Exit Sub
-        Else
-            ' switch the cursor if it is currently set to the disabled version
-            If m_CurrentCursor = m_DisabledCursor Then
-                SetCursor m_DefaultCursor
-                m_CurrentCursor = m_DefaultCursor
-            End If
-        End If
 
         ' If inside and not already hovering, trigger hover
         If Not m_IsHover Then
-            ''WriteToDebugLogFile("     ucCustomButton: MouseMove, set hover to true, currently timer.enabled is " & tmrMouseTracker.Enabled)
+            'WriteToDebugLogFile("     ucCustomButton: MouseMove, set hover to true, currently timer.enabled is " & tmrMouseTracker.Enabled)
             m_IsHover = True
             RaiseEvent MouseEnter
             RequestRedraw
             tmrMouseTracker.Enabled = True
-            ''WriteToDebugLogFile("     ucCustomButton: MouseMove, hover is set to true, enabled timer, button caption:  " & IIf(m_Caption = "", m_PngPath, m_Caption))
+            'WriteToDebugLogFile("     ucCustomButton: MouseMove, hover is set to true, enabled timer, button caption:  " & IIf(m_Caption = "", m_PngName, m_Caption))
         End If
-        
-        ' If Not m_IsHover And tmrMouseTracker.Enabled Then
-        '     ''WriteToDebugLogFile("     ucCustomButton: check for out of hover")
-        '     m_IsHover = False
-        '     m_IsPressed = False
-        '     Refresh
-        '     tmrMouseTracker.Enabled = False
-        ' End If
         
     End Sub
     
@@ -417,20 +396,20 @@ Class ucCustomButton
         If Button = vbLeftButton Then
             m_IsPressed = True
             RequestRedraw
-            ''WriteToDebugLogFile "            ucCustomButton: mousedown - set m_IsPressed to True, called RequestRedraw, caption  " & IIf(m_Caption = "", m_PngPath, m_Caption)
+            ''WriteToDebugLogFile "            ucCustomButton: mousedown - set m_IsPressed to True, called RequestRedraw, caption  " & IIf(m_Caption = "", m_PngName, m_Caption)
         End If
     End Sub
     
     Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
         
-        ''WriteToDebugLogFile "     ucCustomButton: MouseUp caption                           " & IIf(m_Caption = "", m_PngPath, m_Caption)
+        ''WriteToDebugLogFile "     ucCustomButton: MouseUp caption                           " & IIf(m_Caption = "", m_PngName, m_Caption)
         ApplyVisualState
         If Not m_Enabled Then Exit Sub
         
         If Button = vbLeftButton Then
             m_IsPressed = False
             RaiseEvent Click
-            ''WriteToDebugLogFile "          ucCustomButton: MouseUp: set m_IsPressed = False; caption                           " & IIf(m_Caption = "", m_PngPath, m_Caption)
+            ''WriteToDebugLogFile "          ucCustomButton: MouseUp: set m_IsPressed = False; caption                           " & IIf(m_Caption = "", m_PngName, m_Caption)
             RequestRedraw
             FlushRedraws
             tmrMouseTracker.Enabled = True
@@ -444,7 +423,7 @@ Class ucCustomButton
         If Not m_Enabled Then Exit Sub
                 
         If m_IsHover Then
-            ''WriteToDebugLogFile("           ucCustomButton: MouseLeave m_IsHover is true and set to false, caption                  " & IIf(m_Caption = "", m_PngPath, m_Caption))
+            'WriteToDebugLogFile("           ucCustomButton: MouseLeave m_IsHover is true and set to false, caption                  " & IIf(m_Caption = "", m_PngName, m_Caption))
             m_IsHover = False
             m_IsPressed = False
             RequestRedraw
@@ -507,22 +486,58 @@ Class ucCustomButton
             m_PngBitmap = 0
         End If
     
-        If Len(m_PngPath) > 0 And Dir(m_PngPath) <> "" Then
+        If Len(m_PngName) > 0 And Dir(m_PngName) <> "" Then
             Dim result As Long
-            result = GdipCreateBitmapFromFile(StrPtr(m_PngPath), m_PngBitmap)
+            result = GdipCreateBitmapFromFile(StrPtr(m_PngName), m_PngBitmap)
             If result <> 0 Then
                 m_PngBitmap = 0
             End If
         End If
     End Sub
+ 
+    ' Private Sub LoadPngIcon()
         
+    '     If m_PngBitmap <> 0 Then
+    '         GdipDisposeImage m_PngBitmap
+    '         m_PngBitmap = 0
+    '     End If
+
+    '     If Len(m_PngName) = 0 Then Exit Sub
+
+    '     Dim hRes As Long, hGlobal As Long, lpData As Long
+    '     Dim pStream As IUnknown
+    '     Dim result As Long
+
+    '     ' Locate and load the PNG resource
+    '     Dim testName As String = Replace(m_PngName, ".png", "")
+        
+    '     hRes = FindResource(0, StrPtr(testName), StrPtr("PNG"))
+    '     If hRes = 0 Then Exit Sub
+
+    '     hGlobal = LoadResource(0, hRes)
+    '     If hGlobal = 0 Then Exit Sub
+
+    '     lpData = LockResource(hGlobal)
+    '     If lpData = 0 Then Exit Sub
+
+    '     ' Create IStream from memory
+    '     result = CreateStreamOnHGlobal(hGlobal, False, pStream)
+    '     If result <> 0 Then Exit Sub
+
+    '     ' Create GDI+ bitmap from stream
+    '     result = GdipCreateBitmapFromStream(pStream, m_PngBitmap)
+    '     If result <> 0 Then
+    '         m_PngBitmap = 0
+    '     End If
+        
+    ' End Sub
     Private Sub tmrMouseTracker_Timer()
         Dim pt As POINTAPI
         Dim cx As Long, cy As Long
     
         ' using this to fire either the mouseleave or the click event
-        '''WriteToDebugLogFile("            ucCustomButton: tmrMouseTracker_Timer waitToDoClick is " & waitToDoClick & " m_IsHover is " & m_IsHover & " caption                      " & IIf(m_Caption = "", m_PngPath, m_Caption))
-        ''WriteToDebugLogFile("            ucCustomButton: tmrMouseTracker_Timer m_IsHover is " & m_IsHover & " caption                      " & IIf(m_Caption = "", m_PngPath, m_Caption))
+        'WriteToDebugLogFile("            ucCustomButton: tmrMouseTracker_Timer waitToDoClick is " & waitToDoClick & " m_IsHover is " & m_IsHover & " caption                      " & IIf(m_Caption = "", m_PngName, m_Caption))
+        'WriteToDebugLogFile("            ucCustomButton: tmrMouseTracker_Timer m_IsHover is " & m_IsHover & " caption                      " & IIf(m_Caption = "", m_PngName, m_Caption))
         
         ' where is the mouse
         GetCursorPos pt
@@ -532,13 +547,13 @@ Class ucCustomButton
         cx = ScaleWidth \ Screen.TwipsPerPixelX
         cy = ScaleHeight \ Screen.TwipsPerPixelY
     
-        ''WriteToDebugLogFile("            ucCustomButton: coordinates, pt.X=" & pt.X & ", pt.Y=" & pt.Y & ", cx=" & cx & ", cy=" & cy)
+        'WriteToDebugLogFile("            ucCustomButton: coordinates, pt.X=" & pt.X & ", pt.Y=" & pt.Y & ", cx=" & cx & ", cy=" & cy)
         
         ' compare where the mouse is to that of the location of the button
         If pt.X < 0 Or pt.Y < 0 Or pt.X >= cx Or pt.Y >= cy Then
-            ''WriteToDebugLogFile("           ucCustomButton: tmrMouseTracker_Timer m_IsHover is " & m_IsHover & " caption                   " & IIf(m_Caption = "", m_PngPath, m_Caption))
+            'WriteToDebugLogFile("           ucCustomButton: tmrMouseTracker_Timer m_IsHover is " & m_IsHover & " caption                   " & IIf(m_Caption = "", m_PngName, m_Caption))
             If m_IsHover Then
-                ''WriteToDebugLogFile("       ucCustomButton: tmrMouseTracker_Timer set m_IsHover to false, m_IsPressed to false, raise MouseLeave, RequestRedraw, stop timer")
+                'WriteToDebugLogFile("       ucCustomButton: tmrMouseTracker_Timer set m_IsHover to false, m_IsPressed to false, raise MouseLeave, RequestRedraw, stop timer")
                 m_IsHover = False
                 m_IsPressed = False
                 RaiseEvent MouseLeave

@@ -30,8 +30,6 @@ End Type
 
 Private Const GWL_WNDPROC As Long = -4
 
-Public Declare Function InvalidateRect Lib "user32" (ByVal hWnd As Long, ByVal lpRect As Long, ByVal bErase As Long) As Long
-
 Private CallbackOwner As Object
 Public OriginalCanvasProc As Long
 
@@ -49,7 +47,7 @@ Public Sub ApplyRoundedRegion(toWhichControl As Control, borderRadius As Long)
     
     On Error GoTo AddRoundedRegionError
     
-    'WriteToDebugLogFile "   ApplyRoundedRegion: to " & toWhichControl.name
+    ''WriteToDebugLogFile "   ApplyRoundedRegion: to " & toWhichControl.name
         
     Dim ctrl As Object
     Dim ctrlName As String
@@ -91,6 +89,26 @@ AddRoundedRegionError:
     Debug.Print "ApplyRoundedRegion: unable to apply to " & ctrlName & " due to: " & Err.Description
 End Sub
 
+Public Function Canvas_WindowProc(ByVal hwnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+    
+    If uMsg = WM_MOUSEWHEEL Then
+        
+        Dim newPos As Long
+        newPos = GetScrollPos(hwnd, SB_VERT) ' Get current vertical scroll position
+
+        UpdateScrollOwnership hwnd, newPos
+
+        If Not CallbackOwner Is Nothing Then
+            'WriteToDebugLogFile("Canvas_WindowProc: calling HandleMouseScroll in " & CallbackOwner.name)
+            CallByName CallbackOwner, "HandleMouseScroll", vbMethod, wParam
+        End If
+
+        Exit Function
+    End If
+
+    Canvas_WindowProc = CallWindowProc(OriginalCanvasProc, hwnd, uMsg, wParam, lParam)
+End Function
+
 Public Sub DrawShadowBehind(ctrl As Control)
     ' Dim g As StdGraphics
     ' Set g = GetGraphics(ctrl.Parent.hWnd)
@@ -104,8 +122,189 @@ Public Sub DrawShadowBehind(ctrl As Control)
     ' g.Dispose
 End Sub
 
+Public Sub FlushRedraws()
+    
+    If RedrawQueue.Count = 0 Then Exit Sub
+    
+    'WriteToDebugLogFile("     Flushing the Redraws - there are " & RedrawQueue.Count & " requiring attention")
+    
+    Dim req As clsRedrawRequest
+    Dim hWnds As String = "|"    ' holds the handles redraw during this pass
+    Dim now As Double
+    Dim countRedrawItems As Integer = 1
+    Dim reqProcessed As Boolean
+    
+    now = Timer ' Capture current timestamp once for consistency
 
+    For Each req In RedrawQueue
+        ' check that enough times has passed since last redraw, and the handle hasn't been refreshed
+        ' during this loop, refresh it
+        reqProcessed = False
+        If ucDictionary.Exists(req.hWnd) Then
+            If TypeOf ucDictionary(req.hWnd) Is ucCustomButton Then
+                'WriteToDebugLogFile "       FlushRedraws, request #" & countRedrawItems & " is an update for ucCustomButton with caption: " & ucDictionary(req.hWnd).caption
+            Else
+                'WriteToDebugLogFile("       FlushRedraws, request #" & countRedrawItems & " RedrawQueue loop control to redraw: " & ucDictionary(req.hWnd).Name & " tag: " & ucDictionary(req.hWnd).Tag)
+            End If
+        End If
+        
+        If now - req.LastRequested > 0.05 And InStr(hWnds, "|" & req.hWnd & "|") = 0 Then
+            If req.Region <> 0 Then
+                RedrawWindow req.hWnd, ByVal req.Region, 0, RDW_INVALIDATE
+                'RedrawWindow req.hWnd, req.Region, 0, RDW_INVALIDATE
+                'WriteToDebugLogFile "       FlushRedraws: request #" & countRedrawItems & " RedrawWindow called"
+                reqProcessed = True
+            Else
+                InvalidateRect req.hWnd, ByVal 0&, True
+                'WriteToDebugLogFile "       FlushRedraws: request #" & countRedrawItems & " InvalidateRect called"
+                reqProcessed = True
+            End If
+            
+            hWnds = hWnds & CStr(req.hWnd) & "|"
+            
+            ' if this flush is for a custom button, then tell it the redraw via flushredraws is done.
+            If ucDictionary.Exists(req.hWnd) Then
+                On Error Resume Next
+                CallByName ucDictionary(req.hWnd), "FlushRedrawComplete", vbMethod
+                If Err.Number = 0 Then
+                    'WriteToDebugLogFile("       FlushRedraws: request #" & countRedrawItems & " this is a button, so call its FlushRedrawComplete ")
+                Else
+                    'WriteToDebugLogFile("       FlushRedraws: request #" & countRedrawItems & " error# " & Err.Number & " error: " & Err.Description)
+                End If
+                On Error GoTo 0
+            End If
+            
+            req.Processed = reqProcessed
+           
+        Else
+            If ucDictionary.Exists(req.hWnd) Then
+                'WriteToDebugLogFile "       FlushRedraws: If statement failed to run the redraw action for " & IIf(Not ucDictionary(req.hWnd) Is Nothing, ucDictionary(req.hWnd).Name, "[not in ucDictionary]")
+            Else
+                'WriteToDebugLogFile "       FlushRedraws: If statement failed to run the redraw action for handle " & req.hWnd
+            End If
+            
 
+        End If
+        countRedrawItems += 1
+    Next
+    
+    'WriteToDebugLogFile("     FlushRedraws - count is " & CStr(countRedrawItems - 1))  ' back out the very last count at the end of the loop
+
+    ' remove the requests that were successful
+    Dim controlName As String
+    Dim buttonCaption As String
+    
+    'WriteToDebugLogFile "       FlushRedraws: removing processed requests "
+    For countRedrawItems = RedrawQueue.Count To 1 Step -1
+        Set req = RedrawQueue.Item(countRedrawItems)
+        If req.Processed Then
+            buttonCaption = ""
+            controlName = " [not in ucDictionary]"
+            If ucDictionary.Exists(req.hWnd) Then
+                On Error Resume Next
+                controlName = ucDictionary(req.hWnd).Name
+                If TypeOf ucDictionary(req.hWnd) Is ucCustomButton Then buttonCaption = ucDictionary(req.hWnd).caption
+                'Debug.Print "FlushRedraws: remove the requests that were successful for " & controlName & " due to: " & Err.Description
+                On Error GoTo 0
+            End If
+            
+            RedrawQueue.Remove countRedrawItems
+            'WriteToDebugLogFile "       FlushRedraws: removed processed request #" & countRedrawItems & " for " & controlName & IIf(Len(buttonCaption) > 0, " with caption: " & buttonCaption, "")
+        End If
+    Next
+    
+    Form1.tmrCatchUp.Enabled = RedrawQueue.Count > 0    ' if there are items left in the cue, run the timer, else disable it
+
+    'WriteToDebugLogFile "     FlushRedraws - done"
+End Sub
+Public Function GDIPlus_EnsureStarted() As Boolean
+    Dim ret As Long
+    Dim s As GdiplusStartupInput
+
+    If m_started Then
+        m_refCount = m_refCount + 1
+        GDIPlus_EnsureStarted = True
+        Exit Function
+    End If
+
+    ' Fill startup input
+    s.GdiplusVersion = 1
+    s.DebugEventCallback = 0
+    s.SuppressBackgroundThread = 0
+    s.SuppressExternalCodecs = 0
+
+    ' Start GDI+
+    ret = GdiplusStartup(m_gdiToken, s, 0)
+    If ret = 0 Then    ' Ok (Gdiplus::Ok == 0)
+        m_started = True
+        m_refCount = 1
+        GDIPlus_EnsureStarted = True
+    Else
+        ' Failed to initialize GDI+. ret contains the GpStatus code.
+        m_started = False
+        m_refCount = 0
+        GDIPlus_EnsureStarted = False
+    End If
+End Function
+
+Public Sub GDIPlus_ForceShutdown()
+    ' Optional: force shutdown (for debugging). Use with care.
+    If m_started Then
+        On Error Resume Next
+        GdiplusShutdown m_gdiToken
+        m_gdiToken = 0
+        m_refCount = 0
+        m_started = False
+        On Error GoTo 0
+    End If
+End Sub
+
+Public Function GDIPlus_IsStarted() As Boolean
+    ' Call this before any GDI+ calls (controls can call on Create/Init)
+    GDIPlus_IsStarted = m_started
+End Function
+
+Public Sub GDIPlus_Release()
+    ' Call this when a control/form no longer needs GDI+ (e.g., in Terminate/Unload)
+    If Not m_started Then Exit Sub
+
+    If m_refCount > 1 Then
+        m_refCount = m_refCount - 1
+        Exit Sub
+    End If
+
+    ' Last release -> shutdown
+    On Error Resume Next
+    GdiplusShutdown m_gdiToken
+    m_gdiToken = 0
+    m_refCount = 0
+    m_started = False
+    On Error GoTo 0
+End Sub
+
+Public Sub InvalidateLabelRegion(lbl As Label)
+    
+    ' the update of the tB version label lags, this is an attempt 
+    ' at fixing it by finding a region (the lable area) on the form
+    ' and having it updated
+    
+    'WriteToDebugLogFile("InvalidateLabelRegion for '" & lbl.Name & "'")
+    
+    Dim rc As RECT
+    
+    With rc
+        .Left = lbl.Left / Screen.TwipsPerPixelX
+        .Right = (lbl.Left + lbl.Width) / Screen.TwipsPerPixelX
+        .Top = lbl.Top / Screen.TwipsPerPixelY
+        .Bottom = (lbl.Top + lbl.Height) / Screen.TwipsPerPixelY
+    End With
+    
+    InvalidateRect lbl.Parent.hWnd, rc, 1
+    UpdateWindow lbl.Parent.hWnd
+    
+    QueueRedraw(lbl.Parent.hWnd)
+    
+End Sub
 Public Sub UpdateScrollOwnership(ByVal hWnd As LongPtr, ByVal newPos As Long)
         
     If ucDictionary.Exists(hWnd) Then
@@ -145,112 +344,6 @@ Public Sub UpdateScrollOwnership(ByVal hWnd As LongPtr, ByVal newPos As Long)
         'If Err.Number <> 0 Then WriteToDebugLogFile "  *********************** UpdateScrollOwnership error " & Err.Description
 End Sub
 
-Public Function Canvas_WindowProc(ByVal hwnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-    
-    If uMsg = WM_MOUSEWHEEL Then
-        
-        Dim newPos As Long
-        newPos = GetScrollPos(hwnd, SB_VERT) ' Get current vertical scroll position
-
-        UpdateScrollOwnership hwnd, newPos
-
-        If Not CallbackOwner Is Nothing Then
-            'WriteToDebugLogFile("Canvas_WindowProc: calling HandleMouseScroll in " & CallbackOwner.name)
-            CallByName CallbackOwner, "HandleMouseScroll", vbMethod, wParam
-        End If
-
-        Exit Function
-    End If
-
-    Canvas_WindowProc = CallWindowProc(OriginalCanvasProc, hwnd, uMsg, wParam, lParam)
-End Function
-
-' Call this before any GDI+ calls (controls can call on Create/Init)
-Public Function GDIPlus_EnsureStarted() As Boolean
-    Dim ret As Long
-    Dim s As GdiplusStartupInput
-
-    If m_started Then
-        m_refCount = m_refCount + 1
-        GDIPlus_EnsureStarted = True
-        Exit Function
-    End If
-
-    ' Fill startup input
-    s.GdiplusVersion = 1
-    s.DebugEventCallback = 0
-    s.SuppressBackgroundThread = 0
-    s.SuppressExternalCodecs = 0
-
-    ' Start GDI+
-    ret = GdiplusStartup(m_gdiToken, s, 0)
-    If ret = 0 Then    ' Ok (Gdiplus::Ok == 0)
-        m_started = True
-        m_refCount = 1
-        GDIPlus_EnsureStarted = True
-    Else
-        ' Failed to initialize GDI+. ret contains the GpStatus code.
-        m_started = False
-        m_refCount = 0
-        GDIPlus_EnsureStarted = False
-    End If
-End Function
-
-' Call this when a control/form no longer needs GDI+ (e.g., in Terminate/Unload)
-Public Sub GDIPlus_Release()
-    If Not m_started Then Exit Sub
-
-    If m_refCount > 1 Then
-        m_refCount = m_refCount - 1
-        Exit Sub
-    End If
-
-    ' Last release -> shutdown
-    On Error Resume Next
-    GdiplusShutdown m_gdiToken
-    m_gdiToken = 0
-    m_refCount = 0
-    m_started = False
-    On Error GoTo 0
-End Sub
-
-' Optional: force shutdown (for debugging). Use with care.
-Public Sub GDIPlus_ForceShutdown()
-    If m_started Then
-        On Error Resume Next
-        GdiplusShutdown m_gdiToken
-        m_gdiToken = 0
-        m_refCount = 0
-        m_started = False
-        On Error GoTo 0
-    End If
-End Sub
-
-' Query
-Public Function GDIPlus_IsStarted() As Boolean
-    GDIPlus_IsStarted = m_started
-End Function
-
-Private ScrollRegistry As Collection
-
-Public Sub RegisterScrollOwner(hWnd As LongPtr)
-    
-    'WriteToDebugLogFile("RegisterScrollOwner hWnd=" & hWnd)
-
-    If ucDictionary.Exists(hWnd) Then
-        'WriteToDebugLogFile("   RegisterScrollOwner: called from " & ucDictionary(hWnd).Name & " on " & ucDictionary(hWnd).parent.name)
-    End If
-    
-    Dim state As clsScrollRegistry
-    state.hWnd = hWnd
-    state.IsActive = True
-    state.LastScrollPos = 0
-    
-    If ScrollRegistry Is Nothing Then Set ScrollRegistry = New Collection
-    
-    ScrollRegistry.Add state, CStr(hWnd)
-End Sub
-
 Public RedrawQueue As Collection
 
 Public Sub QueueRedraw(hWnd As LongPtr)
@@ -282,92 +375,23 @@ Public Sub QueueRedraw(hWnd As LongPtr)
     
 End Sub
 
-Public Sub FlushRedraws()
-    
-    If RedrawQueue.Count = 0 Then Exit Sub
-    
-    'WriteToDebugLogFile("     Flushing the Redraws - there are " & RedrawQueue.Count & " requiring attention")
-    
-    Dim req As clsRedrawRequest
-    Dim hWnds As String = "|"    ' holds the handles redraw during this pass
-    Dim now As Double
-    Dim countRedrawItems As Integer = 1
-    Dim reqProcessed As Boolean
-    
-    now = Timer ' Capture current timestamp once for consistency
+Private ScrollRegistry As Collection
 
-    For Each req In RedrawQueue
-        ' check that enough times has passed since last redraw, and the handle hasn't been refreshed
-        ' during this loop, refresh it
-        reqProcessed = False
-        If ucDictionary.Exists(req.hWnd) Then
-            If TypeOf ucDictionary(req.hWnd) Is ucCustomButton Then
-                'WriteToDebugLogFile "       FlushRedraws, request #" & countRedrawItems & " is an update for ucCustomButton with caption: " & ucDictionary(req.hWnd).caption
-            Else
-                'WriteToDebugLogFile("       FlushRedraws, request #" & countRedrawItems & " RedrawQueue loop control to redraw: " & ucDictionary(req.hWnd).Name & " tag: " & ucDictionary(req.hWnd).Tag)
-            End If
-        End If
-        
-        If now - req.LastRequested > 0.05 And InStr(hWnds, "|" & req.hWnd & "|") = 0 Then
-            If req.Region <> 0 Then
-                RedrawWindow req.hWnd, req.Region, 0, RDW_INVALIDATE
-                'WriteToDebugLogFile "       FlushRedraws: request #" & countRedrawItems & " RedrawWindow called"
-                reqProcessed = True
-            Else
-                InvalidateRect req.hWnd, ByVal 0&, True
-                'WriteToDebugLogFile "       FlushRedraws: request #" & countRedrawItems & " InvalidateRect called"
-                reqProcessed = True
-            End If
-            
-            hWnds = hWnds & CStr(req.hWnd) & "|"
-            
-            ' if this flush is for a custom button, then tell it the redraw via flushredraws is done.
-            If ucDictionary.Exists(req.hWnd) Then
-                On Error Resume Next
-                CallByName ucDictionary(req.hWnd), "FlushRedrawComplete", vbMethod
-                If Err.Number = 0 Then
-                    'WriteToDebugLogFile("       FlushRedraws: request #" & countRedrawItems & " this is a button, so call its FlushRedrawComplete ")
-                Else
-                    'WriteToDebugLogFile("       FlushRedraws: request #" & countRedrawItems & " error# " & Err.Number & " error: " & Err.Description)
-                End If
-                On Error GoTo 0
-            End If
-            
-            req.Processed = reqProcessed
-           
-        Else
-            'WriteToDebugLogFile "       FlushRedraws: If statement failed to run the redraw action for " & IIf(Not ucDictionary(req.hWnd) Is Nothing, ucDictionary(req.hWnd).Name, "[not in ucDictionary]")
-
-        End If
-        countRedrawItems += 1
-    Next
+Public Sub RegisterScrollOwner(hWnd As LongPtr)
     
-    'WriteToDebugLogFile("     FlushRedraws - count is " & CStr(countRedrawItems - 1))  ' back out the very last count at the end of the loop
+    'WriteToDebugLogFile("RegisterScrollOwner hWnd=" & hWnd)
 
-    ' remove the requests that were successful
-    Dim controlName As String
-    Dim buttonCaption As String
+    If ucDictionary.Exists(hWnd) Then
+        'WriteToDebugLogFile("   RegisterScrollOwner: called from " & ucDictionary(hWnd).Name & " on " & ucDictionary(hWnd).parent.name)
+    End If
     
-    'WriteToDebugLogFile "       FlushRedraws: removing processed requests "
-    For countRedrawItems = RedrawQueue.Count To 1 Step -1
-        Set req = RedrawQueue.Item(countRedrawItems)
-        If req.Processed Then
-            buttonCaption = ""
-            controlName = " [not in ucDictionary]"
-            If ucDictionary.Exists(req.hWnd) Then
-                On Error Resume Next
-                controlName = ucDictionary(req.hWnd).Name
-                If TypeOf ucDictionary(req.hWnd) Is ucCustomButton Then buttonCaption = ucDictionary(req.hWnd).caption
-                Debug.Print "FlushRedraws: remove the requests that were successful for " & controlName & " due to: " & Err.Description
-                On Error GoTo 0
-            End If
-            
-            RedrawQueue.Remove countRedrawItems
-            'WriteToDebugLogFile "       FlushRedraws: removed processed request #" & countRedrawItems & " for " & controlName & IIf(Len(buttonCaption) > 0, " with caption: " & buttonCaption, "")
-        End If
-    Next
+    Dim state As clsScrollRegistry
+    state.hWnd = hWnd
+    state.IsActive = True
+    state.LastScrollPos = 0
     
-    Form1.tmrCatchUp.Enabled = RedrawQueue.Count > 0
-
-    'WriteToDebugLogFile "     FlushRedraws - done"
+    If ScrollRegistry Is Nothing Then Set ScrollRegistry = New Collection
+    
+    ScrollRegistry.Add state, CStr(hWnd)
 End Sub
+

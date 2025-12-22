@@ -64,7 +64,8 @@ Public Sub WriteToDebugLogFile(logFileLine As String)
     
     ' its possible that a user control can call this before the form load event triggers
     If fso Is Nothing Then
-        Debug.Print "No fso object to write this message " & logFileLine
+        'Set fso = New FileSystemObject
+        Debug.Print "fso is nothing: message is " & logFileLine
         Exit Sub
     End If
 
@@ -102,13 +103,12 @@ End Function
 
 ' add your procedures here
 Public tbHelperSettings As clsSettings
-Public tbHelperClass As clstBHelper
 Public fso As FileSystemObject
 Public chgLogs As New colChangeLogItems
 Public githubReleasesURL As String = "https://github.com/twinbasic/twinbasic/releases"
 Public activityLog As ucActivityLog
 
-Public Function GetCurrentTBVersion(tBFolder As String) As String
+Public Function GetTBVersionInFolder(tBFolder As String) As String
 
     'WriteToDebugLogFile("GetCurrentTBVersion " & tBFolder)
     ' attempt to find the version number of twinBasic in use
@@ -118,7 +118,8 @@ Public Function GetCurrentTBVersion(tBFolder As String) As String
     Dim tempString As String
     
     If Not fso.FileExists(fileWithVersionInfo) Then
-        GetCurrentTBVersion = "Not found"
+        'GetCurrentTBVersion = "Not found"
+        GetTBVersionInFolder = 0
         Exit Function
     End If
         
@@ -127,9 +128,8 @@ Public Function GetCurrentTBVersion(tBFolder As String) As String
     
     ' parse the text for the version number
     tempString = Mid(fileContents, InStr(fileContents, versionIndicator))
-    GetCurrentTBVersion = Mid(tempString, Len(versionIndicator) + 1, 4)
-    
-    tbHelperClass.InstalledtBVersion = GetCurrentTBVersion
+    GetTBVersionInFolder = Mid(tempString, Len(versionIndicator) + 1, 4)
+        
     'WriteToDebugLogFile("Exit GetCurrentTBVersion")
     
 End Function
@@ -161,58 +161,14 @@ Public Function GettBParentFolder() As String
         
     ' loop backwards until the second \ is found - which will indicate where
     ' the parent folder for twinBASIC is
-    For idx = Len(tbHelperSettings.twinBASICFolder) To 1 Step -1
-        If Mid(tbHelperSettings.twinBASICFolder, idx, 1) = "\" Then slashCount += 1
+    For idx = Len(tbHelperSettings.twinBASICFolder.Path) To 1 Step -1
+        If Mid(tbHelperSettings.twinBASICFolder.Path, idx, 1) = "\" Then slashCount += 1
         If slashCount = 2 Then Exit For
     Next
         
     ' truncate the value in the textbox holding the install folder, to get the parent folder
-    GettBParentFolder = Left(tbHelperSettings.twinBASICFolder, idx)
+    GettBParentFolder = Left(tbHelperSettings.twinBASICFolder.Path, idx)
         
-End Function
-
-Public Function InstallTwinBasic(tBZipFile As String) As Boolean
-        
-    ' go through the steps of deleting the current files and unziping the new files
-    ' to the folder that has been desgniated
-    'WriteToDebugLogFile("           InstallTwinBasic " & tBZipFile & " - start")
-    Dim result As Boolean
-    
-    On Error GoTo ErrorUnZiping
-    
-    ' delete current files & recreate the folder
-    Dim SHFileOp As SHFILEOPSTRUCT
-    Dim RetVal As Long
-    With SHFileOp
-        .wFunc = FO_DELETE
-        .pFrom = tbHelperSettings.twinBASICFolder
-        .fFlags = FOF_ALLOWUNDO
-    End With
-    RetVal = SHFileOperation(SHFileOp)
-        
-    'unzip to the twinBasic folder
-    With New cZipArchive
-        .OpenArchive tBZipFile
-        .Extract tbHelperSettings.twinBASICFolder
-    End With
-    
-    'DoEvents()
-    ' ************************** this asks for admin rights, the complete zip isn't decompressed 2-24-25
-    ' timing perhaps?
-        
-    ' check to make sure the twinBASIC folder exists after attempted installation
-    result = fso.FolderExists(tbHelperSettings.twinBASICFolder)
-    
-    'WriteToDebugLogFile("           InstallTwinBasic - end")
-    InstallTwinBasic = result
-    
-    Exit Function
-    
-    ErrorUnZiping:
-    InstallTwinBasic = False
-    UpdateActivityLog "Error: " & Err.Description & " during InstalltwinBASIC"
-    'WriteToDebugLogFile "Error: " & Err.Description & " during InstalltwinBASIC"
-    
 End Function
 
 Public Function IsCodeRunningInTheIDE() As Boolean
@@ -230,6 +186,7 @@ End Function
 
 Public Function IsProcessRunning(ByVal ProcessName As String) As Boolean
     
+    ' is twinBASIC running? 
     Dim objWMI As Object, colProcesses As Variant, objProcess As Variant
 
     ' Get the WMI service object
@@ -255,14 +212,14 @@ End Function
 Public Sub UpdateActivityLog(statMessage As String, Optional updatePreviousStatus As Boolean = False)
     
     'WriteToDebugLogFile("In ShowStatusMessage " & statMessage)
-    ' write the message to the listbox on the form
+    ' write the message to the activity log
     If updatePreviousStatus Then
         activityLog.AddEntry "", statMessage, True
     Else
         activityLog.AddEntry Format(Now, "MM/dd/yy hh:mm:ss AM/PM: "), statMessage
     End If
 
-    'WriteToDebugLogFile("Out ShowStatusMessage ")
+   ' WriteToDebugLogFile("Out ShowStatusMessage ")
 End Sub
 
 Private Sub CenterPanel(pnlToCenter As Frame, Optional inObject As Object)
@@ -317,17 +274,17 @@ Public Sub ShowPanelView(innerPanel As Frame, Optional radius As Long = 10)
     ' add icon to the panel
     Set picIcon = Form1.picPanelIcon
     If InStr(innerPanel.Name, "Revert") > 0 Then
-        DisplayPanelIcon App.Path & "\revert panel icon.png", innerPanel
-        
+        DisplayPanelIcon "revert panel icon.png", innerPanel
+    
     ElseIf InStr(innerPanel.Name, "ViewLog") > 0 Then
-        DisplayPanelIcon App.Path & "\logHistorypanel icon.png", innerPanel
+        DisplayPanelIcon "logHistorypanel icon.png", innerPanel
         
     ElseIf InStr(innerPanel.Name, "Folder") > 0 Then
-        DisplayPanelIcon App.Path & "\black_folder_open.ico", innerPanel
+        DisplayPanelIcon "black_folder_open.ico", innerPanel
 
     Else
-        DisplayPanelIcon App.Path & "\messagebox.png", innerPanel
-        
+        DisplayPanelIcon "messagebox.png", innerPanel
+            
     End If
     
     parentPanel.Visible = True
@@ -339,9 +296,10 @@ End Sub
 Private Sub DisplayPanelIcon(iconFileName As String, parentContainer As Frame)
     
     ' stickly for aesthetics - add an icon to the panel
-    'Debug.Print "placing panel icon ar Left: " & (parentContainer.Left + 60) & " and top: " & (parentContainer.Top + 35)
+   'WriteToDebugLogFile "icon requested: " & iconFileName
     
-    picIcon.Picture = LoadPicture(iconFileName)
+    'picIcon.Picture = LoadResPicture("PNG\" & iconFileName, vbResBitmap)
+    picIcon.Picture = LoadPicture(App.Path & "\" & iconFileName)
     picIcon.AutoSize = True
     picIcon.Top = parentContainer.Top + 35
     picIcon.Left = parentContainer.Left + 60
@@ -400,11 +358,13 @@ Sub GetLocalFolders()
 
     Dim pszPath As LongPtr
     If SHGetKnownFolderPath(folderGUID, 0, 0, pszPath) = 0 Then
-        tbHelperSettings.DownloadFolder = SysAllocString(pszPath) & "\"
+        Dim newFolder As clsSettingsFolder
+        newFolder.Path = SysAllocString(pszPath) & "\"
+        tbHelperSettings.DownloadFolder = newFolder
         CoTaskMemFree pszPath
     End If
     
-    tbHelperSettings.twinBASICFolder = GettwinBASICInstallPath()
+    tbHelperSettings.twinBASICFolder.Path = GettwinBASICInstallPath()
     
 End Sub
 
@@ -428,7 +388,7 @@ Function GettwinBASICInstallPath() As String
         result = RegQueryValueEx(hKey, "", 0, lpType, dataBuffer(0), dataSize)
         If result = 0 Then
             
-            regValue = BytesToUnicodeString(dataBuffer) ' get the complete register value
+            regValue = BytesToUnicodeString(dataBuffer) ' get the complete registry value
             regValue = Left(regValue, InStr(UCase(regValue), "TWINBASIC.EXE") - 1) ' to get the path, read up to the exe name
             regValue = Replace(regValue, Chr(34), "") ' remove any extra double quotes in the string
             

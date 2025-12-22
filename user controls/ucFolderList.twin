@@ -12,10 +12,33 @@ Class ucFolderList
     Private m_DPI_Horizontal As Long
     Private m_DPI_Vertical As Long
     Private m_DPIFontSize As Integer
+    Private m_PreviousFolderFound As Boolean = False
+    
     Private Const TEXT_BASE_FONT_SIZE = 9.75
 
     Private Const MAX_FONT_SIZE As Long = 13
     Private Const BASE_DPI = 96
+    
+    Public Property Get PreviousFolderFound() As Boolean
+ 
+        PreviousFolderFound = m_PreviousFolderFound
+
+    End Property
+    
+    Public Function Update() As Boolean
+        
+        On Error GoTo UpdateFailed
+        UserControl.Refresh()
+        
+        Update = True
+        
+        On Error GoTo 0
+        Exit Function
+        
+    UpdateFailed:
+        Update = False
+        
+    End Function
     
     Public Property Get Path() As String
         If Not tvFolders.SelectedItem Is Nothing Then
@@ -58,7 +81,7 @@ Class ucFolderList
 
         ' Assign ImageList to TreeView
         Set tvFolders.ImageList = ilIcons
-
+        
         'ApplyBottomRoundedCorners tvFolders, 4, 4, True         ' Then apply to the tree
 
     End Sub
@@ -175,48 +198,62 @@ Class ucFolderList
         RaiseEvent SelectionChanged(Node.FullPath)
     End Sub
     
-    Private Sub HighlightPreviousFolder(preivousFolder As String)
+    Private Sub HighlightPreviousFolder(previousFolder As String)
         
         Dim arrFolders() As String
         Dim i As Long
         Dim currentNode As Node
         Dim childNode As Node
-        Dim bFound As Boolean
+        Dim nodeFound As Boolean
         
-        arrFolders = Split(preivousFolder, "\")
+        arrFolders = Split(previousFolder, "\")
         
         Set currentNode = Nothing
         For Each childNode In tvFolders.Nodes
-            ' Using LCase$ for a case-insensitive comparison
             If LCase$(childNode.Text) = LCase$(arrFolders(0)) Then
                 Set currentNode = childNode
                 Exit For
             End If
         Next childNode
         
-        If currentNode Is Nothing Then Exit Sub
-
-        bFound = False
-        For i = 1 To UBound(arrFolders)
-            
-            ' Search the children of the currentNode for the next folder in the path
+        If currentNode Is Nothing Then
+            ' if the previous path first node isn't found 
+            ' default to the root folder
+            Set currentNode = tvFolders.Nodes(1)
+            Exit Sub
+        End If
+        
+        nodeFound = True ' assume root is found
+        For i = 1 To UBound(arrFolders) - 1
             Set childNode = FindChildNode(currentNode, arrFolders(i))
-            
-            ' If a folder segment was found, set the next parent to search
             If Not childNode Is Nothing Then
+                currentNode.Expanded = True
                 Set currentNode = childNode
-                'currentNode.Expanded = True
-                bFound = True
+            Else
+                nodeFound = False
                 Exit For
             End If
         Next i
         
-        If bFound Then
-            ' if the folder name was found, highlight it in the treeview
-            currentNode.Selected = True
-            currentNode.EnsureVisible
-            tvFolders.SetFocus()
+        m_PreviousFolderFound = nodeFound
+        
+        If nodeFound Then
+            currentNode.EnsureVisible()
+            Set tvFolders.SelectedItem = currentNode
+            
+            With tvFolders
+                .SelectedItem.Expanded = True
+                .HideSelection = False
+                .Refresh()
+                .SetFocus()
+            End With
+            
+            DoEvents()
+        Else
+            Set tvFolders.SelectedItem = tvFolders.Nodes(1)
         End If
+            
+        QueueRedraw(UserControl.hWnd)
         
     End Sub
     

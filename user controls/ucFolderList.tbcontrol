@@ -36,8 +36,7 @@
 		"Height": 239,
 		"HitBehavior": "vbHitTestUseRegion",
 		"Index": -1,
-		"InternalScaleHeightFull": 3585,
-		"InternalScaleWidthFull": 4005,
+		"InternalIgnoreSetExtent": false,
 		"InvisibleAtRuntime": false,
 		"KeyPreview": false,
 		"Left": 0,
@@ -52,6 +51,7 @@
 		"Picture": "",
 		"PictureDpiScaling": false,
 		"PreKeyEvents": false,
+		"PropertyPages": [],
 		"Public": true,
 		"RightToLeft": false,
 		"ScaleHeight": 3585,
@@ -62,6 +62,7 @@
 		"Tag": null,
 		"ToolboxBitmap": "",
 		"Top": 0,
+		"Verbs": [],
 		"Width": 267,
 		"Windowless": false,
 		"__IDEOptions": {
@@ -73,7 +74,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 1602321197,
+		"__lastUpdateMarker": 12412083,
 		"_children": [
 			{
 				"Anchors": {
@@ -99,7 +100,7 @@
 				"FontUnderline": false,
 				"FullRowSelect": false,
 				"Height": 156,
-				"HideSelection": true,
+				"HideSelection": false,
 				"HotTracking": true,
 				"ImageList": null,
 				"Indentation": 20,

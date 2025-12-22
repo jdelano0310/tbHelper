@@ -9,11 +9,19 @@ Class ucRoundedTextbox
 	Sub New()
 	End Sub
     
+    Private Const FolderErrorColor As OLE_COLOR = rgb(255, 255, 224)
+    
     Private m_BackColor As OLE_COLOR
     Private m_BorderColor As OLE_COLOR
     Private m_BorderRadius As Long
     Private m_BorderWidth As Long
+    Private m_IsValidView As Boolean
+    
     Private hWnd As LongPtr
+    
+    Public Property Get IsViewValid() As Boolean
+        IsViewValid = m_IsValidView
+    End Property
     
     Public Property Let BackColor(ByVal value As OLE_COLOR)
         m_BackColor = value
@@ -26,19 +34,16 @@ Class ucRoundedTextbox
     
     Public Property Let BorderColor(ByVal Value As OLE_COLOR)
         m_BorderColor = Value
-        'Refresh
         ApplyRoundedRegion
     End Property
 
     Public Property Let BorderRadius(ByVal Value As Long)
         m_BorderRadius = Value
-        'Refresh
         ApplyRoundedRegion
     End Property
 
     Public Property Let BorderWidth(ByVal Value As Long)
         m_BorderWidth = Value
-        'Refresh
         ApplyRoundedRegion
     End Property
     
@@ -57,6 +62,26 @@ Class ucRoundedTextbox
     Public Property Set Font(ByVal Value As StdFont)
         Set txtInput.Font = Value
     End Property
+    
+    Public Sub SetValidView(isValid As Boolean, OptionalToolTipMessage As String = "")
+        
+        ' color the control to indicate that something is wrong
+        
+        m_IsValidView = isValid
+        
+        'WriteToDebugLogFile("roundedtextbox - SetValidView to " & isValid)
+        If Not isValid Then
+            txtInput.BackColor = FolderErrorColor
+            UserControl.BackColor = FolderErrorColor
+            txtInput.ToolTipText = OptionalToolTipMessage
+        Else
+            txtInput.BackColor = vbWhite
+            UserControl.BackColor = vbWhite
+            txtInput.ToolTipText = ""
+        End If
+        QueueRedraw(hWnd)
+        
+    End Sub
     
     Private Sub ApplyRoundedRegion()
         

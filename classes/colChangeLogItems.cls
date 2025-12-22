@@ -203,14 +203,12 @@ Private Function GetChangeLogUL(versionGAP As Integer) As Boolean
     
 End Function
 
-Public Function GetNewerReleasedVersions(Optional isDuringFormLoad As Boolean = False) As Boolean
+Public Function GetNewerReleasedVersions(folderVersion As Integer, Optional isDuringFormLoad As Boolean = False) As Boolean
     
     ' go to the url https://github.com/twinbasic/twinbasic/releases
     ' extract the newest version available and it's release notes
     
     GetNewerReleasedVersions = False
-    
-    If tbHelperClass.InstalledtBVersion = 0 Then Exit Function
     
     If fso.FileExists(App.Path & "\GitHubReleasesPage.html") Then
         ' if this exists, debugging is happening
@@ -235,7 +233,7 @@ Public Function GetNewerReleasedVersions(Optional isDuringFormLoad As Boolean = 
     
     _latestVersion = CInt(latesttBVersion)
     
-    If CInt(latesttBVersion) <= tbHelperClass.InstalledtBVersion Then
+    If CInt(latesttBVersion) <= folderVersion Then
         _versionCheckResult = "Latest version already installed"
         
         ' why treat the form load, look for a new version, different from clicking the button?
@@ -249,7 +247,7 @@ Public Function GetNewerReleasedVersions(Optional isDuringFormLoad As Boolean = 
         Exit Function
     Else
         ' how many versions have been released since the current installed version
-        _tBVersionGap = CInt(latesttBVersion) - tbHelperClass.InstalledtBVersion
+        _tBVersionGap = CInt(latesttBVersion) - folderVersion
     End If
     
     On Error Resume Next
