@@ -1,4 +1,4 @@
-Project has moved to RC1 as of 12-22-2025; te screenshots are still relavant as nothing visible has changed. 
+Project has moved to RC2 as of 2-17-2026; which now allows using the embedded png and ico files instead of needing the disk files (these are still needed when working with the project in the twinBASIC IDE however)
 
 Just a few updated screenshots as of 10-17-25:
 
