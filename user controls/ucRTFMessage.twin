@@ -29,6 +29,7 @@ Class ucRTFMessage
     Private m_Message As String
     Private m_BackColor As OLE_COLOR     ' to be introduced after main functions are working
     Private m_StyleSegment As StyledSegment
+    
     Private m_DPIFontSize As Integer
     Private m_DPI_Horizontal As Long
     Private m_DPI_Vertical As Long
@@ -85,19 +86,12 @@ Class ucRTFMessage
     
     Private Sub UserControl_Initialize()
         
-        Dim dpiX As Long
-        Dim dpiY As Long
-        
         ' Get the horizontal and vertical DPI values
-        dpiX = GetDeviceCaps(hDC, LOGPIXELSX)
-        dpiY = GetDeviceCaps(hDC, LOGPIXELSY)
+        m_DPI_Horizontal = GetDeviceCaps(hDC, LOGPIXELSX)
+        m_DPI_Vertical = GetDeviceCaps(hDC, LOGPIXELSY)
 
-        ' Display the DPI values
-        m_DPI_Horizontal = dpiX
-        m_DPI_Vertical = dpiY
-        
         m_BackColor = RGB(240, 240, 240)
-        m_DPIFontSize = DEF_FONT_SIZE * (dpiX / BASE_DPI)
+        m_DPIFontSize = DEF_FONT_SIZE * (m_DPI_Horizontal / BASE_DPI)
         If m_DPIFontSize > MAX_FONT_SIZE Then m_DPIFontSize = MAX_FONT_SIZE
         
         ' Create canvas for the change log items
@@ -149,7 +143,11 @@ Class ucRTFMessage
         
             m_Canvas.Width = UserControl.ScaleWidth - 25
             m_Canvas.Height = UserControl.ScaleHeight - 25
-        
+            
+            ' the size that the control requires should be available to the calling code
+            m_RequiredWidth = m_Canvas.Width
+            m_RequiredHeight = m_Canvas.Height
+            
             'm_Canvas.Refresh()
             DrawMessage
         End If

@@ -3,8 +3,8 @@
 [PredeclaredId]
 Class Form1
     Dim loadingSettingsFromFile As Boolean
-    Dim downloadIcon As String
-    Dim checkForNewIcon As String
+    'Dim downloadIcon As String
+    'Dim checkForNewIcon As String
     Dim activeTypeFilters As Scripting.Dictionary
     Dim buttonCaption As String = vbNullChar
     Dim revertGetGitHubVersionsClicked As Boolean
@@ -41,10 +41,19 @@ Class Form1
         Set fso = New FileSystemObject
         If fso.FileExists(App.Path & "\debug_log.txt") Then fso.DeleteFile(App.Path & "\debug_log.txt") ' start with fresh debug file        
         
-        downloadIcon = App.Path & "\download.png"
-        checkForNewIcon = App.Path & "\binoculars.png"
+        ' populates the image type resources needed by the app depending on running in the IDE or as EXE
+        LoadImages()
         
-        Me.Caption = "tBHelper (RC1 12-22-25)"
+        WriteToDebugLogFile " Main form load: asking for resFolderClosed (" & resFolderClosed & ") and resFolderOpen (" & resFolderOpen & ")"
+        
+        Set FolderList.FolderClosedIcon = GetImageStd(resFolderClosed)
+        Set FolderList.FolderOpenIcon = GetImageStd(resFolderOpen)
+               
+        Me.Caption = "tBHelper (RC2 Feb 2026)"
+        
+        'EnumerateAllResources
+        
+        'Exit Sub
         
         'WriteToDebugLogFile "Form load"
         
@@ -163,7 +172,7 @@ Class Form1
         Set activeTypeFilters = Nothing
         
         'WriteToDebugLogFile "form1 closed"
-        'WriteToDebugLogFile "CLOSE" ' this tells the procedure to close the debug log file 
+        WriteToDebugLogFile "CLOSE" ' this tells the procedure to close the debug log file 
         
         Set fso = Nothing
         
@@ -191,7 +200,8 @@ Class Form1
                 UpdateActivityLog "Version " & chgLogs.LatestVersion & " is available"
                 'WriteToDebugLogFile "  btnDownload Click set btnDownload caption and icon "
                 btnDownload.Caption = "Download version " & chgLogs.LatestVersion
-                btnDownload.PngIconPath = downloadIcon
+                'btnDownload.PngIconPath = downloadIcon
+                btnDownload.ButtonImagePtr = GetImagePtr(resDownload)
                 
             End If
         
@@ -611,7 +621,9 @@ Class Form1
         If chgLogs.tBVersionGap > 0 Then
             ' there is at least 1 new version available
             btnDownload.Caption = "Download version " & chgLogs.LatestVersion
-            btnDownload.PngIconPath = downloadIcon
+            'btnDownload.PngIconPath = downloadIcon
+            btnDownload.ButtonImagePtr = GetImagePtr(resDownload)
+            
             FilltBChangeLog()
             UpdateActivityLog "Newest version available is " & chgLogs.LatestVersion
         Else
@@ -773,29 +785,33 @@ Class Form1
             
         buttonCaption = ""
         
-        ' Load icon based on type
-        ' Select Case LCase$(msgType)
-        '     Case "info": picIcon.Picture = LoadResPicture("PNG\info.png", vbResBitmap)
-        '     Case "warning": picIcon.Picture = LoadResPicture("PNG\warning.png", vbResBitmap)
-        '     Case "error": picIcon.Picture = LoadResPicture("PNG\error.png", vbResBitmap)
-        '     Case "success": picIcon.Picture = LoadResPicture("PNG\success.png", vbResBitmap)
-        '     Case "question": picIcon.Picture = LoadResPicture("PNG\question.png", vbResBitmap)
-        ' End Select
+        'Load icon based On type
         Select Case LCase$(msgType)
-            Case "info": picIcon.Picture = LoadPicture(App.Path & "\info.png")
-            Case "warning": picIcon.Picture = LoadPicture(App.Path & "\warning.png")
-            Case "error": picIcon.Picture = LoadPicture(App.Path & "\error.png")
-            Case "success": picIcon.Picture = LoadPicture(App.Path & "\success.png")
-            Case "question": picIcon.Picture = LoadPicture(App.Path & "\question.png")
+            Case "info": picIcon.Picture = GetImageStd(resInfo)
+            Case "warning": picIcon.Picture = GetImageStd(resWarning)
+            Case "error": picIcon.Picture = GetImageStd(resError)
+            Case "success": picIcon.Picture = GetImageStd(resSuccess)
+            Case "question": picIcon.Picture = GetImageStd(resQuestion)
         End Select
+        ' Select Case LCase$(msgType)
+        '     Case "info": picIcon.Picture = LoadPicture(App.Path & "\info.png")
+        '     Case "warning": picIcon.Picture = LoadPicture(App.Path & "\warning.png")
+        '     Case "error": picIcon.Picture = LoadPicture(App.Path & "\error.png")
+        '     Case "success": picIcon.Picture = LoadPicture(App.Path & "\success.png")
+        '     Case "question": picIcon.Picture = LoadPicture(App.Path & "\question.png")
+        ' End Select
         
         'WriteToDebugLogFile("MessageBox called msgTitle: " & msgTitle)
         
         ' setup the buttons to answer the message box   
-        ConfigureCustomButton btnNum1, btn1Caption, CUST_BTN_BCOLOR, vbWhite, "", 20, True, True
-        ConfigureCustomButton btnNum2, btn2Caption, CUST_BTN_BCOLOR, vbWhite, "", 20, btn2Caption <> vbNullString, True
-        ConfigureCustomButton btnNum3, btn3Caption, CUST_BTN_BCOLOR, vbWhite, "", 20, btn3Caption <> vbNullString, True
+        ' ConfigureCustomButton btnNum1, btn1Caption, CUST_BTN_BCOLOR, vbWhite, "", 20, True, True
+        ' ConfigureCustomButton btnNum2, btn2Caption, CUST_BTN_BCOLOR, vbWhite, "", 20, btn2Caption <> vbNullString, True
+        ' ConfigureCustomButton btnNum3, btn3Caption, CUST_BTN_BCOLOR, vbWhite, "", 20, btn3Caption <> vbNullString, True
         
+        ConfigureCustomButton btnNum1, btn1Caption, CUST_BTN_BCOLOR, vbWhite, resNone, 20, True, True
+        ConfigureCustomButton btnNum2, btn2Caption, CUST_BTN_BCOLOR, vbWhite, resNone, 20, btn2Caption <> vbNullString, True
+        ConfigureCustomButton btnNum3, btn3Caption, CUST_BTN_BCOLOR, vbWhite, resNone, 20, btn3Caption <> vbNullString, True
+                        
         btnNum2.Visible = btn2Caption <> vbNullString
         btnNum3.Visible = btn3Caption <> vbNullString
         lblMessageTitle.Caption = msgTitle
@@ -999,7 +1015,8 @@ Class Form1
     
     Private Sub SetDownloadButtonToCheckForVersion()
         btnDownload.Caption = CheckForVersion
-        btnDownload.PngIconPath = checkForNewIcon
+        'btnDownload.PngIconPath = checkForNewIcon
+        btnDownload.ButtonImagePtr = GetImagePtr(resBinoculars)
     End Sub
     
     Private Sub SetInitialTypeFilters()
@@ -1016,11 +1033,9 @@ Class Form1
             For Each ctrl In Me.Controls
                 If UCase(ctrl.name) = tfName Then
                     WriteToDebugLogFile ctrl.name & " enabled and activated via SetInitialTypeFilters"
-                    'ctrl.active = True
                     ctrl.enabled = True
                     
                 End If
-                'DoEvents()
             Next
         Next
         
@@ -1031,11 +1046,17 @@ Class Form1
     Private Sub SetupCustomButtons()
         
         'setup the custom button user controls on the form
-        ConfigureCustomButton btnDownload, "", CUST_BTN_BCOLOR, vbWhite, "", 20, True, False
-        ConfigureCustomButton btnSelectDownloadFolder, "", CUST_BTN_BCOLOR, vbWhite, App.Path & "\folder.png", 20, True, False
-        ConfigureCustomButton btnSelecttBFolderLocation, "", CUST_BTN_BCOLOR, vbWhite, App.Path & "\folder.png", 20, True, False
-        ConfigureCustomButton btnViewLogHistory, "View Log History", CUST_BTN_BCOLOR, vbWhite, App.Path & "\logHistory.png", 20, True, False
-        ConfigureCustomButton btnShowRevertView, "Revert", CUST_BTN_BCOLOR, vbWhite, App.Path & "\revert.png", 20, True, False
+        ' ConfigureCustomButton btnDownload, "", CUST_BTN_BCOLOR, vbWhite, "", 20, True, False
+        ' ConfigureCustomButton btnSelectDownloadFolder, "", CUST_BTN_BCOLOR, vbWhite, App.Path & "\folder.png", 20, True, False
+        ' ConfigureCustomButton btnSelecttBFolderLocation, "", CUST_BTN_BCOLOR, vbWhite, App.Path & "\folder.png", 20, True, False
+        ' ConfigureCustomButton btnViewLogHistory, "View Log History", CUST_BTN_BCOLOR, vbWhite, App.Path & "\logHistory.png", 20, True, False
+        ' ConfigureCustomButton btnShowRevertView, "Revert", CUST_BTN_BCOLOR, vbWhite, App.Path & "\revert.png", 20, True, False
+        
+        ConfigureCustomButton btnDownload, "", CUST_BTN_BCOLOR, vbWhite, resNone, 20, True, False
+        ConfigureCustomButton btnSelectDownloadFolder, "", CUST_BTN_BCOLOR, vbWhite, resFolder, 20, True, False
+        ConfigureCustomButton btnSelecttBFolderLocation, "", CUST_BTN_BCOLOR, vbWhite, resFolder, 20, True, False
+        ConfigureCustomButton btnViewLogHistory, "View Log History", CUST_BTN_BCOLOR, vbWhite, resLogHistory, 20, True, False
+        ConfigureCustomButton btnShowRevertView, "Revert", CUST_BTN_BCOLOR, vbWhite, resRevert, 20, True, False
          
     End Sub
         
@@ -1794,7 +1815,7 @@ Class Form1
             '.HoverColor = RGB(18, 40, 234) ' Darker blue
             .BorderRadius = 3
             .FontBold = False
-            .PngIconPath = ""
+            .ButtonImagePtr = 0
             .IconSize = 0
             .IconSpacing = 0
             .Enabled = True
@@ -1808,7 +1829,7 @@ Class Form1
             '.HoverColor = RGB(37, 99, 235)
             .BorderRadius = 3
             .FontBold = False
-            .PngIconPath = ""
+            .ButtonImagePtr = 0
             .IconSize = 0
             .IconSpacing = 0
             .Enabled = True

@@ -75,25 +75,19 @@ Class ucActivityLog
     
     Private Sub CalculateDPIValues()
         Dim hdc As Long
-        Dim dpiX As Long
-        Dim dpiY As Long
         Dim scaleFactor As Single
 
         ' Get the device context (DC) for the screen
         hdc = GetDC(0)
 
         ' Get the horizontal and vertical DPI values
-        dpiX = GetDeviceCaps(hdc, LOGPIXELSX)
-        dpiY = GetDeviceCaps(hdc, LOGPIXELSY)
+        m_DPI_Horizontal = GetDeviceCaps(hdc, LOGPIXELSX)
+        m_DPI_Vertical = GetDeviceCaps(hdc, LOGPIXELSY)
 
         ' Release the device context
         ReleaseDC 0, hdc
 
-        ' Store DPI values
-        m_DPI_Horizontal = dpiX
-        m_DPI_Vertical = dpiY
-
-        Select Case dpiX
+        Select Case m_DPI_Horizontal
             Case Is < 120: m_DPIFontSize = 10
             Case 120 To 144: m_DPIFontSize = 11
             Case 145 To 192: m_DPIFontSize = 12

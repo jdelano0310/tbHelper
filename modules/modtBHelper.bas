@@ -32,7 +32,7 @@ ByVal lpFile As String, ByVal lpParameters As String, ByVal lpDirectory As Strin
 Public SW_HIDE As Integer = 0
 
 Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As String, bkColor As OLE_COLOR, frColor As OLE_COLOR, _
-    pngImagePath As String, iconSize As Integer, startEnabled As Boolean, boldFont As Boolean, _
+    resID As ResourceID, iconSize As Integer, startEnabled As Boolean, boldFont As Boolean, _
     Optional borderColor As OLE_COLOR = 0, Optional borderWidth As Integer = 0)
     
     'WriteToDebugLogFile "       ConfigureCustomButton identifier " & IIf(buttonCaption = "", pngImagePath, buttonCaption)
@@ -51,7 +51,8 @@ Public Sub ConfigureCustomButton(theButton As ucCustomButton, buttonCaption As S
         .FontSize = 11
         .BorderRadius = 3 * dpiScale
         .FontBold = boldFont
-        .PngIconPath = pngImagePath
+        '.PngIconPath = pngImagePath
+        .ButtonImagePtr = GetImagePtr(resID)
         .IconSize = iconSize * dpiScale
         .IconSpacing = 8 * dpiScale
         .Enabled = startEnabled
@@ -266,6 +267,15 @@ Public Sub ShowPanelView(innerPanel As Frame, Optional radius As Long = 10)
     parentPanel.Width = innerPanel.Width + 90
     parentPanel.Height = innerPanel.Height + 100
     
+    Debug.Print "Current height/width values: " & parentPanel.Height & " / " & parentPanel.Width
+    
+    ' make sure the outside panel has enough room for the inner panel DPI
+    'parentPanel.Width = (innerPanel.Width * Screen.TwipsPerPixelX) + (90 * Screen.TwipsPerPixelX)
+    'parentPanel.Height = (innerPanel.Height * Screen.TwipsPerPixelY) + (100 * Screen.TwipsPerPixelY)
+    
+    Debug.Print "width calc: " & (innerPanel.Width * Screen.TwipsPerPixelX) + (90 * Screen.TwipsPerPixelX)
+    Debug.Print "height calc: " & (innerPanel.Height * Screen.TwipsPerPixelY) + (100 * Screen.TwipsPerPixelY)
+        
     ApplyRoundedRegion innerPanel, 12
     
     CenterPanel parentPanel                ' center the parent of the inner panel in the mail form
@@ -273,34 +283,49 @@ Public Sub ShowPanelView(innerPanel As Frame, Optional radius As Long = 10)
     
     ' add icon to the panel
     Set picIcon = Form1.picPanelIcon
+    ' If InStr(innerPanel.Name, "Revert") > 0 Then
+    '     DisplayPanelIcon "revert panel icon.png", innerPanel
+    
+    ' ElseIf InStr(innerPanel.Name, "ViewLog") > 0 Then
+    '     DisplayPanelIcon "logHistorypanel icon.png", innerPanel
+        
+    ' ElseIf InStr(innerPanel.Name, "Folder") > 0 Then
+    '     DisplayPanelIcon "black_folder_open.ico", innerPanel
+
+    ' Else
+    '     DisplayPanelIcon "messagebox.png", innerPanel
+            
+    ' End If
+    
     If InStr(innerPanel.Name, "Revert") > 0 Then
-        DisplayPanelIcon "revert panel icon.png", innerPanel
+        DisplayPanelIcon resRevertPanelIcon, innerPanel
     
     ElseIf InStr(innerPanel.Name, "ViewLog") > 0 Then
-        DisplayPanelIcon "logHistorypanel icon.png", innerPanel
+        DisplayPanelIcon resLogHistoryPanelIcon, innerPanel
         
     ElseIf InStr(innerPanel.Name, "Folder") > 0 Then
-        DisplayPanelIcon "black_folder_open.ico", innerPanel
+        DisplayPanelIcon resBlackFolder, innerPanel
 
     Else
-        DisplayPanelIcon "messagebox.png", innerPanel
+        DisplayPanelIcon resMessageBox, innerPanel
             
     End If
-    
+        
     parentPanel.Visible = True
     parentPanel.ZOrder 0
 
     Form1.isAPanelDisplayed = True
 End Sub
 
-Private Sub DisplayPanelIcon(iconFileName As String, parentContainer As Frame)
+Private Sub DisplayPanelIcon(iconResourceID As ResourceID, parentContainer As Frame)
     
     ' stickly for aesthetics - add an icon to the panel
    'WriteToDebugLogFile "icon requested: " & iconFileName
     
-    'picIcon.Picture = LoadResPicture("PNG\" & iconFileName, vbResBitmap)
-    picIcon.Picture = LoadPicture(App.Path & "\" & iconFileName)
+    'picIcon.Picture = LoadPicture(App.Path & "\" & iconFileName)
+    picIcon.Picture = GetImageStd(iconResourceID)
     picIcon.AutoSize = True
+    'picIcon.Width = picIcon.Picture.Width * Screen.TwipsPerPixelX  ' use DPI to set the icon size
     picIcon.Top = parentContainer.Top + 35
     picIcon.Left = parentContainer.Left + 60
     picIcon.PictureDpiScaling = True
